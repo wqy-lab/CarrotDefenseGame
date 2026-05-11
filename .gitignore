@@ -1,0 +1,37 @@
+# Build output
+build/
+out/
+
+# Build scripts (auto-generated)
+*.bat
+
+# IDE / Editor
+.vscode/
+.idea/
+*.user
+*.autosave
+*.swp
+*~
+
+# Qt
+.qmake.stash
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+Makefile
+Makefile.*
+
+# CMake
+CMakeUserPresets.json
+
+# OS
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# Compiled objects
+*.obj
+*.o
+*.moc
+*.res
+.worktrees/

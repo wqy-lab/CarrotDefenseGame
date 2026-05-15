@@ -1,13 +1,14 @@
 #include "canntower.h"
+#include "../config/datamanager.h"
 
 CannonTower::CannonTower(int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : RemoteTower(TowerType::Cannon, gridX, gridY, cellSize, offsetX, offsetY)
 {
-    m_stats = { 80, 40.0, 2.5, 1.5, 0.8, 1.0, 0, 0, 0, 0, QColor(255, 152, 0) };
+    m_stats = DataManager::instance().getTowerStats(TowerType::Cannon);
 }
 
 TowerStats CannonTower::getStats() const {
-    return { 80, 40.0, 2.5, 1.5, 0.8, 1.0, 0, 0, 0, 0, QColor(255, 152, 0) };
+    return DataManager::instance().getTowerStats(TowerType::Cannon);
 }
 
 void CannonTower::drawBody(QPainter& p, const QPointF& center, double r) const {

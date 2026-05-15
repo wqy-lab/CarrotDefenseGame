@@ -1,11 +1,26 @@
 #include <QApplication>
+#include <QDebug>
 #include "ui/mainwindow.h"
+#include "game/config/datamanager.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     app.setApplicationName("CarrotDefense");
     app.setApplicationVersion("1.0");
+
+    // Load shared unit data (towers + enemies)
+    if (!DataManager::instance().loadShared("config/shared.json"))
+    {
+        qCritical() << "Failed to load config/shared.json";
+        return 1;
+    }
+    // Load level data (map + waves + settings)
+    if (!DataManager::instance().loadLevel("config/levels/level1.json"))
+    {
+        qCritical() << "Failed to load config/levels/level1.json";
+        return 1;
+    }
 
     // Dark theme style
     app.setStyleSheet(

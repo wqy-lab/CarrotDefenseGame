@@ -1,10 +1,11 @@
 #include "swarmenemy.h"
+#include "../config/datamanager.h"
 
 SwarmEnemy::SwarmEnemy(const std::vector<QPointF>& path)
-    : Enemy(path, {15.0, 120.0, 3, 1, QColor(255, 200, 50), 6}) {}
+    : Enemy(path, DataManager::instance().getEnemyStats(EnemyType::Swarm)) {}
 
 EnemyStats SwarmEnemy::getStats() const {
-    return {15.0, 120.0, 3, 1, QColor(255, 200, 50), 6};
+    return DataManager::instance().getEnemyStats(EnemyType::Swarm);
 }
 
 void SwarmEnemy::drawBody(QPainter& p, const QPointF& center, int r) const {

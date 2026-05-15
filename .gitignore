@@ -13,16 +13,22 @@ out/
 *.swp
 *~
 
-# Qt
+# Qt Creator
 .qmake.stash
 moc_*.cpp
 ui_*.h
 qrc_*.cpp
 Makefile
 Makefile.*
+.qtcreator/qtc-cmake-presets-*/
 
 # CMake
 CMakeUserPresets.json
+
+# Tooling
+.opencode/
+.sisyphus/
+AGENTS.md
 
 # OS
 Thumbs.db

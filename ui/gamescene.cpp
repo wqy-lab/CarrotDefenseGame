@@ -2,6 +2,7 @@
 #include "../game/enemies/enemyfactory.h"
 #include "../game/towers/towerfactory.h"
 #include "../game/bullets/bulletfactory.h"
+#include "../game/config/datamanager.h"
 #include <QPainterPath>
 #include <QtMath>
 #include <algorithm>
@@ -28,51 +29,30 @@ GameScene::GameScene(QWidget* parent)
     setMinimumSize(600, 450);
     setFocusPolicy(Qt::StrongFocus);
 
-    initPath();
+    initMap(DataManager::instance().mapData());
 
     connect(m_gameTimer, &QTimer::timeout, this, &GameScene::gameLoop);
 }
 
-void GameScene::initPath()
+void GameScene::initMap(const MapData& map)
 {
-    // Clear
-    m_isPath.assign(GRID_ROWS, std::vector<bool>(GRID_COLS, false));
+    m_gridCols = map.gridCols;
+    m_gridRows = map.gridRows;
+    m_startX   = map.startX;
+    m_startY   = map.startY;
+    m_endX     = map.endX;
+    m_endY     = map.endY;
+
+    m_isPath.assign(m_gridRows, std::vector<bool>(m_gridCols, false));
     m_pathSet.clear();
     m_waypoints.clear();
 
-    // Define winding path as grid coords (snake through map)
-    // Segment 1: right along row 6
-    for (int x = 0; x <= 3; x++)  { m_pathSet.insert({x, 6}); }
-    // Segment 2: up along col 3 to row 2
-    for (int y = 6; y >= 2; y--)  { m_pathSet.insert({3, y}); }
-    // Segment 3: right along row 2
-    for (int x = 4; x <= 6; x++)  { m_pathSet.insert({x, 2}); }
-    // Segment 4: down along col 6 to row 9
-    for (int y = 3; y <= 9; y++)  { m_pathSet.insert({6, y}); }
-    // Segment 5: right along row 9
-    for (int x = 7; x <= 10; x++) { m_pathSet.insert({x, 9}); }
-    // Segment 6: up along col 10 to row 4
-    for (int y = 9; y >= 4; y--)  { m_pathSet.insert({10, y}); }
-    // Segment 7: right along row 4
-    for (int x = 11; x <= 14; x++) { m_pathSet.insert({x, 4}); }
-    // Segment 8: down to end at (14,6)
-    for (int y = 5; y <= 6; y++)  { m_pathSet.insert({14, y}); }
-
-    // Mark grid
-    for (auto& p : m_pathSet) {
-        m_isPath[p.second][p.first] = true;
+    for (const QPoint& p : map.pathCells)
+    {
+        m_pathSet.insert({p.x(), p.y()});
+        m_isPath[p.y()][p.x()] = true;
+        m_waypoints.push_back(gridToPixel(p.x(), p.y()));
     }
-
-    // Pre-compute pixel waypoints for enemies (ordered path traversal)
-    // Rebuild in order:
-    for (int x = 0; x <= 3; x++)  m_waypoints.push_back(gridToPixel(x, 6));
-    for (int y = 5; y >= 2; y--)  m_waypoints.push_back(gridToPixel(3, y));
-    for (int x = 4; x <= 6; x++)  m_waypoints.push_back(gridToPixel(x, 2));
-    for (int y = 3; y <= 9; y++)  m_waypoints.push_back(gridToPixel(6, y));
-    for (int x = 7; x <= 10; x++) m_waypoints.push_back(gridToPixel(x, 9));
-    for (int y = 8; y >= 4; y--)  m_waypoints.push_back(gridToPixel(10, y));
-    for (int x = 11; x <= 14; x++) m_waypoints.push_back(gridToPixel(x, 4));
-    for (int y = 5; y <= 6; y++)  m_waypoints.push_back(gridToPixel(14, y));
 }
 
 // ============ Game State ============
@@ -82,12 +62,17 @@ void GameScene::startGame()
     resetGame();
     m_gameRunning = true;
     m_paused = false;
+    m_clock.start();
     m_waveManager.nextWave();
     m_gameTimer->start(16);
 }
 
 void GameScene::pauseGame()  { m_paused = true; }
-void GameScene::resumeGame() { m_paused = false; }
+void GameScene::resumeGame()
+{
+    m_clock.restart();
+    m_paused = false;
+}
 
 void GameScene::resetGame()
 {
@@ -96,8 +81,8 @@ void GameScene::resetGame()
     m_paused = false;
     m_gameOver = false;
     m_victory = false;
-    m_gold = 200;
-    m_lives = 10;
+    m_gold = DataManager::instance().initialGold();
+    m_lives = DataManager::instance().initialLives();
 
     m_towers.clear();
     m_enemies.clear();
@@ -105,7 +90,7 @@ void GameScene::resetGame()
     m_waveManager.reset();
 
     // Restore path (in case towers removed path cells)
-    initPath();
+    initMap(DataManager::instance().mapData());
 
     update();
 }
@@ -123,7 +108,10 @@ void GameScene::selectTowerType(TowerType type)
 void GameScene::gameLoop()
 {
     if (!m_gameRunning || m_paused || m_gameOver) return;
-    double dt = 16.0 / 1000.0;
+
+    double dt = m_clock.restart() / 1000.0;
+    if (dt > 0.1) dt = 0.1;  // clamp to 100ms max (prevents spiral after hang)
+
     updateGame(dt);
     update();
 }
@@ -215,7 +203,9 @@ void GameScene::updateGame(double dt)
             m_gameTimer->stop();
             emit gameEnded(true);
         } else {
-            m_gold += 30 + m_waveManager.currentWave() * 5;
+            m_gold += DataManager::instance().waveBonusBase()
+                      + m_waveManager.currentWave()
+                      * DataManager::instance().waveBonusPerWave();
             m_waveManager.nextWave();
         }
     }
@@ -292,7 +282,7 @@ QPoint GameScene::pixelToGrid(const QPointF& pos) const
 
 bool GameScene::isValidGridPos(int gx, int gy) const
 {
-    return gx >= 0 && gx < GRID_COLS && gy >= 0 && gy < GRID_ROWS;
+    return gx >= 0 && gx < m_gridCols && gy >= 0 && gy < m_gridRows;
 }
 
 bool GameScene::isPathCell(int gx, int gy) const
@@ -335,21 +325,17 @@ void GameScene::resizeEvent(QResizeEvent* event)
     QWidget::resizeEvent(event);
     double w = static_cast<double>(width());
     double h = static_cast<double>(height());
-    m_cellSize = qMin(w / GRID_COLS, h / GRID_ROWS);
+    m_cellSize = qMin(w / m_gridCols, h / m_gridRows);
     if (m_cellSize < 20) m_cellSize = 20;
-    m_offsetX = (w - GRID_COLS * m_cellSize) / 2.0;
-    m_offsetY = (h - GRID_ROWS * m_cellSize) / 2.0;
+    m_offsetX = (w - m_gridCols * m_cellSize) / 2.0;
+    m_offsetY = (h - m_gridRows * m_cellSize) / 2.0;
 
     // Rebuild pixel waypoints on resize
     m_waypoints.clear();
-    for (int x = 0; x <= 3; x++)  m_waypoints.push_back(gridToPixel(x, 6));
-    for (int y = 5; y >= 2; y--)  m_waypoints.push_back(gridToPixel(3, y));
-    for (int x = 4; x <= 6; x++)  m_waypoints.push_back(gridToPixel(x, 2));
-    for (int y = 3; y <= 9; y++)  m_waypoints.push_back(gridToPixel(6, y));
-    for (int x = 7; x <= 10; x++) m_waypoints.push_back(gridToPixel(x, 9));
-    for (int y = 8; y >= 4; y--)  m_waypoints.push_back(gridToPixel(10, y));
-    for (int x = 11; x <= 14; x++) m_waypoints.push_back(gridToPixel(x, 4));
-    for (int y = 5; y <= 6; y++)  m_waypoints.push_back(gridToPixel(14, y));
+    for (const QPoint& p : DataManager::instance().mapData().pathCells)
+    {
+        m_waypoints.push_back(gridToPixel(p.x(), p.y()));
+    }
 
     // Update existing enemy paths
     for (auto& e : m_enemies) {
@@ -406,15 +392,15 @@ void GameScene::paintEvent(QPaintEvent* event)
 
 void GameScene::drawGrid(QPainter& p)
 {
-    double totalW = GRID_COLS * m_cellSize;
-    double totalH = GRID_ROWS * m_cellSize;
+    double totalW = m_gridCols * m_cellSize;
+    double totalH = m_gridRows * m_cellSize;
 
     // Base fill
     p.fillRect(QRectF(m_offsetX, m_offsetY, totalW, totalH), QColor(60, 80, 45));
 
     // Path cells: darker road color
-    for (int y = 0; y < GRID_ROWS; ++y) {
-        for (int x = 0; x < GRID_COLS; ++x) {
+    for (int y = 0; y < m_gridRows; ++y) {
+        for (int x = 0; x < m_gridCols; ++x) {
             if (m_isPath[y][x]) {
                 p.fillRect(QRectF(
                     m_offsetX + x * m_cellSize + 1,
@@ -437,16 +423,16 @@ void GameScene::drawGrid(QPainter& p)
 
     // Grid lines
     p.setPen(QPen(QColor(90, 100, 80), 1));
-    for (int x = 0; x <= GRID_COLS; ++x)
+    for (int x = 0; x <= m_gridCols; ++x)
         p.drawLine(QPointF(m_offsetX + x * m_cellSize, m_offsetY),
                     QPointF(m_offsetX + x * m_cellSize, m_offsetY + totalH));
-    for (int y = 0; y <= GRID_ROWS; ++y)
+    for (int y = 0; y <= m_gridRows; ++y)
         p.drawLine(QPointF(m_offsetX, m_offsetY + y * m_cellSize),
                     QPointF(m_offsetX + totalW, m_offsetY + y * m_cellSize));
 
     // Start marker (S)
     {
-        QPointF c = gridToPixel(START_X, START_Y);
+        QPointF c = gridToPixel(m_startX, m_startY);
         double r = m_cellSize * 0.35;
         p.setPen(Qt::NoPen);
         p.setBrush(QColor(76, 175, 80));
@@ -459,7 +445,7 @@ void GameScene::drawGrid(QPainter& p)
 
     // End marker (E)
     {
-        QPointF c = gridToPixel(END_X, END_Y);
+        QPointF c = gridToPixel(m_endX, m_endY);
         double r = m_cellSize * 0.35;
         p.setPen(Qt::NoPen);
         p.setBrush(QColor(244, 67, 54));

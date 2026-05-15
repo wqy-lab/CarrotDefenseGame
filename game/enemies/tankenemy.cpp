@@ -1,10 +1,11 @@
 #include "tankenemy.h"
+#include "../config/datamanager.h"
 
 TankEnemy::TankEnemy(const std::vector<QPointF>& path)
-    : Enemy(path, {150.0, 28.0, 15, 1, QColor(100, 50, 150), 14}) {}
+    : Enemy(path, DataManager::instance().getEnemyStats(EnemyType::Tank)) {}
 
 EnemyStats TankEnemy::getStats() const {
-    return {150.0, 28.0, 15, 1, QColor(100, 50, 150), 14};
+    return DataManager::instance().getEnemyStats(EnemyType::Tank);
 }
 
 void TankEnemy::drawBody(QPainter& p, const QPointF& center, int r) const {

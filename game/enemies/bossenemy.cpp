@@ -1,11 +1,12 @@
 #include "bossenemy.h"
+#include "../config/datamanager.h"
 #include <cmath>
 
 BossEnemy::BossEnemy(const std::vector<QPointF>& path)
-    : Enemy(path, {500.0, 18.0, 50, 3, QColor(200, 50, 50), 18}) {}
+    : Enemy(path, DataManager::instance().getEnemyStats(EnemyType::Boss)) {}
 
 EnemyStats BossEnemy::getStats() const {
-    return {500.0, 18.0, 50, 3, QColor(200, 50, 50), 18};
+    return DataManager::instance().getEnemyStats(EnemyType::Boss);
 }
 
 void BossEnemy::drawBody(QPainter& p, const QPointF& center, int r) const {

@@ -1,13 +1,14 @@
 #include "arrowtower.h"
+#include "../config/datamanager.h"
 
 ArrowTower::ArrowTower(int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : RemoteTower(TowerType::Arrow, gridX, gridY, cellSize, offsetX, offsetY)
 {
-    m_stats = { 40, 20.0, 3.0, 0.6, 0, 1.0, 0, 0, 0, 0, QColor(139, 195, 74) };
+    m_stats = DataManager::instance().getTowerStats(TowerType::Arrow);
 }
 
 TowerStats ArrowTower::getStats() const {
-    return { 40, 20.0, 3.0, 0.6, 0, 1.0, 0, 0, 0, 0, QColor(139, 195, 74) };
+    return DataManager::instance().getTowerStats(TowerType::Arrow);
 }
 
 void ArrowTower::drawBody(QPainter& p, const QPointF& center, double r) const {

@@ -1,10 +1,11 @@
 #include "normalenemy.h"
+#include "../config/datamanager.h"
 
 NormalEnemy::NormalEnemy(const std::vector<QPointF>& path)
-    : Enemy(path, {50.0, 50.0, 5, 1, QColor(220, 60, 60), 10}) {}
+    : Enemy(path, DataManager::instance().getEnemyStats(EnemyType::Normal)) {}
 
 EnemyStats NormalEnemy::getStats() const {
-    return {50.0, 50.0, 5, 1, QColor(220, 60, 60), 10};
+    return DataManager::instance().getEnemyStats(EnemyType::Normal);
 }
 
 void NormalEnemy::drawBody(QPainter& p, const QPointF& center, int r) const {

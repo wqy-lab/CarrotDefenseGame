@@ -1,5 +1,6 @@
 #include "wave.h"
 #include "enemies/enemyfactory.h"
+#include "config/datamanager.h"
 
 WaveManager::WaveManager()
     : m_currentWave(0), m_spawnTimer(0), m_spawnedAll(false)
@@ -9,22 +10,7 @@ WaveManager::WaveManager()
 
 void WaveManager::buildWaves()
 {
-    // Wave 1: easy intro
-    m_waves.push_back({{ EnemyType::Normal, 6, 1.0 }});
-    // Wave 2
-    m_waves.push_back({{ EnemyType::Normal, 10, 0.9 }});
-    // Wave 3: Fast + Swarm
-    m_waves.push_back({{ EnemyType::Normal, 6, 0.8 }, { EnemyType::Fast, 3, 1.5 }, { EnemyType::Swarm, 5, 0.4 }});
-    // Wave 4
-    m_waves.push_back({{ EnemyType::Normal, 8, 0.7 }, { EnemyType::Fast, 6, 1.2 }, { EnemyType::Swarm, 8, 0.3 }});
-    // Wave 5: Tank
-    m_waves.push_back({{ EnemyType::Normal, 8, 0.6 }, { EnemyType::Fast, 5, 1.0 }, { EnemyType::Tank, 2, 2.5 }});
-    // Wave 6: hard mix
-    m_waves.push_back({{ EnemyType::Normal, 10, 0.5 }, { EnemyType::Fast, 8, 0.9 }, { EnemyType::Tank, 3, 2.0 }, { EnemyType::Swarm, 10, 0.3 }});
-    // Wave 7: Boss!
-    m_waves.push_back({{ EnemyType::Tank, 4, 1.5 }, { EnemyType::Fast, 8, 0.7 }, { EnemyType::Boss, 1, 5.0 }});
-    // Wave 8: final
-    m_waves.push_back({{ EnemyType::Normal, 15, 0.4 }, { EnemyType::Fast, 10, 0.7 }, { EnemyType::Tank, 5, 1.5 }, { EnemyType::Swarm, 15, 0.25 }, { EnemyType::Boss, 2, 4.0 }});
+    m_waves = DataManager::instance().waves();
 }
 
 void WaveManager::reset()

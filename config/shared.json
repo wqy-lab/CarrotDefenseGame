@@ -1,0 +1,135 @@
+{
+    "towers": [
+        {
+            "type": "Arrow",
+            "cost": 40,
+            "damage": 20.0,
+            "range": 3.0,
+            "attackSpeed": 0.6,
+            "splashRadius": 0,
+            "slowFactor": 1.0,
+            "slowDuration": 0,
+            "poisonDps": 0,
+            "poisonDuration": 0,
+            "chainCount": 0,
+            "color": "#8BC34A"
+        },
+        {
+            "type": "Cannon",
+            "cost": 80,
+            "damage": 40.0,
+            "range": 2.5,
+            "attackSpeed": 1.5,
+            "splashRadius": 0.8,
+            "slowFactor": 1.0,
+            "slowDuration": 0,
+            "poisonDps": 0,
+            "poisonDuration": 0,
+            "chainCount": 0,
+            "color": "#FF9800"
+        },
+        {
+            "type": "Ice",
+            "cost": 60,
+            "damage": 12.0,
+            "range": 2.5,
+            "attackSpeed": 1.0,
+            "splashRadius": 0,
+            "slowFactor": 0.5,
+            "slowDuration": 2.0,
+            "poisonDps": 0,
+            "poisonDuration": 0,
+            "chainCount": 0,
+            "color": "#64B4FF"
+        },
+        {
+            "type": "Poison",
+            "cost": 65,
+            "damage": 8.0,
+            "range": 2.8,
+            "attackSpeed": 1.2,
+            "splashRadius": 0,
+            "slowFactor": 1.0,
+            "slowDuration": 0,
+            "poisonDps": 25.0,
+            "poisonDuration": 3.0,
+            "chainCount": 0,
+            "color": "#78C850"
+        },
+        {
+            "type": "Lightning",
+            "cost": 90,
+            "damage": 18.0,
+            "range": 3.5,
+            "attackSpeed": 1.8,
+            "splashRadius": 0,
+            "slowFactor": 1.0,
+            "slowDuration": 0,
+            "poisonDps": 0,
+            "poisonDuration": 0,
+            "chainCount": 3,
+            "color": "#DCC83C"
+        },
+        {
+            "type": "Sun",
+            "cost": 50,
+            "damage": 30.0,
+            "range": 2.0,
+            "attackSpeed": 2.0,
+            "splashRadius": 0,
+            "slowFactor": 1.0,
+            "slowDuration": 0,
+            "poisonDps": 0,
+            "poisonDuration": 0,
+            "chainCount": 0,
+            "color": "#FFC832"
+        }
+    ],
+    "enemies": [
+        {
+            "type": "Normal",
+            "maxHp": 50.0,
+            "speed": 50.0,
+            "reward": 5,
+            "damage": 1,
+            "color": "#DC3C3C",
+            "radius": 10
+        },
+        {
+            "type": "Fast",
+            "maxHp": 30.0,
+            "speed": 100.0,
+            "reward": 8,
+            "damage": 1,
+            "color": "#FFA500",
+            "radius": 8
+        },
+        {
+            "type": "Tank",
+            "maxHp": 150.0,
+            "speed": 28.0,
+            "reward": 15,
+            "damage": 1,
+            "color": "#643296",
+            "radius": 14
+        },
+        {
+            "type": "Boss",
+            "maxHp": 500.0,
+            "speed": 18.0,
+            "reward": 50,
+            "damage": 3,
+            "color": "#C83232",
+            "radius": 18
+        },
+        {
+            "type": "Swarm",
+            "maxHp": 15.0,
+            "speed": 120.0,
+            "reward": 3,
+            "damage": 1,
+            "color": "#FFC832",
+            "radius": 6
+        }
+    ]
+}

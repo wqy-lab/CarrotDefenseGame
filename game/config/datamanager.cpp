@@ -1,0 +1,169 @@
+#include "datamanager.h"
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QColor>
+
+// --- string → enum helpers (file-local) ---
+
+static TowerType stringToTowerType(const QString& s)
+{
+    if (s == "Arrow") return TowerType::Arrow;
+    if (s == "Cannon") return TowerType::Cannon;
+    if (s == "Ice") return TowerType::Ice;
+    if (s == "Poison") return TowerType::Poison;
+    if (s == "Lightning") return TowerType::Lightning;
+    if (s == "Sun") return TowerType::Sun;
+    return TowerType::Arrow;
+}
+
+static EnemyType stringToEnemyType(const QString& s)
+{
+    if (s == "Normal") return EnemyType::Normal;
+    if (s == "Fast") return EnemyType::Fast;
+    if (s == "Tank") return EnemyType::Tank;
+    if (s == "Boss") return EnemyType::Boss;
+    if (s == "Swarm") return EnemyType::Swarm;
+    return EnemyType::Normal;
+}
+
+// --- singleton ---
+
+DataManager& DataManager::instance()
+{
+    static DataManager dm;
+    return dm;
+}
+
+// --- loadShared (towers + enemies) ---
+
+bool DataManager::loadShared(const QString& path)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly))
+        return false;
+
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    if (doc.isNull())
+        return false;
+
+    QJsonObject root = doc.object();
+
+    // --- towers ---
+    QJsonArray towers = root["towers"].toArray();
+    for (const QJsonValue& val : towers)
+    {
+        QJsonObject obj = val.toObject();
+        TowerType type = stringToTowerType(obj["type"].toString());
+
+        TowerStats s;
+        s.cost           = obj["cost"].toInt();
+        s.damage         = obj["damage"].toDouble();
+        s.range          = obj["range"].toDouble();
+        s.attackSpeed    = obj["attackSpeed"].toDouble();
+        s.splashRadius   = obj["splashRadius"].toDouble(0);
+        s.slowFactor     = obj["slowFactor"].toDouble(1.0);
+        s.slowDuration   = obj["slowDuration"].toDouble(0);
+        s.poisonDps      = obj["poisonDps"].toDouble(0);
+        s.poisonDuration = obj["poisonDuration"].toDouble(0);
+        s.chainCount     = obj["chainCount"].toInt(0);
+        s.color          = QColor(obj["color"].toString());
+
+        m_towerStats[type] = s;
+    }
+
+    // --- enemies ---
+    QJsonArray enemies = root["enemies"].toArray();
+    for (const QJsonValue& val : enemies)
+    {
+        QJsonObject obj = val.toObject();
+        EnemyType type = stringToEnemyType(obj["type"].toString());
+
+        EnemyStats s;
+        s.maxHp  = obj["maxHp"].toDouble();
+        s.speed  = obj["speed"].toDouble();
+        s.reward = obj["reward"].toInt();
+        s.damage = obj["damage"].toInt();
+        s.radius = obj["radius"].toInt(10);
+        s.color  = QColor(obj["color"].toString());
+
+        m_enemyStats[type] = s;
+    }
+
+    return true;
+}
+
+// --- loadLevel (map + waves + settings) ---
+
+bool DataManager::loadLevel(const QString& path)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly))
+        return false;
+
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    if (doc.isNull())
+        return false;
+
+    QJsonObject root = doc.object();
+
+    // --- map ---
+    QJsonObject mapObj = root["map"].toObject();
+    m_mapData.gridCols = mapObj["gridCols"].toInt(15);
+    m_mapData.gridRows = mapObj["gridRows"].toInt(12);
+    m_mapData.startX = mapObj["startX"].toInt(0);
+    m_mapData.startY = mapObj["startY"].toInt(6);
+    m_mapData.endX = mapObj["endX"].toInt(14);
+    m_mapData.endY = mapObj["endY"].toInt(6);
+
+    m_mapData.pathCells.clear();
+    QJsonArray pathArr = mapObj["path"].toArray();
+    for (const QJsonValue& pv : pathArr)
+    {
+        QJsonArray xy = pv.toArray();
+        if (xy.size() >= 2)
+            m_mapData.pathCells.push_back(
+                QPoint(xy[0].toInt(), xy[1].toInt()));
+    }
+
+    // --- settings ---
+    QJsonObject settings = root["settings"].toObject();
+    m_initialGold = settings["initialGold"].toInt(200);
+    m_initialLives = settings["initialLives"].toInt(10);
+    m_waveBonusBase = settings["waveBonusBase"].toInt(30);
+    m_waveBonusPerWave = settings["waveBonusPerWave"].toInt(5);
+
+    // --- waves ---
+    m_waves.clear();
+    QJsonArray waves = root["waves"].toArray();
+    for (const QJsonValue& wv : waves)
+    {
+        QJsonArray entries = wv.toArray();
+        std::vector<WaveEntry> wave;
+        for (const QJsonValue& ev : entries)
+        {
+            QJsonObject obj = ev.toObject();
+            WaveEntry entry;
+            entry.type     = stringToEnemyType(obj["type"].toString());
+            entry.count    = obj["count"].toInt();
+            entry.interval = obj["interval"].toDouble();
+            wave.push_back(entry);
+        }
+        m_waves.push_back(std::move(wave));
+    }
+
+    return true;
+}
+
+// --- lookup ---
+
+TowerStats DataManager::getTowerStats(TowerType type) const
+{
+    return m_towerStats.value(type);
+}
+
+EnemyStats DataManager::getEnemyStats(EnemyType type) const
+{
+    return m_enemyStats.value(type);
+}

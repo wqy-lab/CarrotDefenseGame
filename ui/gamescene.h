@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QTimer>
+#include <QElapsedTimer>
 #include <QPainter>
 #include <QMouseEvent>
 #include <vector>
@@ -14,6 +15,7 @@
 #include "../game/towers/remotetower.h"
 #include "../game/bullets/bullet.h"
 #include "../game/wave.h"
+#include "../game/config/datamanager.h"
 
 class GameScene : public QWidget {
     Q_OBJECT
@@ -53,12 +55,10 @@ private slots:
     void gameLoop();
 
 private:
-    static constexpr int GRID_COLS = 15;
-    static constexpr int GRID_ROWS = 12;
-    static constexpr int START_X = 0;
-    static constexpr int START_Y = 6;
-    static constexpr int END_X = 14;
-    static constexpr int END_Y = 6;
+    int m_gridCols;
+    int m_gridRows;
+    int m_startX, m_startY;
+    int m_endX, m_endY;
 
     double m_cellSize;
     double m_offsetX, m_offsetY;
@@ -88,6 +88,7 @@ private:
     bool m_showRange;
 
     QTimer* m_gameTimer;
+    QElapsedTimer m_clock;
 
     void drawGrid(QPainter& p);
     void drawPath(QPainter& p);
@@ -96,7 +97,7 @@ private:
     void drawProjectiles(QPainter& p);
 
     void updateGame(double dt);
-    void initPath();
+    void initMap(const MapData& map);
     void placeTower(int gx, int gy);
     void spawnEnemy();
     void handleProjectileHit(Bullet& proj);

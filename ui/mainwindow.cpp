@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
+#include "../game/config/datamanager.h"
 
 #include <QPushButton>
 #include <QLabel>
@@ -48,7 +49,8 @@ MainWindow::MainWindow(QWidget* parent)
     QLabel* towerLabel = new QLabel(" Towers: ");
     toolbar->addWidget(towerLabel);
 
-    m_btnArrow = new QPushButton("Arrow 40g");
+    m_btnArrow = new QPushButton(QString("Arrow %1g").arg(
+        DataManager::instance().getTowerStats(TowerType::Arrow).cost));
     m_btnArrow->setCheckable(true);
     m_btnArrow->setChecked(true);
     m_btnArrow->setStyleSheet(
@@ -56,35 +58,40 @@ MainWindow::MainWindow(QWidget* parent)
         "QPushButton:checked { border: 2px solid white; }");
     toolbar->addWidget(m_btnArrow);
 
-    m_btnCannon = new QPushButton("Cannon 80g");
+    m_btnCannon = new QPushButton(QString("Cannon %1g").arg(
+        DataManager::instance().getTowerStats(TowerType::Cannon).cost));
     m_btnCannon->setCheckable(true);
     m_btnCannon->setStyleSheet(
         "QPushButton { background-color: #FF9800; color: #333; padding: 5px 10px; border-radius: 3px; }"
         "QPushButton:checked { border: 2px solid white; }");
     toolbar->addWidget(m_btnCannon);
 
-    m_btnIce = new QPushButton("Ice 60g");
+    m_btnIce = new QPushButton(QString("Ice %1g").arg(
+        DataManager::instance().getTowerStats(TowerType::Ice).cost));
     m_btnIce->setCheckable(true);
     m_btnIce->setStyleSheet(
         "QPushButton { background-color: #64B5F6; color: #333; padding: 5px 10px; border-radius: 3px; }"
         "QPushButton:checked { border: 2px solid white; }");
     toolbar->addWidget(m_btnIce);
 
-    m_btnPoison = new QPushButton("Poison 65g");
+    m_btnPoison = new QPushButton(QString("Poison %1g").arg(
+        DataManager::instance().getTowerStats(TowerType::Poison).cost));
     m_btnPoison->setCheckable(true);
     m_btnPoison->setStyleSheet(
         "QPushButton { background-color: #78C850; color: #333; padding: 5px 10px; border-radius: 3px; }"
         "QPushButton:checked { border: 2px solid white; }");
     toolbar->addWidget(m_btnPoison);
 
-    m_btnLightning = new QPushButton("Lightning 90g");
+    m_btnLightning = new QPushButton(QString("Lightning %1g").arg(
+        DataManager::instance().getTowerStats(TowerType::Lightning).cost));
     m_btnLightning->setCheckable(true);
     m_btnLightning->setStyleSheet(
         "QPushButton { background-color: #DCC830; color: #333; padding: 5px 10px; border-radius: 3px; }"
         "QPushButton:checked { border: 2px solid white; }");
     toolbar->addWidget(m_btnLightning);
 
-    m_btnSun = new QPushButton("Sun 50g");
+    m_btnSun = new QPushButton(QString("Sun %1g").arg(
+        DataManager::instance().getTowerStats(TowerType::Sun).cost));
     m_btnSun->setCheckable(true);
     m_btnSun->setStyleSheet(
         "QPushButton { background-color: #FFC107; color: #333; padding: 5px 10px; border-radius: 3px; }"
@@ -244,10 +251,16 @@ void MainWindow::updateStatusBar()
 void MainWindow::updateTowerButtons()
 {
     int gold = m_scene->gold();
-    m_btnArrow->setEnabled(gold >= 40);
-    m_btnCannon->setEnabled(gold >= 80);
-    m_btnIce->setEnabled(gold >= 60);
-    m_btnPoison->setEnabled(gold >= 65);
-    m_btnLightning->setEnabled(gold >= 90);
-    m_btnSun->setEnabled(gold >= 50);
+    m_btnArrow->setEnabled(gold >=
+        DataManager::instance().getTowerStats(TowerType::Arrow).cost);
+    m_btnCannon->setEnabled(gold >=
+        DataManager::instance().getTowerStats(TowerType::Cannon).cost);
+    m_btnIce->setEnabled(gold >=
+        DataManager::instance().getTowerStats(TowerType::Ice).cost);
+    m_btnPoison->setEnabled(gold >=
+        DataManager::instance().getTowerStats(TowerType::Poison).cost);
+    m_btnLightning->setEnabled(gold >=
+        DataManager::instance().getTowerStats(TowerType::Lightning).cost);
+    m_btnSun->setEnabled(gold >=
+        DataManager::instance().getTowerStats(TowerType::Sun).cost);
 }

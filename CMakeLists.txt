@@ -64,6 +64,8 @@ set(PROJECT_SOURCES
     game/bullets/normalbullet.h
     game/bullets/bulletfactory.cpp
     game/bullets/bulletfactory.h
+    game/config/datamanager.cpp
+    game/config/datamanager.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -84,6 +86,14 @@ else()
 endif()
 
 target_link_libraries(CarrotDefense PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+
+# Copy config directory to build output so the EXE can find game.json
+add_custom_command(TARGET CarrotDefense POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/config"
+    "$<TARGET_FILE_DIR:CarrotDefense>/config"
+    COMMENT "Copying config/ to build output..."
+)
 
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(CarrotDefense)

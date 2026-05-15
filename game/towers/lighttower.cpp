@@ -1,13 +1,14 @@
 #include "lighttower.h"
+#include "../config/datamanager.h"
 
 LightningTower::LightningTower(int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : RemoteTower(TowerType::Lightning, gridX, gridY, cellSize, offsetX, offsetY)
 {
-    m_stats = { 90, 18.0, 3.5, 1.8, 0, 1.0, 0, 0, 0, 3, QColor(220, 200, 60) };
+    m_stats = DataManager::instance().getTowerStats(TowerType::Lightning);
 }
 
 TowerStats LightningTower::getStats() const {
-    return { 90, 18.0, 3.5, 1.8, 0, 1.0, 0, 0, 0, 3, QColor(220, 200, 60) };
+    return DataManager::instance().getTowerStats(TowerType::Lightning);
 }
 
 void LightningTower::drawBody(QPainter& p, const QPointF& center, double r) const {

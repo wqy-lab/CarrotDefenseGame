@@ -1,10 +1,11 @@
 #include "fastenemy.h"
+#include "../config/datamanager.h"
 
 FastEnemy::FastEnemy(const std::vector<QPointF>& path)
-    : Enemy(path, {30.0, 100.0, 8, 1, QColor(255, 165, 0), 8}) {}
+    : Enemy(path, DataManager::instance().getEnemyStats(EnemyType::Fast)) {}
 
 EnemyStats FastEnemy::getStats() const {
-    return {30.0, 100.0, 8, 1, QColor(255, 165, 0), 8};
+    return DataManager::instance().getEnemyStats(EnemyType::Fast);
 }
 
 void FastEnemy::drawBody(QPainter& p, const QPointF& center, int r) const {

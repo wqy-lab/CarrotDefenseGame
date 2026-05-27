@@ -59,13 +59,25 @@ void GameScene::initMap(const MapData& map)
     }
 
     // Create obstacles from DataManager
-    for (const auto& [obsType, gridPos] : DataManager::instance().obstacles()) {
-        int gx = gridPos.x(), gy = gridPos.y();
-        if (isValidGridPos(gx, gy) && !isPathCell(gx, gy)) {
-            m_obstacleCell[gy][gx] = true;
-            QPointF pixelPos = gridToPixel(gx, gy);
-            m_obstacles.push_back(createObstacle(obsType, gx, gy, pixelPos));
+    for (const auto& entry : DataManager::instance().obstacles()) {
+        int gx = entry.gridX, gy = entry.gridY;
+        int gw = entry.gridW, gh = entry.gridH;
+
+        // Mark all occupied cells
+        for (int dy = 0; dy < gh; ++dy) {
+            for (int dx = 0; dx < gw; ++dx) {
+                int cx = gx + dx, cy = gy + dy;
+                if (isValidGridPos(cx, cy) && !isPathCell(cx, cy)) {
+                    m_obstacleCell[cy][cx] = true;
+                }
+            }
         }
+
+        // Center pixel for multi-cell obstacle
+        QPointF centerPos = gridToPixel(gx + gw / 2, gy + gh / 2);
+        auto obs = createObstacle(entry.type, gx, gy, gw, gh, centerPos);
+        obs->setCellSize(static_cast<int>(m_cellSize));
+        m_obstacles.push_back(std::move(obs));
     }
 }
 
@@ -184,6 +196,8 @@ void GameScene::updateGame(double dt)
                                       attack.slowDuration, attack.poisonDps, attack.poisonDuration,
                                       attack.chainCount, attack.color);
                 b->setMaxDistance(attack.maxDistance);
+                b->setCellSize(m_cellSize);
+                b->setOffset(m_offsetX, m_offsetY);
                 m_projectiles.push_back(std::move(b));
             }
         }
@@ -196,7 +210,7 @@ void GameScene::updateGame(double dt)
             QPointF pos = p->pos();
             QPoint g = pixelToGrid(pos);
             CellEntities& cell = getCellAt(g.x(), g.y());
-            p->update(dt, cell);
+            p->update(dt, m_enemies, cell);
         }
     }
 
@@ -557,7 +571,15 @@ void GameScene::updateObstacles(double dt)
     for (auto& obs : m_obstacles) {
         if (obs->isDestroyed()) {
             m_gold += obs->reward();
-            m_obstacleCell[obs->gridY()][obs->gridX()] = false;
+            for (int dy = 0; dy < obs->gridHeight(); ++dy) {
+                for (int dx = 0; dx < obs->gridWidth(); ++dx) {
+                    int cx = obs->gridX() + dx;
+                    int cy = obs->gridY() + dy;
+                    if (isValidGridPos(cx, cy)) {
+                        m_obstacleCell[cy][cx] = false;
+                    }
+                }
+            }
         }
     }
 
@@ -586,9 +608,14 @@ void GameScene::syncEntityGrid()
 
     for (auto& obs : m_obstacles) {
         if (!obs->isActive()) continue;
-        int gx = obs->gridX(), gy = obs->gridY();
-        if (isValidGridPos(gx, gy)) {
-            m_entityGrid[gy][gx].obstacles.push_back(obs.get());
+        for (int dy = 0; dy < obs->gridHeight(); ++dy) {
+            for (int dx = 0; dx < obs->gridWidth(); ++dx) {
+                int cx = obs->gridX() + dx;
+                int cy = obs->gridY() + dy;
+                if (isValidGridPos(cx, cy)) {
+                    m_entityGrid[cy][cx].obstacles.push_back(obs.get());
+                }
+            }
         }
     }
 }

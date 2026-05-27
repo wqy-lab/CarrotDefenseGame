@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <vector>
 #include <memory>
+#include <set>
 #include "../cellentities.h"
 
 class Enemy;
@@ -13,7 +14,7 @@ class Bullet {
 public:
     virtual ~Bullet() = default;
 
-    void update(double dt, CellEntities& cell);
+    void update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, CellEntities& cell);
     void draw(QPainter& p) const;
     bool isActive() const { return m_active; }
     bool hasHit() const { return m_hit; }
@@ -22,6 +23,8 @@ public:
     QPointF targetPos() const { return m_targetPos; }
     void setTargetPos(const QPointF& pos) { m_targetPos = pos; }
     void setMaxDistance(double dist) { m_maxDistance = dist; }
+    void setCellSize(double cs) { m_cellSize = cs; }
+    void setOffset(double ox, double oy) { m_offsetX = ox; m_offsetY = oy; }
     double damage() const { return m_damage; }
     double splashRadius() const { return m_splashRadius; }
     double slowFactor() const { return m_slowFactor; }
@@ -36,7 +39,7 @@ protected:
            double splashRadius, double slowFactor, double slowDuration,
            double poisonDps, double poisonDuration, int chainCount, const QColor& color);
 
-    virtual void onHit(Enemy* enemy) = 0;
+    virtual void onHit(Enemy* enemy, std::vector<std::unique_ptr<Enemy>>& enemies, CellEntities& cell) = 0;
     virtual void onObstacleHit(class Obstacle* obstacle);
 
     bool m_hit;
@@ -55,6 +58,10 @@ protected:
     int m_chainCount;
     QColor m_color;
     bool m_active;
+    double m_cellSize;
+    double m_offsetX;
+    double m_offsetY;
+    std::set<Enemy*> m_chainedEnemies;
 };
 
 #endif

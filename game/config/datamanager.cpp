@@ -180,10 +180,13 @@ bool DataManager::loadLevel(const QString& path)
     QJsonArray obstacles = root["obstacles"].toArray();
     for (const QJsonValue& val : obstacles) {
         QJsonObject obj = val.toObject();
-        ObstacleType type = stringToObstacleType(obj["type"].toString());
-        int gx = obj["x"].toInt();
-        int gy = obj["y"].toInt();
-        m_obstacles.push_back({type, QPoint(gx, gy)});
+        ObstacleEntry entry;
+        entry.type = stringToObstacleType(obj["type"].toString());
+        entry.gridX = obj["x"].toInt();
+        entry.gridY = obj["y"].toInt();
+        entry.gridW = obj["w"].toInt(1);
+        entry.gridH = obj["h"].toInt(1);
+        m_obstacles.push_back(entry);
     }
 
     return true;

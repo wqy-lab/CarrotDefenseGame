@@ -25,11 +25,11 @@
         "waveBonusPerWave": 5
     },
     "obstacles": [
-        { "type": "Tree",   "x": 2, "y": 2 },
-        { "type": "Statue", "x": 5, "y": 4 },
-        { "type": "Tree",   "x": 8, "y": 7 },
-        { "type": "Tree",   "x": 9, "y": 3 },
-        { "type": "Statue", "x": 12, "y": 8 }
+        { "type": "Tree",   "x": 2, "y": 2, "w": 1, "h": 1 },
+        { "type": "Statue", "x": 5, "y": 4, "w": 1, "h": 1 },
+        { "type": "Tree",   "x": 8, "y": 7, "w": 1, "h": 1 },
+        { "type": "Tree",   "x": 9, "y": 3, "w": 1, "h": 1 },
+        { "type": "Statue", "x": 12, "y": 8, "w": 1, "h": 1 }
     ],
     "waves": [
         [

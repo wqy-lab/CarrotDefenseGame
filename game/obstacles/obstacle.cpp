@@ -1,10 +1,12 @@
 #include "obstacle.h"
 
-Obstacle::Obstacle(int gridX, int gridY, const QPointF& pos, double maxHp, int reward, const QColor& color, int radius)
+Obstacle::Obstacle(int gridX, int gridY, int gridW, int gridH, const QPointF& pos, double maxHp, int reward, const QColor& color, int radius)
     : m_hp(maxHp)
     , m_maxHp(maxHp)
     , m_gridX(gridX)
     , m_gridY(gridY)
+    , m_gridW(gridW)
+    , m_gridH(gridH)
     , m_pos(pos)
     , m_reward(reward)
     , m_color(color)
@@ -12,6 +14,7 @@ Obstacle::Obstacle(int gridX, int gridY, const QPointF& pos, double maxHp, int r
     , m_destroying(false)
     , m_destroyed(false)
     , m_destroyTimer(0.0)
+    , m_cellSize(48)
 {}
 
 void Obstacle::update(double dt) {

@@ -2,8 +2,8 @@
 #include <QPainterPath>
 #include <QColor>
 
-TreeObstacle::TreeObstacle(int gridX, int gridY, const QPointF& pos)
-    : Obstacle(gridX, gridY, pos, 100.0, 15, QColor(76, 175, 80), 18)
+TreeObstacle::TreeObstacle(int gridX, int gridY, int gridW, int gridH, const QPointF& pos)
+    : Obstacle(gridX, gridY, gridW, gridH, pos, 100.0, 15, QColor(76, 175, 80), 18)
 {}
 
 void TreeObstacle::drawBody(QPainter* p, const QPointF& center, int radius) const {

@@ -11,6 +11,14 @@
 #include "../wave.h"
 #include "../obstacles/obstaclefactory.h"
 
+struct ObstacleEntry {
+    ObstacleType type;
+    int gridX;
+    int gridY;
+    int gridW;
+    int gridH;
+};
+
 struct ObstacleStats
 {
     double maxHp;
@@ -47,7 +55,7 @@ public:
     int waveBonusPerWave() const { return m_waveBonusPerWave; }
 
     ObstacleStats getObstacleStats(ObstacleType type) const;
-    const std::vector<std::pair<ObstacleType, QPoint>>& obstacles() const { return m_obstacles; }
+    const std::vector<ObstacleEntry>& obstacles() const { return m_obstacles; }
 
     const std::vector<std::vector<WaveEntry>>& waves() const
     {
@@ -62,7 +70,7 @@ private:
     QHash<TowerType, TowerStats> m_towerStats;
     QHash<EnemyType, EnemyStats> m_enemyStats;
     QHash<ObstacleType, ObstacleStats> m_obstacleStats;
-    std::vector<std::pair<ObstacleType, QPoint>> m_obstacles;
+    std::vector<ObstacleEntry> m_obstacles;
     std::vector<std::vector<WaveEntry>> m_waves;
     MapData m_mapData;
 

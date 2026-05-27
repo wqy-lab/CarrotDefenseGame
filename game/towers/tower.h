@@ -58,6 +58,16 @@ protected:
     int m_gridX, m_gridY;
     QPointF m_center;
     double m_cellSize;
+
+public:
+    void setPriorityEnemy(class Enemy* e) { m_priorityEnemy = e; }
+    class Enemy* priorityEnemy() const { return m_priorityEnemy; }
+    void setPriorityObstacle(class Obstacle* o) { m_priorityObstacle = o; }
+    class Obstacle* priorityObstacle() const { return m_priorityObstacle; }
+
+protected:
+    class Enemy* m_priorityEnemy = nullptr;
+    class Obstacle* m_priorityObstacle = nullptr;
 };
 
 #endif

@@ -77,6 +77,8 @@ private:
     std::vector<std::unique_ptr<Bullet>> m_projectiles;
     std::vector<std::unique_ptr<Obstacle>> m_obstacles;
     WaveManager m_waveManager;
+    Enemy* m_priorityEnemy = nullptr;
+    Obstacle* m_priorityObstacle = nullptr;
 
     // Fixed path: cells that are the road (enemies walk here, NO towers)
     std::vector<std::vector<bool>> m_isPath;
@@ -105,6 +107,12 @@ private:
     void updateObstacles(double dt);
     void syncEntityGrid();
     CellEntities& getCellAt(int gx, int gy);
+
+    void setPriorityTarget(Enemy* e);
+    void setPriorityTarget(Obstacle* obs);
+    void clearPriorityTarget();
+    Enemy* priorityEnemy() const { return m_priorityEnemy; }
+    Obstacle* priorityObstacle() const { return m_priorityObstacle; }
 
     void updateGame(double dt);
     void initMap(const MapData& map);

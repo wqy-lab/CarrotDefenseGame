@@ -27,11 +27,14 @@ public:
     AttackResult getAttack() { auto r = m_pendingAttack; m_pendingAttack = AttackResult(); return r; }
     bool hasPendingAttack() const { return m_pendingAttack.fired; }
 
+    Obstacle* findObstacleTarget() const;
+
 protected:
     RemoteTower(TowerType type, int gridX, int gridY, double cellSize, double offsetX, double offsetY);
 
     Enemy* findTarget(const std::vector<std::unique_ptr<Enemy>>& enemies) const;
     double distTo(const Enemy& e) const;
+    double distTo(const Obstacle& o) const;
 
     double m_cooldown;
     AttackResult m_pendingAttack;

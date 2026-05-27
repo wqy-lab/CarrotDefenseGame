@@ -166,6 +166,8 @@ void GameScene::updateGame(double dt)
 
     // Update towers
     for (auto& t : m_towers) {
+        t->setPriorityEnemy(m_priorityEnemy);
+        t->setPriorityObstacle(m_priorityObstacle);
         t->update(dt, m_enemies);
     }
 
@@ -349,12 +351,33 @@ void GameScene::mouseMoveEvent(QMouseEvent* event)
 void GameScene::mousePressEvent(QMouseEvent* event)
 {
     if (!m_gameRunning || m_paused || m_gameOver) return;
-    if (!m_placingTower) return;
     if (event->button() != Qt::LeftButton) return;
 
     QPoint g = pixelToGrid(event->pos());
-    if (isValidGridPos(g.x(), g.y()) && !isPathCell(g.x(), g.y()) && !isObstacleCell(g.x(), g.y())) {
-        placeTower(g.x(), g.y());
+    if (!isValidGridPos(g.x(), g.y())) return;
+
+    if (m_placingTower) {
+        if (!isPathCell(g.x(), g.y()) && !isObstacleCell(g.x(), g.y())) {
+            placeTower(g.x(), g.y());
+        }
+    } else {
+        // Click to set priority target
+        CellEntities& cell = getCellAt(g.x(), g.y());
+
+        // Try obstacle first
+        if (!cell.obstacles.empty()) {
+            setPriorityTarget(cell.obstacles.front());
+            return;
+        }
+
+        // Then enemy
+        if (!cell.enemies.empty()) {
+            setPriorityTarget(cell.enemies.front());
+            return;
+        }
+
+        // Click empty cell clears priority
+        clearPriorityTarget();
     }
 }
 
@@ -631,4 +654,22 @@ bool GameScene::isObstacleCell(int gx, int gy) const
 {
     if (!isValidGridPos(gx, gy)) return false;
     return m_obstacleCell[gy][gx];
+}
+
+void GameScene::setPriorityTarget(Enemy* e)
+{
+    m_priorityEnemy = e;
+    m_priorityObstacle = nullptr;
+}
+
+void GameScene::setPriorityTarget(Obstacle* obs)
+{
+    m_priorityObstacle = obs;
+    m_priorityEnemy = nullptr;
+}
+
+void GameScene::clearPriorityTarget()
+{
+    m_priorityEnemy = nullptr;
+    m_priorityObstacle = nullptr;
 }

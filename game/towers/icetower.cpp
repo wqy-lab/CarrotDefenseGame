@@ -1,5 +1,6 @@
 #include "icetower.h"
 #include "../config/datamanager.h"
+#include <cmath>
 
 IceTower::IceTower(int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : RemoteTower(TowerType::Ice, gridX, gridY, cellSize, offsetX, offsetY)

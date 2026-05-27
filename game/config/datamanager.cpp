@@ -28,6 +28,13 @@ static EnemyType stringToEnemyType(const QString& s)
     return EnemyType::Normal;
 }
 
+static ObstacleType stringToObstacleType(const QString& s)
+{
+    if (s == "Tree") return ObstacleType::Tree;
+    if (s == "Statue") return ObstacleType::Statue;
+    return ObstacleType::Tree;
+}
+
 // --- singleton ---
 
 DataManager& DataManager::instance()
@@ -89,6 +96,21 @@ bool DataManager::loadShared(const QString& path)
         s.color  = QColor(obj["color"].toString());
 
         m_enemyStats[type] = s;
+    }
+
+    // --- obstacles ---
+    QJsonArray obstacles = root["obstacles"].toArray();
+    for (const QJsonValue& val : obstacles) {
+        QJsonObject obj = val.toObject();
+        ObstacleType type = stringToObstacleType(obj["type"].toString());
+
+        ObstacleStats s;
+        s.maxHp  = obj["maxHp"].toDouble();
+        s.reward = obj["reward"].toInt();
+        s.radius = obj["radius"].toInt(16);
+        s.color  = QColor(obj["color"].toString());
+
+        m_obstacleStats[type] = s;
     }
 
     return true;
@@ -153,6 +175,17 @@ bool DataManager::loadLevel(const QString& path)
         m_waves.push_back(std::move(wave));
     }
 
+    // --- obstacles ---
+    m_obstacles.clear();
+    QJsonArray obstacles = root["obstacles"].toArray();
+    for (const QJsonValue& val : obstacles) {
+        QJsonObject obj = val.toObject();
+        ObstacleType type = stringToObstacleType(obj["type"].toString());
+        int gx = obj["x"].toInt();
+        int gy = obj["y"].toInt();
+        m_obstacles.push_back({type, QPoint(gx, gy)});
+    }
+
     return true;
 }
 
@@ -166,4 +199,9 @@ TowerStats DataManager::getTowerStats(TowerType type) const
 EnemyStats DataManager::getEnemyStats(EnemyType type) const
 {
     return m_enemyStats.value(type);
+}
+
+ObstacleStats DataManager::getObstacleStats(ObstacleType type) const
+{
+    return m_obstacleStats.value(type);
 }

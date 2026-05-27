@@ -9,6 +9,15 @@
 #include "../enemies/enemy.h"
 #include "../enemies/enemyfactory.h"
 #include "../wave.h"
+#include "../obstacles/obstaclefactory.h"
+
+struct ObstacleStats
+{
+    double maxHp;
+    int reward;
+    QColor color;
+    int radius;
+};
 
 struct MapData
 {
@@ -37,6 +46,9 @@ public:
     int waveBonusBase() const { return m_waveBonusBase; }
     int waveBonusPerWave() const { return m_waveBonusPerWave; }
 
+    ObstacleStats getObstacleStats(ObstacleType type) const;
+    const std::vector<std::pair<ObstacleType, QPoint>>& obstacles() const { return m_obstacles; }
+
     const std::vector<std::vector<WaveEntry>>& waves() const
     {
         return m_waves;
@@ -49,6 +61,8 @@ private:
 
     QHash<TowerType, TowerStats> m_towerStats;
     QHash<EnemyType, EnemyStats> m_enemyStats;
+    QHash<ObstacleType, ObstacleStats> m_obstacleStats;
+    std::vector<std::pair<ObstacleType, QPoint>> m_obstacles;
     std::vector<std::vector<WaveEntry>> m_waves;
     MapData m_mapData;
 

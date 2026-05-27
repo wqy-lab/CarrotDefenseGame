@@ -1,5 +1,6 @@
 #include "poisontower.h"
 #include "../config/datamanager.h"
+#include <cmath>
 
 PoisonTower::PoisonTower(int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : RemoteTower(TowerType::Poison, gridX, gridY, cellSize, offsetX, offsetY)

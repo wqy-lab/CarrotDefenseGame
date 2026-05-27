@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <vector>
 #include <memory>
+#include "../cellentities.h"
 
 class Enemy;
 
@@ -12,13 +13,15 @@ class Bullet {
 public:
     virtual ~Bullet() = default;
 
-    void update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies);
+    void update(double dt, CellEntities& cell);
     void draw(QPainter& p) const;
     bool isActive() const { return m_active; }
     bool hasHit() const { return m_hit; }
 
     QPointF pos() const { return m_pos; }
     QPointF targetPos() const { return m_targetPos; }
+    void setTargetPos(const QPointF& pos) { m_targetPos = pos; }
+    void setMaxDistance(double dist) { m_maxDistance = dist; }
     double damage() const { return m_damage; }
     double splashRadius() const { return m_splashRadius; }
     double slowFactor() const { return m_slowFactor; }
@@ -33,11 +36,15 @@ protected:
            double splashRadius, double slowFactor, double slowDuration,
            double poisonDps, double poisonDuration, int chainCount, const QColor& color);
 
-    virtual void onHit(Enemy* enemy, std::vector<std::unique_ptr<Enemy>>& enemies) = 0;
+    virtual void onHit(Enemy* enemy) = 0;
+    virtual void onObstacleHit(class Obstacle* obstacle);
 
     bool m_hit;
     QPointF m_pos;
     QPointF m_targetPos;
+    QPointF m_startPos;
+    double m_maxDistance;
+    double m_traveledDistance;
     double m_speed;
     double m_damage;
     double m_splashRadius;

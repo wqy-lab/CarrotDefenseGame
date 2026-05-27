@@ -14,6 +14,7 @@ public:
         bool fired = false;
         QPointF targetPos;
         double damage;
+        double maxDistance;
         double splashRadius;
         double slowFactor;
         double slowDuration;

@@ -131,5 +131,21 @@
             "color": "#FFC832",
             "radius": 6
         }
+    ],
+    "obstacles": [
+        {
+            "type": "Tree",
+            "maxHp": 100.0,
+            "reward": 15,
+            "radius": 18,
+            "color": "#4CAF50"
+        },
+        {
+            "type": "Statue",
+            "maxHp": 200.0,
+            "reward": 30,
+            "radius": 16,
+            "color": "#BDBDBD"
+        }
     ]
 }

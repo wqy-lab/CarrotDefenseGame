@@ -1,5 +1,6 @@
 #include "lighttower.h"
 #include "../config/datamanager.h"
+#include <cmath>
 
 LightningTower::LightningTower(int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : RemoteTower(TowerType::Lightning, gridX, gridY, cellSize, offsetX, offsetY)

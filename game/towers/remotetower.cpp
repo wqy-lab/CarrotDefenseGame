@@ -17,6 +17,7 @@ void RemoteTower::update(double dt, const std::vector<std::unique_ptr<Enemy>>& e
     m_pendingAttack.fired = true;
     m_pendingAttack.targetPos = target->pos();
     m_pendingAttack.damage = getStats().damage;
+    m_pendingAttack.maxDistance = rangePx();
     m_pendingAttack.splashRadius = getStats().splashRadius * m_cellSize;
     m_pendingAttack.slowFactor = getStats().slowFactor;
     m_pendingAttack.slowDuration = getStats().slowDuration;

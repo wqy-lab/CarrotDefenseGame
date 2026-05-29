@@ -156,6 +156,33 @@ bool DataManager::loadLevel(const QString& path)
     return true;
 }
 
+// --- loadLevelsIndex (level catalog) ---
+
+bool DataManager::loadLevelsIndex(const QString& path)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly))
+        return false;
+
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    if (doc.isNull())
+        return false;
+
+    m_levels.clear();
+    QJsonArray list = doc.object()["levels"].toArray();
+    for (const QJsonValue& val : list)
+    {
+        QJsonObject obj = val.toObject();
+        LevelEntry entry;
+        entry.id   = obj["id"].toInt();
+        entry.name = obj["name"].toString();
+        entry.file = obj["file"].toString();
+        m_levels.push_back(entry);
+    }
+
+    return true;
+}
+
 // --- lookup ---
 
 TowerStats DataManager::getTowerStats(TowerType type) const

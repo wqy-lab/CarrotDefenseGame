@@ -1,0 +1,64 @@
+{
+    "name": "test",
+    "map": {
+        "gridCols": 15,
+        "gridRows": 12,
+        "startX": 0,
+        "startY": 6,
+        "endX": 14,
+        "endY": 6,
+        "path": [
+            [0,6], [1,6], [2,6], [3,6],
+            [4,6], [5,6], [6,6], [7,6],
+            [8,6], [9,6], [10,6],
+            [11,6], [12,6], [13,6], [14,6]
+        ]
+    },
+    "settings": {
+        "initialGold": 200,
+        "initialLives": 10,
+        "waveBonusBase": 3000,
+        "waveBonusPerWave": 5
+    },
+    "waves": [
+        [
+            { "type": "Normal", "count": 6,  "interval": 1.0 }
+        ],
+        [
+            { "type": "Normal", "count": 10, "interval": 0.9 }
+        ],
+        [
+            { "type": "Normal", "count": 6,  "interval": 0.8 },
+            { "type": "Fast",   "count": 3,  "interval": 1.5 },
+            { "type": "Swarm",  "count": 5,  "interval": 0.4 }
+        ],
+        [
+            { "type": "Normal", "count": 8,  "interval": 0.7 },
+            { "type": "Fast",   "count": 6,  "interval": 1.2 },
+            { "type": "Swarm",  "count": 8,  "interval": 0.3 }
+        ],
+        [
+            { "type": "Normal", "count": 8,  "interval": 0.6 },
+            { "type": "Fast",   "count": 5,  "interval": 1.0 },
+            { "type": "Tank",   "count": 2,  "interval": 2.5 }
+        ],
+        [
+            { "type": "Normal", "count": 10, "interval": 0.5 },
+            { "type": "Fast",   "count": 8,  "interval": 0.9 },
+            { "type": "Tank",   "count": 3,  "interval": 2.0 },
+            { "type": "Swarm",  "count": 10, "interval": 0.3 }
+        ],
+        [
+            { "type": "Tank",   "count": 4,  "interval": 1.5 },
+            { "type": "Fast",   "count": 8,  "interval": 0.7 },
+            { "type": "Boss",   "count": 1,  "interval": 5.0 }
+        ],
+        [
+            { "type": "Normal", "count": 15, "interval": 0.4 },
+            { "type": "Fast",   "count": 10, "interval": 0.7 },
+            { "type": "Tank",   "count": 5,  "interval": 1.5 },
+            { "type": "Swarm",  "count": 15, "interval": 0.25 },
+            { "type": "Boss",   "count": 2,  "interval": 4.0 }
+        ]
+    ]
+}

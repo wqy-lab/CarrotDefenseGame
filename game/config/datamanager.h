@@ -19,6 +19,13 @@ struct MapData
     std::vector<QPoint> pathCells;
 };
 
+struct LevelEntry
+{
+    int id;
+    QString name;
+    QString file;
+};
+
 class DataManager
 {
 public:
@@ -26,6 +33,7 @@ public:
 
     bool loadShared(const QString& path);
     bool loadLevel(const QString& path);
+    bool loadLevelsIndex(const QString& path);
 
     TowerStats getTowerStats(TowerType type) const;
     EnemyStats getEnemyStats(EnemyType type) const;
@@ -42,6 +50,11 @@ public:
         return m_waves;
     }
 
+    const std::vector<LevelEntry>& levels() const
+    {
+        return m_levels;
+    }
+
 private:
     DataManager() = default;
     DataManager(const DataManager&) = delete;
@@ -50,6 +63,7 @@ private:
     QHash<TowerType, TowerStats> m_towerStats;
     QHash<EnemyType, EnemyStats> m_enemyStats;
     std::vector<std::vector<WaveEntry>> m_waves;
+    std::vector<LevelEntry> m_levels;
     MapData m_mapData;
 
     int m_initialGold = 200;

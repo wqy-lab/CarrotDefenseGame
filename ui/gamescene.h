@@ -33,6 +33,9 @@ public:
     void selectTowerType(TowerType type);
     TowerType selectedTower() const { return m_selectedTower; }
 
+    void setLevelId(int id) { m_levelId = id; }
+    int levelId() const { return m_levelId; }
+
     int gold() const { return m_gold; }
     int lives() const { return m_lives; }
     int currentWave() const { return m_waveManager.currentWave(); }
@@ -43,7 +46,7 @@ public:
 
 signals:
     void statsChanged();
-    void gameEnded(bool won);
+    void gameEnded(bool won, int levelId);
 
 protected:
     void paintEvent(QPaintEvent* event) override;
@@ -86,6 +89,7 @@ private:
     bool m_placingTower;
     int m_hoverGridX, m_hoverGridY;
     bool m_showRange;
+    int m_levelId = 0;
 
     QTimer* m_gameTimer;
     QElapsedTimer m_clock;

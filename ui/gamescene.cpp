@@ -356,29 +356,20 @@ void GameScene::mousePressEvent(QMouseEvent* event)
     QPoint g = pixelToGrid(event->pos());
     if (!isValidGridPos(g.x(), g.y())) return;
 
-    if (m_placingTower) {
-        if (!isPathCell(g.x(), g.y()) && !isObstacleCell(g.x(), g.y())) {
-            placeTower(g.x(), g.y());
-        }
-    } else {
-        // Click to set priority target
-        CellEntities& cell = getCellAt(g.x(), g.y());
-
-        // Try obstacle first
-        if (!cell.obstacles.empty()) {
-            setPriorityTarget(cell.obstacles.front());
-            return;
-        }
-
-        // Then enemy
-        if (!cell.enemies.empty()) {
-            setPriorityTarget(cell.enemies.front());
-            return;
-        }
-
-        // Click empty cell clears priority
-        clearPriorityTarget();
+    CellEntities& cell = getCellAt(g.x(), g.y());
+    if (!cell.enemies.empty()) {
+        setPriorityTarget(cell.enemies.front());
+        return;
     }
+    if (!cell.obstacles.empty()) {
+        setPriorityTarget(cell.obstacles.front());
+        return;
+    }
+    if (m_placingTower) {
+        placeTower(g.x(), g.y());
+        return;
+    }
+    clearPriorityTarget();
 }
 
 // ============ Resize ============
@@ -446,6 +437,10 @@ void GameScene::paintEvent(QPaintEvent* event)
             m_offsetX + m_hoverGridX * m_cellSize + 1,
             m_offsetY + m_hoverGridY * m_cellSize + 1,
             m_cellSize - 2, m_cellSize - 2));
+    }
+
+    if (m_gameOver) {
+        p.fillRect(rect(), QColor(0, 0, 0, 150));
     }
 }
 

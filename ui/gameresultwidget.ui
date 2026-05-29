@@ -3,40 +3,150 @@
  <class>GameResultWidget</class>
  <widget class="QWidget" name="GameResultWidget">
   <property name="geometry">
-   <rect><x>0</x><y>0</y><width>800</width><height>600</height></rect>
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
   </property>
   <property name="styleSheet">
-   <string notr="true">QWidget#GameResultWidget { background-color: rgba(0, 0, 0, 150); }</string>
+   <string notr="true">QWidget#GameResultWidget { background-color: rgba(0, 0, 0, 220); }</string>
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
    <item>
-    <spacer name="topSpacer"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint"><size><width>20</width><height>180</height></size></property></spacer>
+    <spacer name="topSpacer">
+     <property name="orientation">
+      <enum>Qt::Orientation::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>180</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item>
     <widget class="QLabel" name="resultLabel">
-     <property name="text"><string>VICTORY!</string></property>
-     <property name="alignment"><set>Qt::AlignCenter</set></property>
-     <property name="styleSheet"><string notr="true">font-size: 48px; font-weight: bold; color: #FF9800;</string></property>
+     <property name="styleSheet">
+      <string notr="true">font-size: 48px; font-weight: bold; color: #FF9800;</string>
+     </property>
+     <property name="text">
+      <string>VICTORY!</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
     </widget>
    </item>
    <item>
-    <spacer name="midSpacer"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint"><size><width>20</width><height>40</height></size></property></spacer>
+    <spacer name="midSpacer">
+     <property name="orientation">
+      <enum>Qt::Orientation::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item>
     <layout class="QHBoxLayout" name="buttonLayout">
-     <item><spacer name="leftSpacer"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint"><size><width>150</width><height>20</height></size></property></spacer></item>
+     <item>
+      <spacer name="leftSpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>150</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
      <item>
       <layout class="QVBoxLayout" name="buttonsInner">
-       <item><widget class="QPushButton" name="btnRetry"><property name="text"><string>重试</string></property><property name="minimumSize"><size><width>200</width><height>50</height></size></property><property name="styleSheet"><string notr="true">QPushButton { background-color: #FF9800; color: white; font-size: 18px; border: none; border-radius: 8px; } QPushButton:hover { background-color: #F57C00; }</string></property></widget></item>
-       <item><widget class="QPushButton" name="btnNext"><property name="text"><string>下一关</string></property><property name="minimumSize"><size><width>200</width><height>50</height></size></property><property name="styleSheet"><string notr="true">QPushButton { background-color: #4CAF50; color: white; font-size: 18px; border: none; border-radius: 8px; } QPushButton:hover { background-color: #45a049; }</string></property></widget></item>
-       <item><widget class="QPushButton" name="btnMenu"><property name="text"><string>返回主菜单</string></property><property name="minimumSize"><size><width>200</width><height>50</height></size></property><property name="styleSheet"><string notr="true">QPushButton { background-color: #555; color: #CCC; font-size: 18px; border: 1px solid #666; border-radius: 8px; } QPushButton:hover { background-color: #666; }</string></property></widget></item>
+       <item>
+        <widget class="QPushButton" name="btnRetry">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton { background-color: #FF9800; color: white; font-size: 18px; border: none; border-radius: 8px; } QPushButton:hover { background-color: #F57C00; }</string>
+         </property>
+         <property name="text">
+          <string>重试</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnNext">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton { background-color: #4CAF50; color: white; font-size: 18px; border: none; border-radius: 8px; } QPushButton:hover { background-color: #45a049; }</string>
+         </property>
+         <property name="text">
+          <string>下一关</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnMenu">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton { background-color: #555; color: #CCC; font-size: 18px; border: 1px solid #666; border-radius: 8px; } QPushButton:hover { background-color: #666; }</string>
+         </property>
+         <property name="text">
+          <string>返回主菜单</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
-     <item><spacer name="rightSpacer"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint"><size><width>150</width><height>20</height></size></property></spacer></item>
+     <item>
+      <spacer name="rightSpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>150</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
     </layout>
    </item>
    <item>
-    <spacer name="bottomSpacer"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint"><size><width>20</width><height>180</height></size></property></spacer>
+    <spacer name="bottomSpacer">
+     <property name="orientation">
+      <enum>Qt::Orientation::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>180</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>

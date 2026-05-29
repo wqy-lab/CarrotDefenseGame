@@ -1,5 +1,6 @@
 #include "arrowtower.h"
 #include "../config/datamanager.h"
+#include <cmath>
 
 ArrowTower::ArrowTower(int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : RemoteTower(TowerType::Arrow, gridX, gridY, cellSize, offsetX, offsetY)

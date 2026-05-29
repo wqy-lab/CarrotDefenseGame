@@ -9,6 +9,23 @@
 #include "../enemies/enemy.h"
 #include "../enemies/enemyfactory.h"
 #include "../wave.h"
+#include "../obstacles/obstaclefactory.h"
+
+struct ObstacleEntry {
+    ObstacleType type;
+    int gridX;
+    int gridY;
+    int gridW;
+    int gridH;
+};
+
+struct ObstacleStats
+{
+    double maxHp;
+    int reward;
+    QColor color;
+    int radius;
+};
 
 struct MapData
 {
@@ -19,6 +36,13 @@ struct MapData
     std::vector<QPoint> pathCells;
 };
 
+struct LevelEntry
+{
+    int id;
+    QString name;
+    QString file;
+};
+
 class DataManager
 {
 public:
@@ -26,6 +50,7 @@ public:
 
     bool loadShared(const QString& path);
     bool loadLevel(const QString& path);
+    bool loadLevelsIndex(const QString& path);
 
     TowerStats getTowerStats(TowerType type) const;
     EnemyStats getEnemyStats(EnemyType type) const;
@@ -37,9 +62,17 @@ public:
     int waveBonusBase() const { return m_waveBonusBase; }
     int waveBonusPerWave() const { return m_waveBonusPerWave; }
 
+    ObstacleStats getObstacleStats(ObstacleType type) const;
+    const std::vector<ObstacleEntry>& obstacles() const { return m_obstacles; }
+
     const std::vector<std::vector<WaveEntry>>& waves() const
     {
         return m_waves;
+    }
+
+    const std::vector<LevelEntry>& levels() const
+    {
+        return m_levels;
     }
 
 private:
@@ -49,7 +82,10 @@ private:
 
     QHash<TowerType, TowerStats> m_towerStats;
     QHash<EnemyType, EnemyStats> m_enemyStats;
+    QHash<ObstacleType, ObstacleStats> m_obstacleStats;
+    std::vector<ObstacleEntry> m_obstacles;
     std::vector<std::vector<WaveEntry>> m_waves;
+    std::vector<LevelEntry> m_levels;
     MapData m_mapData;
 
     int m_initialGold = 200;

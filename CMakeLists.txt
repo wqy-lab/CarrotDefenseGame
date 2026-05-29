@@ -19,6 +19,15 @@ set(PROJECT_SOURCES
     ui/mainwindow.ui
     ui/gamescene.cpp
     ui/gamescene.h
+    ui/mainmenuwidget.ui
+    ui/mainmenuwidget.cpp
+    ui/mainmenuwidget.h
+    ui/levelselectwidget.ui
+    ui/levelselectwidget.cpp
+    ui/levelselectwidget.h
+    ui/gameresultwidget.ui
+    ui/gameresultwidget.cpp
+    ui/gameresultwidget.h
     game/enemies/enemy.cpp
     game/enemies/enemy.h
     game/towers/tower.cpp
@@ -64,9 +73,21 @@ set(PROJECT_SOURCES
     game/bullets/normalbullet.h
     game/bullets/bulletfactory.cpp
     game/bullets/bulletfactory.h
+    game/cellentities.h
     game/config/datamanager.cpp
     game/config/datamanager.h
+    game/obstacles/obstacle.cpp
+    game/obstacles/obstacle.h
+    game/obstacles/treeobstacle.cpp
+    game/obstacles/treeobstacle.h
+    game/obstacles/statueobstacle.cpp
+    game/obstacles/statueobstacle.h
+    game/obstacles/obstaclefactory.cpp
+    game/obstacles/obstaclefactory.h
 )
+
+# Watch config JSON files for changes (trigger re-configure on edit)
+file(GLOB_RECURSE CONFIG_FILES CONFIGURE_DEPENDS "config/*.json")
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(CarrotDefense

@@ -1,0 +1,61 @@
+{
+    "name": "双格障碍关",
+    "map": {
+        "gridCols": 15,
+        "gridRows": 12,
+        "startX": 0,
+        "startY": 6,
+        "endX": 14,
+        "endY": 6,
+        "path": [
+            [0,6], [1,6], [2,6], [3,6], [4,6], [5,6],
+            [5,5], [5,4], [5,3],
+            [6,3], [7,3], [8,3], [9,3],
+            [9,4], [9,5], [9,6], [9,7], [9,8],
+            [10,8], [11,8], [12,8],
+            [12,7], [12,6], [12,5],
+            [13,5], [14,5]
+        ]
+    },
+    "settings": {
+        "initialGold": 200,
+        "initialLives": 10,
+        "waveBonusBase": 30,
+        "waveBonusPerWave": 5
+    },
+    "obstacles": [
+        { "type": "Tree",   "x": 1, "y": 1, "w": 2, "h": 2 },
+        { "type": "Statue", "x": 7, "y": 1, "w": 1, "h": 2 },
+        { "type": "Tree",   "x": 11, "y": 1, "w": 2, "h": 1 },
+        { "type": "Statue", "x": 2, "y": 4, "w": 1, "h": 1 },
+        { "type": "Tree",   "x": 2, "y": 8, "w": 2, "h": 1 },
+        { "type": "Statue", "x": 11, "y": 10, "w": 1, "h": 1 },
+        { "type": "Tree",   "x": 13, "y": 8, "w": 1, "h": 2 }
+    ],
+    "waves": [
+        [
+            { "type": "Normal", "count": 8, "interval": 1.0 }
+        ],
+        [
+            { "type": "Normal", "count": 10, "interval": 0.9 },
+            { "type": "Fast",   "count": 4,  "interval": 1.2 }
+        ],
+        [
+            { "type": "Normal", "count": 8,  "interval": 0.8 },
+            { "type": "Fast",   "count": 5,  "interval": 1.0 },
+            { "type": "Tank",   "count": 2,  "interval": 2.5 }
+        ],
+        [
+            { "type": "Tank",   "count": 3,  "interval": 2.0 },
+            { "type": "Fast",   "count": 8,  "interval": 0.8 },
+            { "type": "Boss",   "count": 1,  "interval": 5.0 }
+        ],
+        [
+            { "type": "Normal", "count": 15, "interval": 0.4 },
+            { "type": "Fast",   "count": 10, "interval": 0.7 },
+            { "type": "Tank",   "count": 5,  "interval": 1.5 },
+            { "type": "Swarm",  "count": 15, "interval": 0.25 },
+            { "type": "Boss",   "count": 2,  "interval": 4.0 }
+        ]
+    ]
+}

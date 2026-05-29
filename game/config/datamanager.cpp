@@ -28,6 +28,13 @@ static EnemyType stringToEnemyType(const QString& s)
     return EnemyType::Normal;
 }
 
+static ObstacleType stringToObstacleType(const QString& s)
+{
+    if (s == "Tree") return ObstacleType::Tree;
+    if (s == "Statue") return ObstacleType::Statue;
+    return ObstacleType::Tree;
+}
+
 // --- singleton ---
 
 DataManager& DataManager::instance()
@@ -89,6 +96,21 @@ bool DataManager::loadShared(const QString& path)
         s.color  = QColor(obj["color"].toString());
 
         m_enemyStats[type] = s;
+    }
+
+    // --- obstacles ---
+    QJsonArray obstacles = root["obstacles"].toArray();
+    for (const QJsonValue& val : obstacles) {
+        QJsonObject obj = val.toObject();
+        ObstacleType type = stringToObstacleType(obj["type"].toString());
+
+        ObstacleStats s;
+        s.maxHp  = obj["maxHp"].toDouble();
+        s.reward = obj["reward"].toInt();
+        s.radius = obj["radius"].toInt(16);
+        s.color  = QColor(obj["color"].toString());
+
+        m_obstacleStats[type] = s;
     }
 
     return true;
@@ -153,6 +175,47 @@ bool DataManager::loadLevel(const QString& path)
         m_waves.push_back(std::move(wave));
     }
 
+    // --- obstacles ---
+    m_obstacles.clear();
+    QJsonArray obstacles = root["obstacles"].toArray();
+    for (const QJsonValue& val : obstacles) {
+        QJsonObject obj = val.toObject();
+        ObstacleEntry entry;
+        entry.type = stringToObstacleType(obj["type"].toString());
+        entry.gridX = obj["x"].toInt();
+        entry.gridY = obj["y"].toInt();
+        entry.gridW = obj["w"].toInt(1);
+        entry.gridH = obj["h"].toInt(1);
+        m_obstacles.push_back(entry);
+    }
+
+    return true;
+}
+
+// --- loadLevelsIndex (level catalog) ---
+
+bool DataManager::loadLevelsIndex(const QString& path)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly))
+        return false;
+
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    if (doc.isNull())
+        return false;
+
+    m_levels.clear();
+    QJsonArray list = doc.object()["levels"].toArray();
+    for (const QJsonValue& val : list)
+    {
+        QJsonObject obj = val.toObject();
+        LevelEntry entry;
+        entry.id   = obj["id"].toInt();
+        entry.name = obj["name"].toString();
+        entry.file = obj["file"].toString();
+        m_levels.push_back(entry);
+    }
+
     return true;
 }
 
@@ -166,4 +229,9 @@ TowerStats DataManager::getTowerStats(TowerType type) const
 EnemyStats DataManager::getEnemyStats(EnemyType type) const
 {
     return m_enemyStats.value(type);
+}
+
+ObstacleStats DataManager::getObstacleStats(ObstacleType type) const
+{
+    return m_obstacleStats.value(type);
 }

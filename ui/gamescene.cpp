@@ -3,6 +3,7 @@
 #include "../game/towers/towerfactory.h"
 #include "../game/bullets/bulletfactory.h"
 #include "../game/config/datamanager.h"
+#include "../game/obstacles/obstaclefactory.h"
 #include <QPainterPath>
 #include <QtMath>
 #include <algorithm>
@@ -44,14 +45,39 @@ void GameScene::initMap(const MapData& map)
     m_endY     = map.endY;
 
     m_isPath.assign(m_gridRows, std::vector<bool>(m_gridCols, false));
+    m_obstacleCell.assign(m_gridRows, std::vector<bool>(m_gridCols, false));
+    m_entityGrid.assign(m_gridRows, std::vector<CellEntities>(m_gridCols));
     m_pathSet.clear();
     m_waypoints.clear();
+    m_obstacles.clear();
 
     for (const QPoint& p : map.pathCells)
     {
         m_pathSet.insert({p.x(), p.y()});
         m_isPath[p.y()][p.x()] = true;
         m_waypoints.push_back(gridToPixel(p.x(), p.y()));
+    }
+
+    // Create obstacles from DataManager
+    for (const auto& entry : DataManager::instance().obstacles()) {
+        int gx = entry.gridX, gy = entry.gridY;
+        int gw = entry.gridW, gh = entry.gridH;
+
+        // Mark all occupied cells
+        for (int dy = 0; dy < gh; ++dy) {
+            for (int dx = 0; dx < gw; ++dx) {
+                int cx = gx + dx, cy = gy + dy;
+                if (isValidGridPos(cx, cy) && !isPathCell(cx, cy)) {
+                    m_obstacleCell[cy][cx] = true;
+                }
+            }
+        }
+
+        // Center pixel for multi-cell obstacle
+        QPointF centerPos = gridToPixel(gx + gw / 2, gy + gh / 2);
+        auto obs = createObstacle(entry.type, gx, gy, gw, gh, centerPos);
+        obs->setCellSize(static_cast<int>(m_cellSize));
+        m_obstacles.push_back(std::move(obs));
     }
 }
 
@@ -87,6 +113,7 @@ void GameScene::resetGame()
     m_towers.clear();
     m_enemies.clear();
     m_projectiles.clear();
+    m_obstacles.clear();
     m_waveManager.reset();
 
     // Restore path (in case towers removed path cells)
@@ -139,6 +166,8 @@ void GameScene::updateGame(double dt)
 
     // Update towers
     for (auto& t : m_towers) {
+        t->setPriorityEnemy(m_priorityEnemy);
+        t->setPriorityObstacle(m_priorityObstacle);
         t->update(dt, m_enemies);
     }
 
@@ -168,15 +197,27 @@ void GameScene::updateGame(double dt)
                                       attack.damage, attack.splashRadius, attack.slowFactor,
                                       attack.slowDuration, attack.poisonDps, attack.poisonDuration,
                                       attack.chainCount, attack.color);
+                b->setMaxDistance(attack.maxDistance);
+                b->setCellSize(m_cellSize);
+                b->setOffset(m_offsetX, m_offsetY);
                 m_projectiles.push_back(std::move(b));
             }
         }
     }
 
     // Update projectiles
+    syncEntityGrid();
     for (auto& p : m_projectiles) {
-        if (p->isActive()) p->update(dt, m_enemies);
+        if (p->isActive()) {
+            QPointF pos = p->pos();
+            QPoint g = pixelToGrid(pos);
+            CellEntities& cell = getCellAt(g.x(), g.y());
+            p->update(dt, m_enemies, cell);
+        }
     }
+
+    // Update obstacles
+    updateObstacles(dt);
 
     // Process hits
     for (auto& p : m_projectiles) {
@@ -201,7 +242,7 @@ void GameScene::updateGame(double dt)
             m_victory = true;
             m_gameOver = true;
             m_gameTimer->stop();
-            emit gameEnded(true);
+            emit gameEnded(true, m_levelId);
         } else {
             m_gold += DataManager::instance().waveBonusBase()
                       + m_waveManager.currentWave()
@@ -239,7 +280,7 @@ void GameScene::checkGameEnd()
         m_lives = 0;
         m_gameOver = true;
         m_gameTimer->stop();
-        emit gameEnded(false);
+        emit gameEnded(false, m_levelId);
     }
 }
 
@@ -249,6 +290,7 @@ void GameScene::placeTower(int gx, int gy)
 {
     if (!isValidGridPos(gx, gy)) return;
     if (isPathCell(gx, gy)) return;
+    if (isObstacleCell(gx, gy)) return;
 
     // Check no tower already here
     for (auto& t : m_towers) {
@@ -298,7 +340,7 @@ void GameScene::mouseMoveEvent(QMouseEvent* event)
     QPoint g = pixelToGrid(event->pos());
     m_hoverGridX = g.x();
     m_hoverGridY = g.y();
-    if (m_placingTower && isValidGridPos(m_hoverGridX, m_hoverGridY) && !isPathCell(m_hoverGridX, m_hoverGridY)) {
+    if (m_placingTower && isValidGridPos(m_hoverGridX, m_hoverGridY) && !isPathCell(m_hoverGridX, m_hoverGridY) && !isObstacleCell(m_hoverGridX, m_hoverGridY)) {
         m_showRange = true;
     } else {
         m_showRange = false;
@@ -309,13 +351,25 @@ void GameScene::mouseMoveEvent(QMouseEvent* event)
 void GameScene::mousePressEvent(QMouseEvent* event)
 {
     if (!m_gameRunning || m_paused || m_gameOver) return;
-    if (!m_placingTower) return;
     if (event->button() != Qt::LeftButton) return;
 
     QPoint g = pixelToGrid(event->pos());
-    if (isValidGridPos(g.x(), g.y()) && !isPathCell(g.x(), g.y())) {
-        placeTower(g.x(), g.y());
+    if (!isValidGridPos(g.x(), g.y())) return;
+
+    CellEntities& cell = getCellAt(g.x(), g.y());
+    if (!cell.enemies.empty()) {
+        setPriorityTarget(cell.enemies.front());
+        return;
     }
+    if (!cell.obstacles.empty()) {
+        setPriorityTarget(cell.obstacles.front());
+        return;
+    }
+    if (m_placingTower) {
+        placeTower(g.x(), g.y());
+        return;
+    }
+    clearPriorityTarget();
 }
 
 // ============ Resize ============
@@ -342,6 +396,9 @@ void GameScene::resizeEvent(QResizeEvent* event)
         if (e->isActive()) e->updatePath(m_waypoints);
     }
 
+    // Update obstacle positions
+    repositionObstacles();
+
     update();
 }
 
@@ -358,6 +415,7 @@ void GameScene::paintEvent(QPaintEvent* event)
 
     drawGrid(p);
     drawPath(p);
+    drawObstacles(p);
     drawTowers(p);
     drawEnemies(p);
     drawProjectiles(p);
@@ -383,10 +441,6 @@ void GameScene::paintEvent(QPaintEvent* event)
 
     if (m_gameOver) {
         p.fillRect(rect(), QColor(0, 0, 0, 150));
-        p.setPen(Qt::white);
-        QFont f("Arial", 28, QFont::Bold);
-        p.setFont(f);
-        p.drawText(rect(), Qt::AlignCenter, m_victory ? "VICTORY!" : "GAME OVER");
     }
 }
 
@@ -419,6 +473,19 @@ void GameScene::drawGrid(QPainter& p)
             m_offsetY + y * m_cellSize + 1,
             m_cellSize - 2, m_cellSize - 2),
             QColor(45, 50, 40));
+    }
+
+    // Obstacle cells: distinct color
+    for (int y = 0; y < m_gridRows; ++y) {
+        for (int x = 0; x < m_gridCols; ++x) {
+            if (m_obstacleCell[y][x]) {
+                p.fillRect(QRectF(
+                    m_offsetX + x * m_cellSize + 1,
+                    m_offsetY + y * m_cellSize + 1,
+                    m_cellSize - 2, m_cellSize - 2),
+                    QColor(90, 70, 50));
+            }
+        }
     }
 
     // Grid lines
@@ -500,4 +567,108 @@ void GameScene::drawProjectiles(QPainter& p)
 {
     for (auto& pj : m_projectiles)
         if (pj->isActive()) pj->draw(p);
+}
+
+void GameScene::drawObstacles(QPainter& p)
+{
+    for (auto& obs : m_obstacles)
+        obs->draw(&p);
+}
+
+void GameScene::repositionObstacles()
+{
+    for (auto& obs : m_obstacles) {
+        QPointF newPos = gridToPixel(obs->gridX() + obs->gridWidth() / 2,
+                                     obs->gridY() + obs->gridHeight() / 2);
+        obs->setPosition(newPos);
+    }
+}
+
+void GameScene::updateObstacles(double dt)
+{
+    for (auto& obs : m_obstacles) {
+        obs->update(dt);
+    }
+
+    for (auto& obs : m_obstacles) {
+        if (obs->isDestroyed()) {
+            m_gold += obs->reward();
+            for (int dy = 0; dy < obs->gridHeight(); ++dy) {
+                for (int dx = 0; dx < obs->gridWidth(); ++dx) {
+                    int cx = obs->gridX() + dx;
+                    int cy = obs->gridY() + dy;
+                    if (isValidGridPos(cx, cy)) {
+                        m_obstacleCell[cy][cx] = false;
+                    }
+                }
+            }
+        }
+    }
+
+    m_obstacles.erase(
+        std::remove_if(m_obstacles.begin(), m_obstacles.end(),
+            [](auto& obs) { return obs->isDestroyed(); }),
+        m_obstacles.end());
+}
+
+void GameScene::syncEntityGrid()
+{
+    for (auto& row : m_entityGrid) {
+        for (auto& cell : row) {
+            cell.enemies.clear();
+            cell.obstacles.clear();
+        }
+    }
+
+    for (auto& e : m_enemies) {
+        if (!e->isActive()) continue;
+        QPoint g = pixelToGrid(e->pos());
+        if (isValidGridPos(g.x(), g.y())) {
+            m_entityGrid[g.y()][g.x()].enemies.push_back(e.get());
+        }
+    }
+
+    for (auto& obs : m_obstacles) {
+        if (!obs->isActive()) continue;
+        for (int dy = 0; dy < obs->gridHeight(); ++dy) {
+            for (int dx = 0; dx < obs->gridWidth(); ++dx) {
+                int cx = obs->gridX() + dx;
+                int cy = obs->gridY() + dy;
+                if (isValidGridPos(cx, cy)) {
+                    m_entityGrid[cy][cx].obstacles.push_back(obs.get());
+                }
+            }
+        }
+    }
+}
+
+CellEntities& GameScene::getCellAt(int gx, int gy)
+{
+    static CellEntities dummy;
+    if (!isValidGridPos(gx, gy)) return dummy;
+    return m_entityGrid[gy][gx];
+}
+
+bool GameScene::isObstacleCell(int gx, int gy) const
+{
+    if (!isValidGridPos(gx, gy)) return false;
+    return m_obstacleCell[gy][gx];
+}
+
+void GameScene::setPriorityTarget(Enemy* e)
+{
+    m_priorityEnemy = e;
+    m_priorityObstacle = nullptr;
+}
+
+void GameScene::setPriorityTarget(Obstacle* obs)
+{
+    m_priorityObstacle = obs;
+    m_priorityEnemy = nullptr;
+}
+
+void GameScene::clearPriorityTarget()
+{
+    m_priorityEnemy = nullptr;
+    m_priorityObstacle = nullptr;
 }

@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>CarrotDefense - Tower Defense</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QStackedWidget" name="centralwidget"/>
   <widget class="QToolBar" name="toolBar">
    <property name="movable">
     <bool>false</bool>

@@ -1,5 +1,6 @@
 #include "suntower.h"
 #include "../config/datamanager.h"
+#include <cmath>
 
 SunTower::SunTower(int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : MeleeTower(TowerType::Sun, gridX, gridY, cellSize, offsetX, offsetY)

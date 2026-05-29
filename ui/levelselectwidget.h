@@ -15,6 +15,8 @@ public:
     explicit LevelSelectWidget(QWidget* parent = nullptr);
     ~LevelSelectWidget();
 
+    void unlockLevel(int id);
+
 signals:
     void backClicked();
     void levelSelected(int id, const QString& file);

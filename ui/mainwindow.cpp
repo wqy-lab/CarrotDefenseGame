@@ -5,10 +5,14 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QToolBar>
+#include <QStatusBar>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , m_stacked(nullptr)
+    , m_menu(nullptr)
+    , m_levelSelect(nullptr)
     , m_scene(nullptr)
     , m_btnStart(nullptr)
     , m_btnPause(nullptr)
@@ -26,10 +30,156 @@ MainWindow::MainWindow(QWidget* parent)
 {
     ui->setupUi(this);
 
-    m_scene = new GameScene(this);
-    setCentralWidget(m_scene);
+    m_stacked = qobject_cast<QStackedWidget*>(ui->centralwidget);
 
-    // 创建工具栏按钮
+    // Create pages
+    m_menu = new MainMenuWidget(this);
+    m_levelSelect = new LevelSelectWidget(this);
+    m_scene = new GameScene(this);
+
+    m_stacked->addWidget(m_menu);       // page 0
+    m_stacked->addWidget(m_levelSelect); // page 1
+    m_stacked->addWidget(m_scene);       // page 2
+
+    // Setup toolbar + status bar (for game page)
+    setupToolbar();
+    setupStatusBar();
+
+    // Start on main menu
+    showMenuPage();
+
+    // --- MainMenu signals ---
+    connect(m_menu, &MainMenuWidget::startGameClicked,
+            this, &MainWindow::onStartGame);
+    connect(m_menu, &MainMenuWidget::levelSelectClicked,
+            this, [this]() { m_stacked->setCurrentIndex(1); });
+
+    // --- LevelSelect signals ---
+    connect(m_levelSelect, &LevelSelectWidget::levelSelected,
+            this, &MainWindow::onLevelSelected);
+    connect(m_levelSelect, &LevelSelectWidget::backClicked,
+            this, [this]() { m_stacked->setCurrentIndex(0); });
+
+    // --- GameScene signals ---
+    connect(m_scene, &GameScene::statsChanged,
+            this, &MainWindow::onStatsChanged);
+    connect(m_scene, &GameScene::gameEnded,
+            this, &MainWindow::onGameEnded);
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+// ========== Page Navigation ==========
+
+void MainWindow::showMenuPage()
+{
+    ui->toolBar->hide();
+    ui->statusbar->hide();
+    m_stacked->setCurrentIndex(0);
+}
+
+void MainWindow::showGamePage()
+{
+    ui->toolBar->show();
+    ui->statusbar->show();
+    m_stacked->setCurrentIndex(2);
+    updateStatusBar();
+    updateTowerButtons();
+}
+
+// ========== Level Loading ==========
+
+void MainWindow::loadAndStartLevel(int id, const QString& file)
+{
+    if (!DataManager::instance().loadLevel(file))
+    {
+        m_lblInfo->setText("Failed to load level!");
+        return;
+    }
+
+    m_currentLevelId = id;
+    m_currentLevelFile = file;
+    m_scene->setLevelId(id);
+    m_scene->resetGame();
+    m_scene->startGame();
+
+    showGamePage();
+    m_btnStart->setEnabled(false);
+    m_btnPause->setEnabled(true);
+    m_btnPause->setText("Pause");
+}
+
+// ========== Main Menu Handlers ==========
+
+void MainWindow::onStartGame()
+{
+    const auto& levels = DataManager::instance().levels();
+    if (!levels.empty())
+        loadAndStartLevel(levels[0].id, levels[0].file);
+}
+
+void MainWindow::onLevelSelected(int id, const QString& file)
+{
+    loadAndStartLevel(id, file);
+}
+
+// ========== Game Over & Overlay ==========
+
+void MainWindow::onGameEnded(bool won, int levelId)
+{
+    Q_UNUSED(levelId);
+    m_btnStart->setEnabled(true);
+    m_btnPause->setEnabled(false);
+
+    m_resultOverlay = new GameResultWidget(won, m_currentLevelId, this);
+    m_resultOverlay->setGeometry(m_stacked->geometry());
+    m_resultOverlay->raise();
+    m_resultOverlay->show();
+
+    connect(m_resultOverlay, &GameResultWidget::retryClicked,
+            this, &MainWindow::onRetry);
+    connect(m_resultOverlay, &GameResultWidget::nextLevelClicked,
+            this, &MainWindow::onNextLevel);
+    connect(m_resultOverlay, &GameResultWidget::menuClicked,
+            this, &MainWindow::onMenu);
+}
+
+void MainWindow::cleanupOverlay()
+{
+    if (m_resultOverlay)
+    {
+        m_resultOverlay->deleteLater();
+        m_resultOverlay = nullptr;
+    }
+}
+
+void MainWindow::onRetry()
+{
+    cleanupOverlay();
+    loadAndStartLevel(m_currentLevelId, m_currentLevelFile);
+}
+
+void MainWindow::onNextLevel()
+{
+    cleanupOverlay();
+    int nextId = m_currentLevelId + 1;
+    QString nextFile = QString("config/levels/level%1.json").arg(nextId);
+    loadAndStartLevel(nextId, nextFile);
+}
+
+void MainWindow::onMenu()
+{
+    cleanupOverlay();
+    showMenuPage();
+}
+
+// ========== Toolbar ==========
+
+void MainWindow::setupToolbar()
+{
     QToolBar* toolbar = ui->toolBar;
 
     m_btnStart = new QPushButton("Start Wave");
@@ -104,7 +254,21 @@ MainWindow::MainWindow(QWidget* parent)
     helpLabel->setStyleSheet("color: #AAA;");
     toolbar->addWidget(helpLabel);
 
-    // 创建状态栏标签
+    // Toolbar signal connections
+    connect(m_btnStart, &QPushButton::clicked, this, &MainWindow::onStartWave);
+    connect(m_btnPause, &QPushButton::clicked, this, &MainWindow::onPauseResume);
+    connect(m_btnArrow, &QPushButton::clicked, this, &MainWindow::onSelectArrow);
+    connect(m_btnCannon, &QPushButton::clicked, this, &MainWindow::onSelectCannon);
+    connect(m_btnIce, &QPushButton::clicked, this, &MainWindow::onSelectIce);
+    connect(m_btnPoison, &QPushButton::clicked, this, &MainWindow::onSelectPoison);
+    connect(m_btnLightning, &QPushButton::clicked, this, &MainWindow::onSelectLightning);
+    connect(m_btnSun, &QPushButton::clicked, this, &MainWindow::onSelectSun);
+}
+
+// ========== Status Bar ==========
+
+void MainWindow::setupStatusBar()
+{
     m_lblGold = new QLabel();
     m_lblLives = new QLabel();
     m_lblWave = new QLabel();
@@ -114,133 +278,15 @@ MainWindow::MainWindow(QWidget* parent)
     statusBar()->addPermanentWidget(m_lblLives);
     statusBar()->addPermanentWidget(m_lblWave);
     statusBar()->addWidget(m_lblInfo, 1);
-
-    // 信号槽连接
-    connect(m_btnStart, &QPushButton::clicked, this, &MainWindow::onStartWave);
-    connect(m_btnPause, &QPushButton::clicked, this, &MainWindow::onPauseResume);
-    connect(m_btnArrow, &QPushButton::clicked, this, &MainWindow::onSelectArrow);
-    connect(m_btnCannon, &QPushButton::clicked, this, &MainWindow::onSelectCannon);
-    connect(m_btnIce, &QPushButton::clicked, this, &MainWindow::onSelectIce);
-    connect(m_btnPoison, &QPushButton::clicked, this, &MainWindow::onSelectPoison);
-    connect(m_btnLightning, &QPushButton::clicked, this, &MainWindow::onSelectLightning);
-    connect(m_btnSun, &QPushButton::clicked, this, &MainWindow::onSelectSun);
-    connect(m_scene, &GameScene::statsChanged, this, &MainWindow::onStatsChanged);
-    connect(m_scene, &GameScene::gameEnded, this, &MainWindow::onGameEnded);
-
-    updateStatusBar();
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
-
-void MainWindow::onStartWave()
-{
-    m_scene->startGame();
-    m_btnStart->setEnabled(false);
-    m_btnPause->setEnabled(true);
-    m_btnPause->setText("Pause");
-    updateStatusBar();
-}
-
-void MainWindow::onPauseResume()
-{
-    if (m_scene->isPaused()) {
-        m_scene->resumeGame();
-        m_btnPause->setText("Pause");
-    } else {
-        m_scene->pauseGame();
-        m_btnPause->setText("Resume");
-    }
-}
-
-void MainWindow::onSelectArrow()
-{
-    m_selectedType = TowerType::Arrow;
-    m_btnArrow->setChecked(true);
-    m_btnCannon->setChecked(false);
-    m_btnIce->setChecked(false);
-    m_btnPoison->setChecked(false);
-    m_btnLightning->setChecked(false);
-    m_scene->selectTowerType(TowerType::Arrow);
-}
-
-void MainWindow::onSelectCannon()
-{
-    m_selectedType = TowerType::Cannon;
-    m_btnArrow->setChecked(false);
-    m_btnCannon->setChecked(true);
-    m_btnIce->setChecked(false);
-    m_btnPoison->setChecked(false);
-    m_btnLightning->setChecked(false);
-    m_scene->selectTowerType(TowerType::Cannon);
-}
-
-void MainWindow::onSelectIce()
-{
-    m_selectedType = TowerType::Ice;
-    m_btnArrow->setChecked(false);
-    m_btnCannon->setChecked(false);
-    m_btnIce->setChecked(true);
-    m_btnPoison->setChecked(false);
-    m_btnLightning->setChecked(false);
-    m_scene->selectTowerType(TowerType::Ice);
-}
-
-void MainWindow::onSelectPoison()
-{
-    m_selectedType = TowerType::Poison;
-    m_btnArrow->setChecked(false);
-    m_btnCannon->setChecked(false);
-    m_btnIce->setChecked(false);
-    m_btnPoison->setChecked(true);
-    m_btnLightning->setChecked(false);
-    m_scene->selectTowerType(TowerType::Poison);
-}
-
-void MainWindow::onSelectLightning()
-{
-    m_selectedType = TowerType::Lightning;
-    m_btnArrow->setChecked(false);
-    m_btnCannon->setChecked(false);
-    m_btnIce->setChecked(false);
-    m_btnPoison->setChecked(false);
-    m_btnLightning->setChecked(true);
-    m_btnSun->setChecked(false);
-    m_scene->selectTowerType(TowerType::Lightning);
-}
-
-void MainWindow::onSelectSun()
-{
-    m_selectedType = TowerType::Sun;
-    m_btnArrow->setChecked(false);
-    m_btnCannon->setChecked(false);
-    m_btnIce->setChecked(false);
-    m_btnPoison->setChecked(false);
-    m_btnLightning->setChecked(false);
-    m_btnSun->setChecked(true);
-    m_scene->selectTowerType(TowerType::Sun);
-}
-
-void MainWindow::onStatsChanged()
-{
-    updateStatusBar();
-    updateTowerButtons();
-}
-
-void MainWindow::onGameEnded(bool won)
-{
-    m_btnStart->setEnabled(true);
-    m_btnPause->setEnabled(false);
-    m_lblInfo->setText(won ? "Victory! All waves cleared!" : "Game Over! Enemies reached the end!");
 }
 
 void MainWindow::updateStatusBar()
 {
     m_lblGold->setText(QString("<b>Gold:</b> %1").arg(m_scene->gold()));
     m_lblLives->setText(QString("<b>Lives:</b> %1").arg(m_scene->lives()));
-    m_lblWave->setText(QString("<b>Wave:</b> %1/%2").arg(m_scene->currentWave()).arg(m_scene->totalWaves()));
+    m_lblWave->setText(QString("<b>Wave:</b> %1/%2")
+        .arg(m_scene->currentWave())
+        .arg(m_scene->totalWaves()));
 
     if (m_scene->isRunning()) {
         m_lblInfo->setText(QString("Enemies: %1  |  Click grid to place towers")
@@ -263,4 +309,88 @@ void MainWindow::updateTowerButtons()
         DataManager::instance().getTowerStats(TowerType::Lightning).cost);
     m_btnSun->setEnabled(gold >=
         DataManager::instance().getTowerStats(TowerType::Sun).cost);
+}
+
+// ========== Game Control Slots ==========
+
+void MainWindow::onStartWave()
+{
+    m_scene->startGame();
+    m_btnStart->setEnabled(false);
+    m_btnPause->setEnabled(true);
+    m_btnPause->setText("Pause");
+    updateStatusBar();
+}
+
+void MainWindow::onPauseResume()
+{
+    if (m_scene->isPaused()) {
+        m_scene->resumeGame();
+        m_btnPause->setText("Pause");
+    } else {
+        m_scene->pauseGame();
+        m_btnPause->setText("Resume");
+    }
+}
+
+void MainWindow::onStatsChanged()
+{
+    updateStatusBar();
+    updateTowerButtons();
+}
+
+// ========== Tower Select Slots ==========
+
+void MainWindow::onSelectArrow()
+{
+    m_selectedType = TowerType::Arrow;
+    m_btnArrow->setChecked(true); m_btnCannon->setChecked(false);
+    m_btnIce->setChecked(false); m_btnPoison->setChecked(false);
+    m_btnLightning->setChecked(false); m_btnSun->setChecked(false);
+    m_scene->selectTowerType(TowerType::Arrow);
+}
+
+void MainWindow::onSelectCannon()
+{
+    m_selectedType = TowerType::Cannon;
+    m_btnArrow->setChecked(false); m_btnCannon->setChecked(true);
+    m_btnIce->setChecked(false); m_btnPoison->setChecked(false);
+    m_btnLightning->setChecked(false); m_btnSun->setChecked(false);
+    m_scene->selectTowerType(TowerType::Cannon);
+}
+
+void MainWindow::onSelectIce()
+{
+    m_selectedType = TowerType::Ice;
+    m_btnArrow->setChecked(false); m_btnCannon->setChecked(false);
+    m_btnIce->setChecked(true); m_btnPoison->setChecked(false);
+    m_btnLightning->setChecked(false); m_btnSun->setChecked(false);
+    m_scene->selectTowerType(TowerType::Ice);
+}
+
+void MainWindow::onSelectPoison()
+{
+    m_selectedType = TowerType::Poison;
+    m_btnArrow->setChecked(false); m_btnCannon->setChecked(false);
+    m_btnIce->setChecked(false); m_btnPoison->setChecked(true);
+    m_btnLightning->setChecked(false); m_btnSun->setChecked(false);
+    m_scene->selectTowerType(TowerType::Poison);
+}
+
+void MainWindow::onSelectLightning()
+{
+    m_selectedType = TowerType::Lightning;
+    m_btnArrow->setChecked(false); m_btnCannon->setChecked(false);
+    m_btnIce->setChecked(false); m_btnPoison->setChecked(false);
+    m_btnLightning->setChecked(true); m_btnSun->setChecked(false);
+    m_scene->selectTowerType(TowerType::Lightning);
+}
+
+void MainWindow::onSelectSun()
+{
+    m_selectedType = TowerType::Sun;
+    m_btnArrow->setChecked(false); m_btnCannon->setChecked(false);
+    m_btnIce->setChecked(false); m_btnPoison->setChecked(false);
+    m_btnLightning->setChecked(false); m_btnSun->setChecked(true);
+    m_scene->selectTowerType(TowerType::Sun);
 }

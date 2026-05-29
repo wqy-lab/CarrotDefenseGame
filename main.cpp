@@ -22,6 +22,13 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // Load level index
+    if (!DataManager::instance().loadLevelsIndex("config/levels.json"))
+    {
+        qCritical() << "Failed to load config/levels.json";
+        return 1;
+    }
+
     // Dark theme style
     app.setStyleSheet(
         "QMainWindow { background-color: #2E2E2E; }"

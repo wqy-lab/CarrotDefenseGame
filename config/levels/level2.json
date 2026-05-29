@@ -49,6 +49,13 @@
             { "type": "Tank",   "count": 3,  "interval": 2.0 },
             { "type": "Fast",   "count": 8,  "interval": 0.8 },
             { "type": "Boss",   "count": 1,  "interval": 5.0 }
+        ],
+        [
+            { "type": "Normal", "count": 15, "interval": 0.4 },
+            { "type": "Fast",   "count": 10, "interval": 0.7 },
+            { "type": "Tank",   "count": 5,  "interval": 1.5 },
+            { "type": "Swarm",  "count": 15, "interval": 0.25 },
+            { "type": "Boss",   "count": 2,  "interval": 4.0 }
         ]
     ]
 }

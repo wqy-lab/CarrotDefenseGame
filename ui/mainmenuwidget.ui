@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainMenuWidget</class>
+ <widget class="QWidget" name="MainMenuWidget">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>800</width><height>600</height></rect>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget#MainMenuWidget { background-color: #2E2E2E; }</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <spacer name="topSpacer"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint"><size><width>20</width><height>120</height></size></property></spacer>
+   </item>
+   <item>
+    <widget class="QLabel" name="titleLabel">
+     <property name="text"><string>保卫萝卜</string></property>
+     <property name="alignment"><set>Qt::AlignCenter</set></property>
+     <property name="styleSheet"><string notr="true">font-size: 48px; font-weight: bold; color: #FF9800; padding: 20px;</string></property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="midSpacer"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint"><size><width>20</width><height>40</height></size></property></spacer>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="buttonLayout">
+     <item><spacer name="leftSpacer"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint"><size><width>200</width><height>20</height></size></property></spacer></item>
+     <item>
+      <layout class="QVBoxLayout" name="buttonsInner">
+       <item><widget class="QPushButton" name="btnStart"><property name="text"><string>开始游戏</string></property><property name="minimumSize"><size><width>200</width><height>50</height></size></property><property name="styleSheet"><string notr="true">QPushButton { background-color: #4CAF50; color: white; font-size: 18px; border: none; border-radius: 8px; } QPushButton:hover { background-color: #45a049; }</string></property></widget></item>
+       <item><widget class="QPushButton" name="btnLevelSelect"><property name="text"><string>选择关卡</string></property><property name="minimumSize"><size><width>200</width><height>50</height></size></property><property name="styleSheet"><string notr="true">QPushButton { background-color: #2196F3; color: white; font-size: 18px; border: none; border-radius: 8px; } QPushButton:hover { background-color: #1976D2; }</string></property></widget></item>
+       <item><widget class="QPushButton" name="btnExit"><property name="text"><string>退出</string></property><property name="minimumSize"><size><width>200</width><height>50</height></size></property><property name="styleSheet"><string notr="true">QPushButton { background-color: #f44336; color: white; font-size: 18px; border: none; border-radius: 8px; } QPushButton:hover { background-color: #d32f2f; }</string></property></widget></item>
+      </layout>
+     </item>
+     <item><spacer name="rightSpacer"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint"><size><width>200</width><height>20</height></size></property></spacer></item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="bottomSpacer"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint"><size><width>20</width><height>120</height></size></property></spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

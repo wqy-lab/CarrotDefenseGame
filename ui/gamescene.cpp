@@ -242,7 +242,7 @@ void GameScene::updateGame(double dt)
             m_victory = true;
             m_gameOver = true;
             m_gameTimer->stop();
-            emit gameEnded(true);
+            emit gameEnded(true, m_levelId);
         } else {
             m_gold += DataManager::instance().waveBonusBase()
                       + m_waveManager.currentWave()
@@ -280,7 +280,7 @@ void GameScene::checkGameEnd()
         m_lives = 0;
         m_gameOver = true;
         m_gameTimer->stop();
-        emit gameEnded(false);
+        emit gameEnded(false, m_levelId);
     }
 }
 

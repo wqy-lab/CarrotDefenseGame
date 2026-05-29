@@ -130,7 +130,13 @@ void MainWindow::onLevelSelected(int id, const QString& file)
 
 void MainWindow::onGameEnded(bool won, int levelId)
 {
-    Q_UNUSED(levelId);
+    if (won)
+    {
+#ifndef QT_DEBUG
+        m_levelSelect->unlockLevel(levelId + 1);
+#endif
+    }
+
     m_btnStart->setEnabled(true);
     m_btnPause->setEnabled(false);
 

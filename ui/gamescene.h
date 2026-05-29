@@ -109,6 +109,7 @@ private:
     void drawProjectiles(QPainter& p);
     void drawObstacles(QPainter& p);
     void updateObstacles(double dt);
+    void repositionObstacles();
     void syncEntityGrid();
     CellEntities& getCellAt(int gx, int gy);
 

@@ -405,6 +405,9 @@ void GameScene::resizeEvent(QResizeEvent* event)
         if (e->isActive()) e->updatePath(m_waypoints);
     }
 
+    // Update obstacle positions
+    repositionObstacles();
+
     update();
 }
 
@@ -443,14 +446,6 @@ void GameScene::paintEvent(QPaintEvent* event)
             m_offsetX + m_hoverGridX * m_cellSize + 1,
             m_offsetY + m_hoverGridY * m_cellSize + 1,
             m_cellSize - 2, m_cellSize - 2));
-    }
-
-    if (m_gameOver) {
-        p.fillRect(rect(), QColor(0, 0, 0, 150));
-        p.setPen(Qt::white);
-        QFont f("Arial", 28, QFont::Bold);
-        p.setFont(f);
-        p.drawText(rect(), Qt::AlignCenter, m_victory ? "VICTORY!" : "GAME OVER");
     }
 }
 
@@ -583,6 +578,15 @@ void GameScene::drawObstacles(QPainter& p)
 {
     for (auto& obs : m_obstacles)
         obs->draw(&p);
+}
+
+void GameScene::repositionObstacles()
+{
+    for (auto& obs : m_obstacles) {
+        QPointF newPos = gridToPixel(obs->gridX() + obs->gridWidth() / 2,
+                                     obs->gridY() + obs->gridHeight() / 2);
+        obs->setPosition(newPos);
+    }
 }
 
 void GameScene::updateObstacles(double dt)

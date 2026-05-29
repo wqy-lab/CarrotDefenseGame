@@ -27,6 +27,7 @@ public:
     int radius() const { return m_radius; }
     int cellSize() const { return m_cellSize; }
     void setCellSize(int cs) { m_cellSize = cs; }
+    void setPosition(const QPointF& pos) { m_pos = pos; }
 
     void startDestruction();
 

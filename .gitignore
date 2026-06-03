@@ -35,6 +35,9 @@ Thumbs.db
 .DS_Store
 Desktop.ini
 
+# Architecture flowchart (auto-generated)
+architecture_flowchart.md
+
 # Compiled objects
 *.obj
 *.o

@@ -3,6 +3,7 @@
 
 #include <QPointF>
 #include <QPainter>
+#include <QPixmap>
 #include <vector>
 #include <memory>
 #include <set>
@@ -37,7 +38,8 @@ public:
 protected:
     Bullet(const QPointF& start, const QPointF& target, double damage,
            double splashRadius, double slowFactor, double slowDuration,
-           double poisonDps, double poisonDuration, int chainCount, const QColor& color);
+           double poisonDps, double poisonDuration, int chainCount,
+           const QColor& color, const QPixmap& texture = QPixmap());
 
     virtual void onHit(Enemy* enemy, std::vector<std::unique_ptr<Enemy>>& enemies, CellEntities& cell) = 0;
     virtual void onObstacleHit(class Obstacle* obstacle);
@@ -57,6 +59,7 @@ protected:
     double m_poisonDuration;
     int m_chainCount;
     QColor m_color;
+    QPixmap m_texture;
     bool m_active;
     double m_cellSize;
     double m_offsetX;

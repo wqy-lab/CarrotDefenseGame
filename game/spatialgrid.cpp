@@ -23,10 +23,12 @@ void SpatialGrid::initMap(const MapData& map)
     m_entityGrid.assign(m_gridRows, std::vector<CellEntities>(m_gridCols));
     m_pathSet.clear();
     m_waypoints.clear();
+    m_pathGridCells.clear();
 
     for (const QPoint& p : map.pathCells) {
         m_pathSet.insert({p.x(), p.y()});
         m_isPath[p.y()][p.x()] = true;
+        m_pathGridCells.push_back(p);
         m_waypoints.push_back(gridToPixel(p.x(), p.y()));
     }
 }
@@ -119,5 +121,13 @@ void SpatialGrid::clearObstacles()
 {
     for (auto& row : m_obstacleCell) {
         std::fill(row.begin(), row.end(), false);
+    }
+}
+
+void SpatialGrid::recomputeWaypoints()
+{
+    m_waypoints.clear();
+    for (const QPoint& p : m_pathGridCells) {
+        m_waypoints.push_back(gridToPixel(p.x(), p.y()));
     }
 }

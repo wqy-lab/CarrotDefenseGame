@@ -5,7 +5,8 @@
 
 Bullet::Bullet(const QPointF& start, const QPointF& target, double damage,
                double splashRadius, double slowFactor, double slowDuration,
-               double poisonDps, double poisonDuration, int chainCount, const QColor& color)
+               double poisonDps, double poisonDuration, int chainCount,
+               const QColor& color, const QPixmap& texture)
     : m_pos(start)
     , m_targetPos(target)
     , m_startPos(start)
@@ -20,6 +21,7 @@ Bullet::Bullet(const QPointF& start, const QPointF& target, double damage,
     , m_poisonDuration(poisonDuration)
     , m_chainCount(chainCount)
     , m_color(color)
+    , m_texture(texture)
     , m_active(true)
     , m_hit(false)
     , m_cellSize(48.0)
@@ -91,6 +93,12 @@ void Bullet::draw(QPainter& p) const
 {
     if (!m_active) return;
     p.setRenderHint(QPainter::Antialiasing);
+
+    if (!m_texture.isNull()) {
+        p.drawPixmap(QRectF(m_pos.x() - 8, m_pos.y() - 8, 16, 16).toRect(), m_texture);
+        return;
+    }
+
     p.setBrush(m_color);
     p.setPen(Qt::NoPen);
     p.drawEllipse(m_pos, 5, 5);

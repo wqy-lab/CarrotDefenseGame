@@ -13,6 +13,7 @@ class TowerManager;
 class SpatialGrid;
 class TowerPanel;
 class TowerSelectionPopup;
+class GameOverlay;
 
 class GameScene : public QWidget {
     Q_OBJECT
@@ -29,6 +30,8 @@ public:
     bool isRunning() const;
 
     void selectTowerType(TowerType type);
+    void showPauseOverlay();
+    void hidePauseOverlay();
     int gold() const;
     int lives() const;
     int currentWave() const;
@@ -42,6 +45,8 @@ public:
 signals:
     void statsChanged();
     void gameEnded(bool won, int levelId);
+    void exitToLevelSelectRequested();
+    void overlayVisibilityChanged(bool visible);
 
 protected:
     void paintEvent(QPaintEvent* event) override;
@@ -53,6 +58,8 @@ protected:
 private slots:
     void gameLoop();
     void onPanelControllerHideTowerPanel();
+    void onOverlayContinue();
+    void onOverlayExitConfirmed();
 
 private:
     SpatialGrid* m_spatialGrid = nullptr;
@@ -63,6 +70,7 @@ private:
     PanelController* m_panelController = nullptr;
     TowerPanel* m_towerPanel = nullptr;
     TowerSelectionPopup* m_selectionPopup = nullptr;
+    GameOverlay* m_overlay = nullptr;
 
     QTimer* m_gameTimer = nullptr;
 };

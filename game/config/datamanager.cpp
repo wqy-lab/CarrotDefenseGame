@@ -76,6 +76,8 @@ bool DataManager::loadShared(const QString& path)
         s.poisonDuration = obj["poisonDuration"].toDouble(0);
         s.chainCount     = obj["chainCount"].toInt(0);
         s.color          = QColor(obj["color"].toString());
+        // s.texture loaded from disk when art assets are available
+        s.texture = QPixmap();
 
         m_towerStats[type] = s;
     }
@@ -94,6 +96,8 @@ bool DataManager::loadShared(const QString& path)
         s.damage = obj["damage"].toInt();
         s.radius = obj["radius"].toInt(10);
         s.color  = QColor(obj["color"].toString());
+        // s.texture loaded from disk when art assets are available
+        s.texture = QPixmap();
 
         m_enemyStats[type] = s;
     }
@@ -109,6 +113,8 @@ bool DataManager::loadShared(const QString& path)
         s.reward = obj["reward"].toInt();
         s.radius = obj["radius"].toInt(16);
         s.color  = QColor(obj["color"].toString());
+        // s.texture loaded from disk when art assets are available
+        s.texture = QPixmap();
 
         m_obstacleStats[type] = s;
     }
@@ -234,4 +240,19 @@ EnemyStats DataManager::getEnemyStats(EnemyType type) const
 ObstacleStats DataManager::getObstacleStats(ObstacleType type) const
 {
     return m_obstacleStats.value(type);
+}
+
+QPixmap DataManager::getTowerTexture(TowerType type) const
+{
+    return m_towerStats.value(type).texture;
+}
+
+QPixmap DataManager::getEnemyTexture(EnemyType type) const
+{
+    return m_enemyStats.value(type).texture;
+}
+
+QPixmap DataManager::getObstacleTexture(ObstacleType type) const
+{
+    return m_obstacleStats.value(type).texture;
 }

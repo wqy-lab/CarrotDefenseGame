@@ -39,6 +39,8 @@ private:
     void drawProjectiles(QPainter& p);
     void drawObstacles(QPainter& p);
     void drawHoverPreview(QPainter& p);
+    void drawHUD(QPainter& p);
+    void drawBaseHealth(QPainter& p);
 
     GameController* m_gameController = nullptr;
     SpatialGrid* m_spatialGrid = nullptr;

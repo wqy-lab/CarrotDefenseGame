@@ -4,6 +4,7 @@
 #include <QPointF>
 #include <QPainter>
 #include <QColor>
+#include <QPixmap>
 
 class Obstacle {
 public:
@@ -32,7 +33,9 @@ public:
     void startDestruction();
 
 protected:
-    Obstacle(int gridX, int gridY, int gridW, int gridH, const QPointF& pos, double maxHp, int reward, const QColor& color, int radius);
+    Obstacle(int gridX, int gridY, int gridW, int gridH, const QPointF& pos,
+             double maxHp, int reward, const QColor& color, int radius,
+             const QPixmap& texture = QPixmap());
 
     virtual void drawBody(QPainter* p, const QPointF& center, int radius) const = 0;
 
@@ -46,6 +49,7 @@ protected:
     int m_reward;
     QColor m_color;
     int m_radius;
+    QPixmap m_texture;
 
     bool m_destroying;
     bool m_destroyed;

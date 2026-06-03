@@ -4,9 +4,10 @@
 
 NormalBullet::NormalBullet(const QPointF& start, const QPointF& target, double damage,
                            double splashRadius, double slowFactor, double slowDuration,
-                           double poisonDps, double poisonDuration, int chainCount, const QColor& color)
+                           double poisonDps, double poisonDuration, int chainCount,
+                           const QColor& color, const QPixmap& texture)
     : Bullet(start, target, damage, splashRadius, slowFactor, slowDuration,
-             poisonDps, poisonDuration, chainCount, color)
+             poisonDps, poisonDuration, chainCount, color, texture)
 {
 }
 

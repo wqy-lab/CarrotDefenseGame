@@ -46,13 +46,25 @@ QString Tower::name() const {
     return "Unknown";
 }
 
+void Tower::updateCenter(double cellSize, double offsetX, double offsetY)
+{
+    m_cellSize = cellSize;
+    m_center = QPointF(offsetX + m_gridX * cellSize + cellSize / 2.0,
+                       offsetY + m_gridY * cellSize + cellSize / 2.0);
+}
+
 void Tower::draw(QPainter& p) const
 {
     double r = m_cellSize * 0.42;
     double cx = m_center.x(), cy = m_center.y();
     p.setRenderHint(QPainter::Antialiasing, true);
 
-    // Base shadow
+    if (!m_stats.texture.isNull()) {
+        QRectF target(cx - r, cy - r, r * 2, r * 2);
+        p.drawPixmap(target.toRect(), m_stats.texture);
+        return;
+    }
+
     p.setPen(Qt::NoPen);
     p.setBrush(QColor(0,0,0,60));
     p.drawEllipse(QPointF(cx, cy + r*0.2), r*0.8, r*0.3);

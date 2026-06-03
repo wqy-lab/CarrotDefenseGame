@@ -7,6 +7,7 @@
 #include "../game/towers/remotetower.h"
 #include "../game/towers/meleetower.h"
 #include "../game/cellentities.h"
+#include "../game/config/datamanager.h"
 #include "towerpanel.h"
 #include <QPainter>
 
@@ -39,6 +40,9 @@ void GameRenderer::paintEvent(QPaintEvent* event)
     if (m_towerManager && m_towerManager->isPlacingTower() && m_towerManager->showRange()) {
         drawHoverPreview(p);
     }
+
+    drawHUD(p);
+    drawBaseHealth(p);
 
     if (m_gameController && m_gameController->isGameOver()) {
         p.fillRect(rect(), QColor(0, 0, 0, 150));
@@ -219,4 +223,65 @@ void GameRenderer::drawHoverPreview(QPainter& p)
         m_spatialGrid->offsetX() + hx * m_spatialGrid->cellSize() + 1,
         m_spatialGrid->offsetY() + hy * m_spatialGrid->cellSize() + 1,
         m_spatialGrid->cellSize() - 2, m_spatialGrid->cellSize() - 2));
+}
+
+void GameRenderer::drawHUD(QPainter& p)
+{
+    if (!m_gameController || !m_spatialGrid) return;
+
+    const int h = 28;
+    const int pad = 10;
+    QFont font("Arial", 13, QFont::Bold);
+    p.setFont(font);
+
+    double gridRight = m_spatialGrid->offsetX()
+                       + m_spatialGrid->gridCols() * m_spatialGrid->cellSize();
+
+    int x = static_cast<int>(gridRight) + pad;
+    int y = static_cast<int>(m_spatialGrid->offsetY());
+
+    QRectF bg(x - 4, y - 2, 200, h * 3 + 6);
+    p.fillRect(bg, QColor(0, 0, 0, 140));
+    p.setPen(QPen(QColor(100, 100, 80), 1));
+    p.drawRect(bg);
+
+    p.setPen(QColor(255, 215, 0));
+    p.drawText(x, y + h, QString("Gold: %1").arg(m_gameController->gold()));
+
+    p.setPen(QColor(255, 100, 100));
+    p.drawText(x, y + h * 2, QString("Lives: %1").arg(m_gameController->lives()));
+
+    p.setPen(QColor(150, 200, 255));
+    p.drawText(x, y + h * 3, QString("Wave: %1/%2")
+        .arg(m_gameController->currentWave())
+        .arg(m_gameController->totalWaves()));
+}
+
+void GameRenderer::drawBaseHealth(QPainter& p)
+{
+    if (!m_gameController || !m_spatialGrid) return;
+
+    const double barW = m_spatialGrid->cellSize() * 2.0;
+    const double barH = 10;
+    QPointF center = m_spatialGrid->gridToPixel(m_spatialGrid->endX(), m_spatialGrid->endY());
+    double top = center.y() - m_spatialGrid->cellSize() * 0.6;
+
+    double ratio = static_cast<double>(m_gameController->lives())
+                   / qMax(DataManager::instance().initialLives(), 1);
+    ratio = qBound(0.0, ratio, 1.0);
+
+    p.fillRect(QRectF(center.x() - barW / 2, top, barW, barH), QColor(40, 40, 40));
+    QColor hpColor = ratio > 0.5 ? QColor(76, 175, 80)
+                     : ratio > 0.25 ? QColor(255, 193, 7) : QColor(244, 67, 54);
+    p.fillRect(QRectF(center.x() - barW / 2, top, barW * ratio, barH), hpColor);
+    p.setPen(QPen(QColor(255, 255, 255, 100), 1));
+    p.drawRect(QRectF(center.x() - barW / 2, top, barW, barH));
+
+    p.setPen(Qt::white);
+    QFont f("Arial", qMax(8, static_cast<int>(m_spatialGrid->cellSize() * 0.25)), QFont::Bold);
+    p.setFont(f);
+    p.drawText(QRectF(center.x() - barW / 2, top + barH + 2, barW, barH * 2),
+               Qt::AlignCenter, QString("HP: %1/%2")
+                   .arg(m_gameController->lives())
+                   .arg(DataManager::instance().initialLives()));
 }

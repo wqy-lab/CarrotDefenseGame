@@ -2,6 +2,7 @@
 #define NORMALBULLET_H
 
 #include "bullet.h"
+#include <QPixmap>
 
 class NormalBullet : public Bullet {
 protected:
@@ -10,7 +11,8 @@ protected:
 public:
     NormalBullet(const QPointF& start, const QPointF& target, double damage,
                  double splashRadius, double slowFactor, double slowDuration,
-                 double poisonDps, double poisonDuration, int chainCount, const QColor& color);
+                 double poisonDps, double poisonDuration, int chainCount,
+                 const QColor& color, const QPixmap& texture = QPixmap());
 };
 
 #endif

@@ -16,6 +16,7 @@ public:
     ~LevelSelectWidget();
 
     void unlockLevel(int id);
+    void clearSelection();
 
 signals:
     void backClicked();

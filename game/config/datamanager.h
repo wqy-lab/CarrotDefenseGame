@@ -4,6 +4,7 @@
 #include <QHash>
 #include <QString>
 #include <QPoint>
+#include <QPixmap>
 #include <vector>
 #include "../towers/tower.h"
 #include "../enemies/enemy.h"
@@ -25,6 +26,7 @@ struct ObstacleStats
     int reward;
     QColor color;
     int radius;
+    QPixmap texture;
 };
 
 struct MapData
@@ -64,6 +66,10 @@ public:
 
     ObstacleStats getObstacleStats(ObstacleType type) const;
     const std::vector<ObstacleEntry>& obstacles() const { return m_obstacles; }
+
+    QPixmap getTowerTexture(TowerType type) const;
+    QPixmap getEnemyTexture(EnemyType type) const;
+    QPixmap getObstacleTexture(ObstacleType type) const;
 
     const std::vector<std::vector<WaveEntry>>& waves() const
     {

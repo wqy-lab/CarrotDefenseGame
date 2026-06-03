@@ -41,6 +41,7 @@ public:
     void setCellSize(double size) { m_cellSize = size; }
     void setOffset(double ox, double oy) { m_offsetX = ox; m_offsetY = oy; }
     void rebuildWaypoints(const std::vector<QPointF>& waypoints);
+    void recomputeWaypoints();
     void clearObstacles();
 
 private:
@@ -55,6 +56,7 @@ private:
     std::vector<std::vector<bool>> m_obstacleCell;
     std::vector<std::vector<CellEntities>> m_entityGrid;
     std::vector<QPointF> m_waypoints;
+    std::vector<QPoint> m_pathGridCells;
     std::set<std::pair<int,int>> m_pathSet;
 };
 

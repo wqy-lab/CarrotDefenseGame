@@ -4,6 +4,7 @@
 #include <QPointF>
 #include <QPainter>
 #include <QString>
+#include <QPixmap>
 #include <vector>
 #include <memory>
 
@@ -30,6 +31,7 @@ struct TowerStats {
     double poisonDuration;
     int chainCount;
     QColor color;
+    QPixmap texture;
 };
 
 class Tower {
@@ -52,6 +54,9 @@ public:
     int sellValue() const { return static_cast<int>(m_totalInvested / 2.0); }
     bool upgrade();
     QString name() const;
+    QPixmap texture() const { return m_stats.texture; }
+
+    void updateCenter(double cellSize, double offsetX, double offsetY);
 
 protected:
     Tower(TowerType type, int gridX, int gridY, double cellSize, double offsetX, double offsetY);

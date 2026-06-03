@@ -73,6 +73,19 @@ void Enemy::draw(QPainter& p) const
     int r = static_cast<int>(radius());
     double cx = m_pos.x(), cy = m_pos.y();
 
+    if (!m_stats.texture.isNull()) {
+        QRectF target(cx - r, cy - r, r * 2, r * 2);
+        p.drawPixmap(target.toRect(), m_stats.texture);
+
+        int barW = r * 3;
+        int barH = 4;
+        p.fillRect(QRectF(cx - barW/2.0, cy - r - 10, barW, barH), QColor(40,40,40));
+        double hpR = m_hp / maxHp();
+        QColor hpC = hpR > 0.5 ? QColor(76,175,80) : hpR > 0.25 ? QColor(255,193,7) : QColor(244,67,54);
+        p.fillRect(QRectF(cx - barW/2.0, cy - r - 10, barW * hpR, barH), hpC);
+        return;
+    }
+
     int barW = r * 3;
     int barH = 4;
     p.fillRect(QRectF(cx - barW/2.0, cy - r - 10, barW, barH), QColor(40,40,40));

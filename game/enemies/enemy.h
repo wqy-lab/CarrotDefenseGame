@@ -3,6 +3,7 @@
 
 #include <QPointF>
 #include <QPainter>
+#include <QPixmap>
 #include <vector>
 #include <utility>
 
@@ -13,6 +14,7 @@ struct EnemyStats {
     int damage;
     QColor color;
     int radius;
+    QPixmap texture;
 };
 
 class Enemy {

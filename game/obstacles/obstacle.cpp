@@ -1,6 +1,8 @@
 #include "obstacle.h"
 
-Obstacle::Obstacle(int gridX, int gridY, int gridW, int gridH, const QPointF& pos, double maxHp, int reward, const QColor& color, int radius)
+Obstacle::Obstacle(int gridX, int gridY, int gridW, int gridH, const QPointF& pos,
+                   double maxHp, int reward, const QColor& color, int radius,
+                   const QPixmap& texture)
     : m_hp(maxHp)
     , m_maxHp(maxHp)
     , m_gridX(gridX)
@@ -11,6 +13,7 @@ Obstacle::Obstacle(int gridX, int gridY, int gridW, int gridH, const QPointF& po
     , m_reward(reward)
     , m_color(color)
     , m_radius(radius)
+    , m_texture(texture)
     , m_destroying(false)
     , m_destroyed(false)
     , m_destroyTimer(0.0)
@@ -66,8 +69,12 @@ void Obstacle::draw(QPainter* p) const {
         QColor hpCol = hpRatio > 0.5 ? QColor(76, 175, 80) : hpRatio > 0.25 ? QColor(255, 193, 7) : QColor(244, 67, 54);
         p->fillRect(QRectF(center.x() - barW / 2.0, center.y() - r - 10, barW * hpRatio, barH), hpCol);
 
-        p->setPen(Qt::NoPen);
-        p->setBrush(m_color);
-        drawBody(p, center, r);
+        if (!m_texture.isNull()) {
+            p->drawPixmap(QRectF(center.x() - r, center.y() - r, r * 2, r * 2).toRect(), m_texture);
+        } else {
+            p->setPen(Qt::NoPen);
+            p->setBrush(m_color);
+            drawBody(p, center, r);
+        }
     }
 }

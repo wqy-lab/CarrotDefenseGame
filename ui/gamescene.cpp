@@ -2,14 +2,13 @@
 #include "gamerenderer.h"
 #include "inputhandler.h"
 #include "panelcontroller.h"
+#include "gameoverlay.h"
 #include "../game/gamecontroller.h"
 #include "../game/spatialgrid.h"
 #include "../game/towermanager.h"
 #include "towerpanel.h"
 #include "towerselectionpopup.h"
 #include "../game/config/datamanager.h"
-#include <QVBoxLayout>
-#include <QElapsedTimer>
 
 GameScene::GameScene(QWidget* parent)
     : QWidget(parent)
@@ -82,6 +81,15 @@ GameScene::GameScene(QWidget* parent)
 
     m_towerPanel->hide();
     m_selectionPopup->hide();
+
+    // Game overlay
+    m_overlay = new GameOverlay(this);
+    m_overlay->setGeometry(rect());
+
+    connect(m_overlay, &GameOverlay::continueClicked,
+            this, &GameScene::onOverlayContinue);
+    connect(m_overlay, &GameOverlay::exitToLevelSelectConfirmed,
+            this, &GameScene::onOverlayExitConfirmed);
 }
 
 void GameScene::startGame()
@@ -103,6 +111,7 @@ void GameScene::resumeGame()
 void GameScene::resetGame()
 {
     m_gameTimer->stop();
+    m_overlay->hideOverlay();
     m_gameController->resetGame();
     m_towerManager->towers().clear();
     m_towerPanel->hide();
@@ -189,6 +198,16 @@ void GameScene::mousePressEvent(QMouseEvent* event)
 
 void GameScene::keyPressEvent(QKeyEvent* event)
 {
+    if (event->key() == Qt::Key_Escape) {
+        if (m_overlay && m_overlay->currentState() != GameOverlay::State::Hidden) {
+            onOverlayContinue();
+        } else if (m_gameController && m_gameController->isRunning()
+                   && !m_gameController->isPaused()
+                   && !m_gameController->isGameOver()) {
+            showPauseOverlay();
+        }
+        return;
+    }
     m_inputHandler->handleKeyPress(event);
     QWidget::keyPressEvent(event);
 }
@@ -204,6 +223,18 @@ void GameScene::resizeEvent(QResizeEvent* event)
     QWidget::resizeEvent(event);
     m_inputHandler->handleResize(width(), height());
     m_gameRenderer->setGeometry(rect());
+    m_overlay->setGeometry(rect());
+
+    m_spatialGrid->recomputeWaypoints();
+    for (auto& e : m_gameController->enemies()) {
+        e->updatePath(m_spatialGrid->waypoints());
+    }
+    for (auto& t : m_towerManager->towers()) {
+        t->updateCenter(m_spatialGrid->cellSize(),
+                        m_spatialGrid->offsetX(),
+                        m_spatialGrid->offsetY());
+    }
+    m_spatialGrid->repositionObstacles(m_gameController->obstacles());
 }
 
 void GameScene::gameLoop()
@@ -215,4 +246,29 @@ void GameScene::gameLoop()
     double dt = 0.016;
     m_gameController->update(dt, m_towerManager->towers());
     m_gameRenderer->update();
+}
+
+void GameScene::showPauseOverlay()
+{
+    m_gameController->pauseGame();
+    m_overlay->showPauseMenu();
+    emit overlayVisibilityChanged(true);
+}
+
+void GameScene::hidePauseOverlay()
+{
+    m_overlay->hideOverlay();
+    emit overlayVisibilityChanged(false);
+}
+
+void GameScene::onOverlayContinue()
+{
+    hidePauseOverlay();
+    m_gameController->resumeGame();
+}
+
+void GameScene::onOverlayExitConfirmed()
+{
+    hidePauseOverlay();
+    emit exitToLevelSelectRequested();
 }

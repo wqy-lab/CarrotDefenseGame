@@ -29,6 +29,8 @@ CMakeUserPresets.json
 .opencode/
 .sisyphus/
 AGENTS.md
+MEMORY.md
+docs/
 
 # OS
 Thumbs.db

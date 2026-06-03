@@ -19,6 +19,10 @@ set(PROJECT_SOURCES
     ui/mainwindow.ui
     ui/gamescene.cpp
     ui/gamescene.h
+    ui/towerpanel.cpp
+    ui/towerpanel.h
+    ui/towerselectionpopup.cpp
+    ui/towerselectionpopup.h
     ui/mainmenuwidget.ui
     ui/mainmenuwidget.cpp
     ui/mainmenuwidget.h
@@ -34,6 +38,18 @@ set(PROJECT_SOURCES
     game/towers/tower.h
     game/wave.cpp
     game/wave.h
+    game/spatialgrid.cpp
+    game/spatialgrid.h
+    game/gamecontroller.cpp
+    game/gamecontroller.h
+    game/towermanager.cpp
+    game/towermanager.h
+    ui/gamerenderer.cpp
+    ui/gamerenderer.h
+    ui/inputhandler.cpp
+    ui/inputhandler.h
+    ui/panelcontroller.cpp
+    ui/panelcontroller.h
     game/enemies/enemyfactory.cpp
     game/enemies/enemyfactory.h
     game/node.h

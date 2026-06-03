@@ -29,12 +29,6 @@ public:
 private slots:
     void onStartWave();
     void onPauseResume();
-    void onSelectArrow();
-    void onSelectCannon();
-    void onSelectIce();
-    void onSelectPoison();
-    void onSelectLightning();
-    void onSelectSun();
     void onStatsChanged();
     void onGameEnded(bool won, int levelId);
 
@@ -76,7 +70,6 @@ private:
     QLabel* m_lblWave;
     QLabel* m_lblInfo;
 
-    TowerType m_selectedType;
     int m_currentLevelId = 1;
     QString m_currentLevelFile;
 };

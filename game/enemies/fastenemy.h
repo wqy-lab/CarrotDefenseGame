@@ -10,7 +10,6 @@ public:
     FastEnemy(const std::vector<QPointF>& path);
 
 protected:
-    EnemyStats getStats() const override;
     void drawBody(QPainter& p, const QPointF& center, int r) const override;
 };
 

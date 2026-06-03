@@ -3,7 +3,8 @@
 #include <algorithm>
 
 Enemy::Enemy(const std::vector<QPointF>& path, EnemyStats stats)
-    : m_hp(stats.maxHp)
+    : m_stats(stats)
+    , m_hp(stats.maxHp)
     , m_pos(path.empty() ? QPointF(0,0) : path[0])
     , m_path(path), m_pathIndex(1)
     , m_reachedEnd(false)
@@ -85,5 +86,14 @@ void Enemy::draw(QPainter& p) const
 
     p.setPen(Qt::NoPen);
     drawBody(p, QPointF(cx, cy), r);
+}
+
+void Enemy::drawFace(QPainter& p, const QPointF& center, int r) const {
+    p.setBrush(Qt::white);
+    p.drawEllipse(QPointF(center.x() - r*0.3, center.y() - r*0.25), r*0.22, r*0.22);
+    p.drawEllipse(QPointF(center.x() + r*0.3, center.y() - r*0.25), r*0.22, r*0.22);
+    p.setBrush(Qt::black);
+    p.drawEllipse(QPointF(center.x() - r*0.25, center.y() - r*0.27), r*0.11, r*0.11);
+    p.drawEllipse(QPointF(center.x() + r*0.35, center.y() - r*0.27), r*0.11, r*0.11);
 }
 

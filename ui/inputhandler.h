@@ -29,7 +29,6 @@ public:
     void handleMousePress(QMouseEvent* event);
     void handleKeyPress(QKeyEvent* event);
     void handleResize(int width, int height);
-    void handleResize(QResizeEvent* event);
 
 private:
     GameController* m_gameController = nullptr;

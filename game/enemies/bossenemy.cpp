@@ -5,10 +5,6 @@
 BossEnemy::BossEnemy(const std::vector<QPointF>& path)
     : Enemy(path, DataManager::instance().getEnemyStats(EnemyType::Boss)) {}
 
-EnemyStats BossEnemy::getStats() const {
-    return DataManager::instance().getEnemyStats(EnemyType::Boss);
-}
-
 void BossEnemy::drawBody(QPainter& p, const QPointF& center, int r) const {
     p.setBrush(color());
     QPolygonF hex;

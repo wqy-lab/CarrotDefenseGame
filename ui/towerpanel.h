@@ -4,7 +4,6 @@
 #include <QWidget>
 #include <QLabel>
 #include <QPushButton>
-#include <QPropertyAnimation>
 
 class Tower;
 
@@ -35,7 +34,6 @@ private:
     QLabel* m_lblStats;
     QPushButton* m_btnUpgrade;
     QPushButton* m_btnSell;
-    QPropertyAnimation* m_scaleAnim;
 };
 
 #endif

@@ -8,7 +8,6 @@
 #include "towerselectionpopup.h"
 #include <QMouseEvent>
 #include <QKeyEvent>
-#include <QResizeEvent>
 
 InputHandler::InputHandler()
 {
@@ -98,15 +97,6 @@ void InputHandler::handleKeyPress(QKeyEvent* event)
             m_panelController->hideTowerPanel();
         }
     }
-}
-
-void InputHandler::handleResize(QResizeEvent* event)
-{
-    Q_UNUSED(event);
-
-    if (!m_spatialGrid) return;
-
-    // Called from GameScene resizeEvent which has the actual size info
 }
 
 void InputHandler::handleResize(int width, int height)

@@ -32,20 +32,24 @@ public:
 
     QPointF pos() const { return m_pos; }
     double hp() const { return m_hp; }
-    double maxHp() const { return getStats().maxHp; }
-    int reward() const { return getStats().reward; }
-    int damage() const { return getStats().damage; }
-    double radius() const { return getStats().radius; }
-    QColor color() const { return getStats().color; }
-    double speed() const { return getStats().speed * m_slowFactor; }
+    double maxHp() const { return m_stats.maxHp; }
+    int reward() const { return m_stats.reward; }
+    int damage() const { return m_stats.damage; }
+    double radius() const { return m_stats.radius; }
+    QColor color() const { return m_stats.color; }
+    double speed() const { return m_stats.speed * m_slowFactor; }
+
+    EnemyStats getStats() const { return m_stats; }
 
     void draw(QPainter& p) const;
 
 protected:
     Enemy(const std::vector<QPointF>& path, EnemyStats stats);
 
-    virtual EnemyStats getStats() const = 0;
+    EnemyStats m_stats;
+
     virtual void drawBody(QPainter& p, const QPointF& center, int radius) const = 0;
+    void drawFace(QPainter& p, const QPointF& center, int r) const;
 
     double m_hp;
     QPointF m_pos;

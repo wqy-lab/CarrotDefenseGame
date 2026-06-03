@@ -257,14 +257,8 @@ void MainWindow::setupToolbar()
     // Toolbar signal connections
     connect(m_btnStart, &QPushButton::clicked, this, &MainWindow::onStartWave);
     connect(m_btnPause, &QPushButton::clicked, this, &MainWindow::onPauseResume);
-    connect(m_btnArrow, &QPushButton::clicked, this, &MainWindow::onSelectArrow);
-    connect(m_btnCannon, &QPushButton::clicked, this, &MainWindow::onSelectCannon);
-    connect(m_btnIce, &QPushButton::clicked, this, &MainWindow::onSelectIce);
-    connect(m_btnPoison, &QPushButton::clicked, this, &MainWindow::onSelectPoison);
-    connect(m_btnLightning, &QPushButton::clicked, this, &MainWindow::onSelectLightning);
-    connect(m_btnSun, &QPushButton::clicked, this, &MainWindow::onSelectSun);
 
-    // Disable tower selection buttons - placement now via popup
+    // Tower buttons are disabled - placement now via popup
     m_btnArrow->setEnabled(false);
     m_btnCannon->setEnabled(false);
     m_btnIce->setEnabled(false);
@@ -347,58 +341,7 @@ void MainWindow::onStatsChanged()
     updateTowerButtons();
 }
 
-// ========== Tower Select Slots ==========
+// ========== Tower Select Slots (disabled - placement now via popup) ==========
 
-void MainWindow::onSelectArrow()
-{
-    m_selectedType = TowerType::Arrow;
-    m_btnArrow->setChecked(true); m_btnCannon->setChecked(false);
-    m_btnIce->setChecked(false); m_btnPoison->setChecked(false);
-    m_btnLightning->setChecked(false); m_btnSun->setChecked(false);
-    m_scene->selectTowerType(TowerType::Arrow);
-}
-
-void MainWindow::onSelectCannon()
-{
-    m_selectedType = TowerType::Cannon;
-    m_btnArrow->setChecked(false); m_btnCannon->setChecked(true);
-    m_btnIce->setChecked(false); m_btnPoison->setChecked(false);
-    m_btnLightning->setChecked(false); m_btnSun->setChecked(false);
-    m_scene->selectTowerType(TowerType::Cannon);
-}
-
-void MainWindow::onSelectIce()
-{
-    m_selectedType = TowerType::Ice;
-    m_btnArrow->setChecked(false); m_btnCannon->setChecked(false);
-    m_btnIce->setChecked(true); m_btnPoison->setChecked(false);
-    m_btnLightning->setChecked(false); m_btnSun->setChecked(false);
-    m_scene->selectTowerType(TowerType::Ice);
-}
-
-void MainWindow::onSelectPoison()
-{
-    m_selectedType = TowerType::Poison;
-    m_btnArrow->setChecked(false); m_btnCannon->setChecked(false);
-    m_btnIce->setChecked(false); m_btnPoison->setChecked(true);
-    m_btnLightning->setChecked(false); m_btnSun->setChecked(false);
-    m_scene->selectTowerType(TowerType::Poison);
-}
-
-void MainWindow::onSelectLightning()
-{
-    m_selectedType = TowerType::Lightning;
-    m_btnArrow->setChecked(false); m_btnCannon->setChecked(false);
-    m_btnIce->setChecked(false); m_btnPoison->setChecked(false);
-    m_btnLightning->setChecked(true); m_btnSun->setChecked(false);
-    m_scene->selectTowerType(TowerType::Lightning);
-}
-
-void MainWindow::onSelectSun()
-{
-    m_selectedType = TowerType::Sun;
-    m_btnArrow->setChecked(false); m_btnCannon->setChecked(false);
-    m_btnIce->setChecked(false); m_btnPoison->setChecked(false);
-    m_btnLightning->setChecked(false); m_btnSun->setChecked(true);
-    m_scene->selectTowerType(TowerType::Sun);
-}
+// Note: These handlers remain as stubs to avoid breaking signals but are unreachable
+// since all tower buttons are disabled. Could be removed in future cleanup.

@@ -38,6 +38,9 @@ Desktop.ini
 # Architecture flowchart (auto-generated)
 architecture_flowchart.md
 
+# Project TODO
+TODO.md
+
 # Compiled objects
 *.obj
 *.o

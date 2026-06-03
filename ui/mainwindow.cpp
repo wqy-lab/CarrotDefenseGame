@@ -64,6 +64,8 @@ MainWindow::MainWindow(QWidget* parent)
             this, &MainWindow::onStatsChanged);
     connect(m_scene, &GameScene::gameEnded,
             this, &MainWindow::onGameEnded);
+    connect(m_scene, &GameScene::exitToLevelSelectRequested,
+            this, &MainWindow::onExitToLevelSelect);
 }
 
 MainWindow::~MainWindow()
@@ -173,6 +175,12 @@ void MainWindow::onMenu()
 {
     cleanupOverlay();
     showMenuPage();
+}
+
+void MainWindow::onExitToLevelSelect()
+{
+    m_scene->resetGame();
+    m_stacked->setCurrentIndex(1);
 }
 
 // ========== Toolbar ==========
@@ -326,10 +334,11 @@ void MainWindow::onStartWave()
 void MainWindow::onPauseResume()
 {
     if (m_scene->isPaused()) {
+        m_scene->hidePauseOverlay();
         m_scene->resumeGame();
         m_btnPause->setText("Pause");
     } else {
-        m_scene->pauseGame();
+        m_scene->showPauseOverlay();
         m_btnPause->setText("Resume");
     }
 }

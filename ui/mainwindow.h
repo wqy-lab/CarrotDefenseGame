@@ -37,6 +37,7 @@ private slots:
     void onRetry();
     void onNextLevel();
     void onMenu();
+    void onExitToLevelSelect();
 
 private:
     void setupToolbar();

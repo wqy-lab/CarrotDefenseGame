@@ -56,3 +56,8 @@ void LevelSelectWidget::unlockLevel(int id)
         }
     }
 }
+
+void LevelSelectWidget::clearSelection()
+{
+    ui->levelList->clearSelection();
+}

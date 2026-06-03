@@ -51,7 +51,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(m_menu, &MainMenuWidget::startGameClicked,
             this, &MainWindow::onStartGame);
     connect(m_menu, &MainMenuWidget::levelSelectClicked,
-            this, [this]() { m_stacked->setCurrentIndex(1); });
+            this, [this]() { m_levelSelect->clearSelection(); m_stacked->setCurrentIndex(1); });
 
     // --- LevelSelect signals ---
     connect(m_levelSelect, &LevelSelectWidget::levelSelected,
@@ -66,6 +66,10 @@ MainWindow::MainWindow(QWidget* parent)
             this, &MainWindow::onGameEnded);
     connect(m_scene, &GameScene::exitToLevelSelectRequested,
             this, &MainWindow::onExitToLevelSelect);
+    connect(m_scene, &GameScene::overlayVisibilityChanged,
+            this, [this](bool visible) {
+        m_btnPause->setEnabled(!visible);
+    });
 }
 
 MainWindow::~MainWindow()
@@ -186,6 +190,7 @@ void MainWindow::onMenu()
 void MainWindow::onExitToLevelSelect()
 {
     m_scene->resetGame();
+    m_levelSelect->clearSelection();
     m_stacked->setCurrentIndex(1);
 }
 

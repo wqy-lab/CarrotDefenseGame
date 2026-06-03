@@ -2,6 +2,7 @@
 #include "gamerenderer.h"
 #include "inputhandler.h"
 #include "panelcontroller.h"
+#include "gameoverlay.h"
 #include "../game/gamecontroller.h"
 #include "../game/spatialgrid.h"
 #include "../game/towermanager.h"
@@ -82,6 +83,14 @@ GameScene::GameScene(QWidget* parent)
 
     m_towerPanel->hide();
     m_selectionPopup->hide();
+
+    m_overlay = new GameOverlay(this);
+    m_overlay->setGeometry(rect());
+
+    connect(m_overlay, &GameOverlay::continueClicked,
+            this, &GameScene::onOverlayContinue);
+    connect(m_overlay, &GameOverlay::exitToLevelSelectConfirmed,
+            this, &GameScene::onOverlayExitConfirmed);
 }
 
 void GameScene::startGame()
@@ -103,6 +112,7 @@ void GameScene::resumeGame()
 void GameScene::resetGame()
 {
     m_gameTimer->stop();
+    m_overlay->hideOverlay();
     m_gameController->resetGame();
     m_towerManager->towers().clear();
     m_towerPanel->hide();
@@ -204,6 +214,7 @@ void GameScene::resizeEvent(QResizeEvent* event)
     QWidget::resizeEvent(event);
     m_inputHandler->handleResize(width(), height());
     m_gameRenderer->setGeometry(rect());
+    m_overlay->setGeometry(rect());
 }
 
 void GameScene::gameLoop()
@@ -215,4 +226,29 @@ void GameScene::gameLoop()
     double dt = 0.016;
     m_gameController->update(dt, m_towerManager->towers());
     m_gameRenderer->update();
+}
+
+void GameScene::showPauseOverlay()
+{
+    m_gameController->pauseGame();
+    m_overlay->showPauseMenu();
+    emit overlayVisibilityChanged(true);
+}
+
+void GameScene::hidePauseOverlay()
+{
+    m_overlay->hideOverlay();
+    emit overlayVisibilityChanged(false);
+}
+
+void GameScene::onOverlayContinue()
+{
+    hidePauseOverlay();
+    m_gameController->resumeGame();
+}
+
+void GameScene::onOverlayExitConfirmed()
+{
+    hidePauseOverlay();
+    emit exitToLevelSelectRequested();
 }

@@ -3,6 +3,7 @@
 
 #include <QPointF>
 #include <QPainter>
+#include <QString>
 #include <vector>
 #include <memory>
 
@@ -43,14 +44,18 @@ public:
     QPointF centerPos() const { return m_center; }
     double rangePx() const { return m_stats.range * m_cellSize; }
     double cellSize() const { return m_cellSize; }
-    int cost() const { return m_stats.cost; }
-    TowerStats stats() const { return getStats(); }
+    int cost() const { return m_baseCost; }
+    TowerStats stats() const { return m_stats; }
     TowerType type() const { return m_type; }
+    int level() const { return m_level; }
+    int upgradeCost() const { return m_baseCost * (1 << (m_level - 1)); }
+    int sellValue() const { return static_cast<int>(m_totalInvested / 2.0); }
+    bool upgrade();
+    QString name() const;
 
 protected:
     Tower(TowerType type, int gridX, int gridY, double cellSize, double offsetX, double offsetY);
 
-    virtual TowerStats getStats() const = 0;
     virtual void drawBody(QPainter& p, const QPointF& center, double radius) const = 0;
 
     TowerType m_type;
@@ -58,6 +63,10 @@ protected:
     int m_gridX, m_gridY;
     QPointF m_center;
     double m_cellSize;
+    int m_level = 1;
+    int m_baseCost = 0;
+    double m_totalInvested = 0;
+    TowerStats m_baseStats;
 
 public:
     void setPriorityEnemy(class Enemy* e) { m_priorityEnemy = e; }

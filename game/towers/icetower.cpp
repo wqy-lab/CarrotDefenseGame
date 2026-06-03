@@ -1,15 +1,9 @@
 #include "icetower.h"
-#include "../config/datamanager.h"
 #include <cmath>
 
 IceTower::IceTower(int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : RemoteTower(TowerType::Ice, gridX, gridY, cellSize, offsetX, offsetY)
 {
-    m_stats = DataManager::instance().getTowerStats(TowerType::Ice);
-}
-
-TowerStats IceTower::getStats() const {
-    return DataManager::instance().getTowerStats(TowerType::Ice);
 }
 
 void IceTower::drawBody(QPainter& p, const QPointF& center, double r) const {

@@ -1,15 +1,9 @@
 #include "arrowtower.h"
-#include "../config/datamanager.h"
 #include <cmath>
 
 ArrowTower::ArrowTower(int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : RemoteTower(TowerType::Arrow, gridX, gridY, cellSize, offsetX, offsetY)
 {
-    m_stats = DataManager::instance().getTowerStats(TowerType::Arrow);
-}
-
-TowerStats ArrowTower::getStats() const {
-    return DataManager::instance().getTowerStats(TowerType::Arrow);
 }
 
 void ArrowTower::drawBody(QPainter& p, const QPointF& center, double r) const {

@@ -1,15 +1,9 @@
 #include "poisontower.h"
-#include "../config/datamanager.h"
 #include <cmath>
 
 PoisonTower::PoisonTower(int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : RemoteTower(TowerType::Poison, gridX, gridY, cellSize, offsetX, offsetY)
 {
-    m_stats = DataManager::instance().getTowerStats(TowerType::Poison);
-}
-
-TowerStats PoisonTower::getStats() const {
-    return DataManager::instance().getTowerStats(TowerType::Poison);
 }
 
 void PoisonTower::drawBody(QPainter& p, const QPointF& center, double r) const {

@@ -17,16 +17,16 @@ void RemoteTower::update(double dt, const std::vector<std::unique_ptr<Enemy>>& e
     if (obsTarget) {
         m_pendingAttack.fired = true;
         m_pendingAttack.targetPos = obsTarget->pos();
-        m_pendingAttack.damage = getStats().damage;
+        m_pendingAttack.damage = stats().damage;
         m_pendingAttack.maxDistance = rangePx();
-        m_pendingAttack.splashRadius = getStats().splashRadius * m_cellSize;
-        m_pendingAttack.slowFactor = getStats().slowFactor;
-        m_pendingAttack.slowDuration = getStats().slowDuration;
-        m_pendingAttack.poisonDps = getStats().poisonDps;
-        m_pendingAttack.poisonDuration = getStats().poisonDuration;
-        m_pendingAttack.chainCount = getStats().chainCount;
-        m_pendingAttack.color = getStats().color;
-        m_cooldown = getStats().attackSpeed;
+        m_pendingAttack.splashRadius = stats().splashRadius * m_cellSize;
+        m_pendingAttack.slowFactor = stats().slowFactor;
+        m_pendingAttack.slowDuration = stats().slowDuration;
+        m_pendingAttack.poisonDps = stats().poisonDps;
+        m_pendingAttack.poisonDuration = stats().poisonDuration;
+        m_pendingAttack.chainCount = stats().chainCount;
+        m_pendingAttack.color = stats().color;
+        m_cooldown = stats().attackSpeed;
         return;
     }
 
@@ -35,16 +35,16 @@ void RemoteTower::update(double dt, const std::vector<std::unique_ptr<Enemy>>& e
 
     m_pendingAttack.fired = true;
     m_pendingAttack.targetPos = target->pos();
-    m_pendingAttack.damage = getStats().damage;
+    m_pendingAttack.damage = stats().damage;
     m_pendingAttack.maxDistance = rangePx();
-    m_pendingAttack.splashRadius = getStats().splashRadius * m_cellSize;
-    m_pendingAttack.slowFactor = getStats().slowFactor;
-    m_pendingAttack.slowDuration = getStats().slowDuration;
-    m_pendingAttack.poisonDps = getStats().poisonDps;
-    m_pendingAttack.poisonDuration = getStats().poisonDuration;
-    m_pendingAttack.chainCount = getStats().chainCount;
-    m_pendingAttack.color = getStats().color;
-    m_cooldown = getStats().attackSpeed;
+    m_pendingAttack.splashRadius = stats().splashRadius * m_cellSize;
+    m_pendingAttack.slowFactor = stats().slowFactor;
+    m_pendingAttack.slowDuration = stats().slowDuration;
+    m_pendingAttack.poisonDps = stats().poisonDps;
+    m_pendingAttack.poisonDuration = stats().poisonDuration;
+    m_pendingAttack.chainCount = stats().chainCount;
+    m_pendingAttack.color = stats().color;
+    m_cooldown = stats().attackSpeed;
 }
 
 Enemy* RemoteTower::findTarget(const std::vector<std::unique_ptr<Enemy>>& enemies) const

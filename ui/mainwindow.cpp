@@ -250,7 +250,7 @@ void MainWindow::setupToolbar()
 
     toolbar->addSeparator();
 
-    QLabel* helpLabel = new QLabel(" Click green cells to place towers. Cannot place on road. ");
+    QLabel* helpLabel = new QLabel(" Click empty cell to place tower. ");
     helpLabel->setStyleSheet("color: #AAA;");
     toolbar->addWidget(helpLabel);
 
@@ -263,6 +263,14 @@ void MainWindow::setupToolbar()
     connect(m_btnPoison, &QPushButton::clicked, this, &MainWindow::onSelectPoison);
     connect(m_btnLightning, &QPushButton::clicked, this, &MainWindow::onSelectLightning);
     connect(m_btnSun, &QPushButton::clicked, this, &MainWindow::onSelectSun);
+
+    // Disable tower selection buttons - placement now via popup
+    m_btnArrow->setEnabled(false);
+    m_btnCannon->setEnabled(false);
+    m_btnIce->setEnabled(false);
+    m_btnPoison->setEnabled(false);
+    m_btnLightning->setEnabled(false);
+    m_btnSun->setEnabled(false);
 }
 
 // ========== Status Bar ==========

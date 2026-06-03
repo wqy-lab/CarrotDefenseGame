@@ -1,15 +1,9 @@
 #include "suntower.h"
-#include "../config/datamanager.h"
 #include <cmath>
 
 SunTower::SunTower(int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : MeleeTower(TowerType::Sun, gridX, gridY, cellSize, offsetX, offsetY)
 {
-    m_stats = DataManager::instance().getTowerStats(TowerType::Sun);
-}
-
-TowerStats SunTower::getStats() const {
-    return DataManager::instance().getTowerStats(TowerType::Sun);
 }
 
 void SunTower::drawBody(QPainter& p, const QPointF& center, double r) const {

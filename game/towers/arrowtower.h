@@ -5,7 +5,6 @@
 
 class ArrowTower : public RemoteTower {
 protected:
-    TowerStats getStats() const override;
     void drawBody(QPainter& p, const QPointF& center, double r) const override;
 
 public:

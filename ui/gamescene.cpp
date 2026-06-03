@@ -1,674 +1,218 @@
 #include "gamescene.h"
-#include "../game/enemies/enemyfactory.h"
-#include "../game/towers/towerfactory.h"
-#include "../game/bullets/bulletfactory.h"
+#include "gamerenderer.h"
+#include "inputhandler.h"
+#include "panelcontroller.h"
+#include "../game/gamecontroller.h"
+#include "../game/spatialgrid.h"
+#include "../game/towermanager.h"
+#include "towerpanel.h"
+#include "towerselectionpopup.h"
 #include "../game/config/datamanager.h"
-#include "../game/obstacles/obstaclefactory.h"
-#include <QPainterPath>
-#include <QtMath>
-#include <algorithm>
-#include <chrono>
-#include <random>
+#include <QVBoxLayout>
+#include <QElapsedTimer>
 
 GameScene::GameScene(QWidget* parent)
     : QWidget(parent)
-    , m_cellSize(48)
-    , m_offsetX(0), m_offsetY(0)
-    , m_gameRunning(false)
-    , m_paused(false)
-    , m_gameOver(false)
-    , m_victory(false)
-    , m_gold(200)
-    , m_lives(10)
-    , m_selectedTower(TowerType::Arrow)
-    , m_placingTower(false)
-    , m_hoverGridX(-1), m_hoverGridY(-1)
-    , m_showRange(false)
-    , m_gameTimer(new QTimer(this))
 {
     setMouseTracking(true);
-    setMinimumSize(600, 450);
+    setMinimumSize(800, 600);
     setFocusPolicy(Qt::StrongFocus);
 
-    initMap(DataManager::instance().mapData());
+    // Create subsystems
+    m_spatialGrid = new SpatialGrid();
+    m_gameController = new GameController(m_spatialGrid, this);
+    m_towerManager = new TowerManager(m_spatialGrid, m_gameController, this);
+    m_gameRenderer = new GameRenderer(this);
+    m_inputHandler = new InputHandler();
+    m_towerPanel = new TowerPanel(this);
+    m_selectionPopup = new TowerSelectionPopup(this);
+    m_panelController = new PanelController(this);
 
+    // Connect subsystems
+    m_gameRenderer->setGameController(m_gameController);
+    m_gameRenderer->setSpatialGrid(m_spatialGrid);
+    m_gameRenderer->setTowerManager(m_towerManager);
+    m_gameRenderer->setTowerPanel(m_towerPanel);
+
+    m_inputHandler->setGameController(m_gameController);
+    m_inputHandler->setGameRenderer(m_gameRenderer);
+    m_inputHandler->setTowerManager(m_towerManager);
+    m_inputHandler->setPanelController(m_panelController);
+    m_inputHandler->setSpatialGrid(m_spatialGrid);
+
+    m_panelController->setGameController(m_gameController);
+    m_panelController->setTowerManager(m_towerManager);
+    m_panelController->setSpatialGrid(m_spatialGrid);
+    m_panelController->setTowerPanel(m_towerPanel);
+    m_panelController->setSelectionPopup(m_selectionPopup);
+
+    // Connect signals
+    connect(m_gameController, &GameController::statsChanged, this, &GameScene::statsChanged);
+    connect(m_gameController, &GameController::gameEnded, this, &GameScene::gameEnded);
+    connect(m_towerManager, &TowerManager::towersChanged, m_gameRenderer, QOverload<>::of(&QWidget::update));
+
+    // Initialize map
+    m_spatialGrid->initMap(DataManager::instance().mapData());
+
+    // Set initial cell size and offset based on actual widget size
+    int w = qMax(width(), 800);
+    int h = qMax(height(), 600);
+    double cellSize = qMin(w / m_spatialGrid->gridCols(), h / m_spatialGrid->gridRows());
+    if (cellSize < 20) cellSize = 20;
+    double offsetX = (w - m_spatialGrid->gridCols() * cellSize) / 2.0;
+    double offsetY = (h - m_spatialGrid->gridRows() * cellSize) / 2.0;
+    m_spatialGrid->setCellSize(cellSize);
+    m_spatialGrid->setOffset(offsetX, offsetY);
+
+    // Set renderer geometry AFTER spatial grid is properly configured
+    m_gameRenderer->setGeometry(0, 0, w, h);
+
+    // Game timer
+    m_gameTimer = new QTimer(this);
     connect(m_gameTimer, &QTimer::timeout, this, &GameScene::gameLoop);
+
+    // Panel connections
+    connect(m_towerPanel, SIGNAL(upgradeClicked()), m_panelController, SLOT(onUpgradeClicked()));
+    connect(m_towerPanel, SIGNAL(sellClicked()), m_panelController, SLOT(onSellClicked()));
+    connect(m_panelController, SIGNAL(hideTowerPanelRequested()), this, SLOT(onPanelControllerHideTowerPanel()));
+
+    // Selection popup connections
+    connect(m_selectionPopup, &TowerSelectionPopup::towerSelected, m_panelController, &PanelController::onTowerSelectedFromPopup);
+    connect(m_selectionPopup, &TowerSelectionPopup::cancelled, m_panelController, &PanelController::hideTowerSelectionPopup);
+
+    m_towerPanel->hide();
+    m_selectionPopup->hide();
 }
-
-void GameScene::initMap(const MapData& map)
-{
-    m_gridCols = map.gridCols;
-    m_gridRows = map.gridRows;
-    m_startX   = map.startX;
-    m_startY   = map.startY;
-    m_endX     = map.endX;
-    m_endY     = map.endY;
-
-    m_isPath.assign(m_gridRows, std::vector<bool>(m_gridCols, false));
-    m_obstacleCell.assign(m_gridRows, std::vector<bool>(m_gridCols, false));
-    m_entityGrid.assign(m_gridRows, std::vector<CellEntities>(m_gridCols));
-    m_pathSet.clear();
-    m_waypoints.clear();
-    m_obstacles.clear();
-
-    for (const QPoint& p : map.pathCells)
-    {
-        m_pathSet.insert({p.x(), p.y()});
-        m_isPath[p.y()][p.x()] = true;
-        m_waypoints.push_back(gridToPixel(p.x(), p.y()));
-    }
-
-    // Create obstacles from DataManager
-    for (const auto& entry : DataManager::instance().obstacles()) {
-        int gx = entry.gridX, gy = entry.gridY;
-        int gw = entry.gridW, gh = entry.gridH;
-
-        // Mark all occupied cells
-        for (int dy = 0; dy < gh; ++dy) {
-            for (int dx = 0; dx < gw; ++dx) {
-                int cx = gx + dx, cy = gy + dy;
-                if (isValidGridPos(cx, cy) && !isPathCell(cx, cy)) {
-                    m_obstacleCell[cy][cx] = true;
-                }
-            }
-        }
-
-        // Center pixel for multi-cell obstacle
-        QPointF centerPos = gridToPixel(gx + gw / 2, gy + gh / 2);
-        auto obs = createObstacle(entry.type, gx, gy, gw, gh, centerPos);
-        obs->setCellSize(static_cast<int>(m_cellSize));
-        m_obstacles.push_back(std::move(obs));
-    }
-}
-
-// ============ Game State ============
 
 void GameScene::startGame()
 {
-    resetGame();
-    m_gameRunning = true;
-    m_paused = false;
-    m_clock.start();
-    m_waveManager.nextWave();
+    m_gameController->startGame();
     m_gameTimer->start(16);
 }
 
-void GameScene::pauseGame()  { m_paused = true; }
+void GameScene::pauseGame()
+{
+    m_gameController->pauseGame();
+}
+
 void GameScene::resumeGame()
 {
-    m_clock.restart();
-    m_paused = false;
+    m_gameController->resumeGame();
 }
 
 void GameScene::resetGame()
 {
     m_gameTimer->stop();
-    m_gameRunning = false;
-    m_paused = false;
-    m_gameOver = false;
-    m_victory = false;
-    m_gold = DataManager::instance().initialGold();
-    m_lives = DataManager::instance().initialLives();
-
-    m_towers.clear();
-    m_enemies.clear();
-    m_projectiles.clear();
-    m_obstacles.clear();
-    m_waveManager.reset();
-
-    // Restore path (in case towers removed path cells)
-    initMap(DataManager::instance().mapData());
-
+    m_gameController->resetGame();
+    m_towerManager->towers().clear();
+    m_towerPanel->hide();
     update();
+}
+
+bool GameScene::isPaused() const
+{
+    return m_gameController->isPaused();
+}
+
+bool GameScene::isRunning() const
+{
+    return m_gameController->isRunning();
 }
 
 void GameScene::selectTowerType(TowerType type)
 {
-    m_selectedTower = type;
-    m_placingTower = true;
-    m_showRange = true;
-    update();
+    m_towerManager->selectTowerType(type);
 }
 
-// ============ Game Loop ============
-
-void GameScene::gameLoop()
+int GameScene::gold() const
 {
-    if (!m_gameRunning || m_paused || m_gameOver) return;
-
-    double dt = m_clock.restart() / 1000.0;
-    if (dt > 0.1) dt = 0.1;  // clamp to 100ms max (prevents spiral after hang)
-
-    updateGame(dt);
-    update();
+    return m_gameController->gold();
 }
 
-void GameScene::updateGame(double dt)
+int GameScene::lives() const
 {
-    // Spawn enemies
-    m_waveManager.update(dt);
-    while (m_waveManager.shouldSpawn()) {
-        spawnEnemy();
-    }
-
-    // Update enemies
-    for (auto& e : m_enemies) {
-        if (e->isActive()) e->update(dt);
-    }
-
-    // Process enemies that reached end
-    for (auto& e : m_enemies) {
-        if (e->reachedEnd()) {
-            m_lives -= e->damage();
-            if (m_lives < 0) m_lives = 0;
-        }
-    }
-
-    // Update towers
-    for (auto& t : m_towers) {
-        t->setPriorityEnemy(m_priorityEnemy);
-        t->setPriorityObstacle(m_priorityObstacle);
-        t->update(dt, m_enemies);
-    }
-
-    // Create projectiles from tower attacks
-    for (auto& t : m_towers) {
-        if (MeleeTower* mt = dynamic_cast<MeleeTower*>(t.get())) {
-            if (mt->hasPendingEffect()) {
-                auto effect = mt->getEffect();
-                for (auto& e : m_enemies) {
-                    if (!e->isActive()) continue;
-                    QPointF d = e->pos() - effect.center;
-                    double dist = std::sqrt(d.x()*d.x() + d.y()*d.y());
-                    if (dist <= effect.radius) {
-                        double falloff = 1.0 - (dist / effect.radius) * 0.5;
-                        e->takeDamage(effect.damage * falloff);
-                        if (effect.slowFactor < 1.0)
-                            e->applySlow(effect.slowFactor, effect.slowDuration);
-                        if (effect.poisonDps > 0)
-                            e->applyPoison(effect.poisonDps, effect.poisonDuration);
-                    }
-                }
-            }
-        } else if (RemoteTower* rt = dynamic_cast<RemoteTower*>(t.get())) {
-            if (rt->hasPendingAttack()) {
-                auto attack = rt->getAttack();
-                auto b = createBullet(BulletType::Normal, t->centerPos(), attack.targetPos,
-                                      attack.damage, attack.splashRadius, attack.slowFactor,
-                                      attack.slowDuration, attack.poisonDps, attack.poisonDuration,
-                                      attack.chainCount, attack.color);
-                b->setMaxDistance(attack.maxDistance);
-                b->setCellSize(m_cellSize);
-                b->setOffset(m_offsetX, m_offsetY);
-                m_projectiles.push_back(std::move(b));
-            }
-        }
-    }
-
-    // Update projectiles
-    syncEntityGrid();
-    for (auto& p : m_projectiles) {
-        if (p->isActive()) {
-            QPointF pos = p->pos();
-            QPoint g = pixelToGrid(pos);
-            CellEntities& cell = getCellAt(g.x(), g.y());
-            p->update(dt, m_enemies, cell);
-        }
-    }
-
-    // Update obstacles
-    updateObstacles(dt);
-
-    // Process hits
-    for (auto& p : m_projectiles) {
-        if (p->hasHit()) {
-            handleProjectileHit(*p);
-        }
-    }
-
-    // Remove dead/inactive
-    m_enemies.erase(
-        std::remove_if(m_enemies.begin(), m_enemies.end(),
-            [](auto& e) { return e->isDead() || e->reachedEnd(); }),
-        m_enemies.end());
-    m_projectiles.erase(
-        std::remove_if(m_projectiles.begin(), m_projectiles.end(),
-            [](auto& p) { return !p->isActive(); }),
-        m_projectiles.end());
-
-    // Wave completion
-    if (m_waveManager.waveComplete() && m_enemies.empty()) {
-        if (m_waveManager.allWavesDone()) {
-            m_victory = true;
-            m_gameOver = true;
-            m_gameTimer->stop();
-            emit gameEnded(true, m_levelId);
-        } else {
-            m_gold += DataManager::instance().waveBonusBase()
-                      + m_waveManager.currentWave()
-                      * DataManager::instance().waveBonusPerWave();
-            m_waveManager.nextWave();
-        }
-    }
-
-    checkGameEnd();
-    emit statsChanged();
+    return m_gameController->lives();
 }
 
-void GameScene::spawnEnemy()
+int GameScene::currentWave() const
 {
-    EnemyType type = m_waveManager.popSpawnType();
-    m_enemies.push_back(createEnemy(type, m_waypoints));
+    return m_gameController->currentWave();
 }
 
-void GameScene::handleProjectileHit(Bullet& proj)
+int GameScene::totalWaves() const
 {
-    Q_UNUSED(proj);
-
-    for (auto& e : m_enemies) {
-        if (e->isDead() && e->reward() > 0) {
-            if (e->consumeReward()) {
-                m_gold += e->reward();
-            }
-        }
-    }
+    return m_gameController->totalWaves();
 }
 
-void GameScene::checkGameEnd()
+int GameScene::enemiesInWave() const
 {
-    if (m_lives <= 0) {
-        m_lives = 0;
-        m_gameOver = true;
-        m_gameTimer->stop();
-        emit gameEnded(false, m_levelId);
-    }
+    return m_gameController->enemiesInWave();
 }
 
-// ============ Tower Placement ============
-
-void GameScene::placeTower(int gx, int gy)
+bool GameScene::gameOver() const
 {
-    if (!isValidGridPos(gx, gy)) return;
-    if (isPathCell(gx, gy)) return;
-    if (isObstacleCell(gx, gy)) return;
-
-    // Check no tower already here
-    for (auto& t : m_towers) {
-        if (t->gridX() == gx && t->gridY() == gy) return;
-    }
-
-    auto t = createTower(m_selectedTower, gx, gy, m_cellSize, m_offsetX, m_offsetY);
-    if (m_gold < t->cost()) return;
-
-    m_gold -= t->cost();
-    m_towers.push_back(std::move(t));
-
-    update();
+    return m_gameController->isGameOver();
 }
 
-// ============ Coordinates ============
-
-QPointF GameScene::gridToPixel(int gx, int gy) const
+bool GameScene::victory() const
 {
-    return QPointF(
-        m_offsetX + gx * m_cellSize + m_cellSize / 2.0,
-        m_offsetY + gy * m_cellSize + m_cellSize / 2.0);
+    return m_gameController->isVictory();
 }
 
-QPoint GameScene::pixelToGrid(const QPointF& pos) const
+int GameScene::levelId() const
 {
-    return QPoint(
-        static_cast<int>((pos.x() - m_offsetX) / m_cellSize),
-        static_cast<int>((pos.y() - m_offsetY) / m_cellSize));
+    return m_gameController->levelId();
 }
 
-bool GameScene::isValidGridPos(int gx, int gy) const
+void GameScene::setLevelId(int id)
 {
-    return gx >= 0 && gx < m_gridCols && gy >= 0 && gy < m_gridRows;
+    m_gameController->setLevelId(id);
 }
-
-bool GameScene::isPathCell(int gx, int gy) const
-{
-    if (!isValidGridPos(gx, gy)) return true; // treat out of bounds as blocked
-    return m_isPath[gy][gx];
-}
-
-// ============ Mouse ============
-
-void GameScene::mouseMoveEvent(QMouseEvent* event)
-{
-    QPoint g = pixelToGrid(event->pos());
-    m_hoverGridX = g.x();
-    m_hoverGridY = g.y();
-    if (m_placingTower && isValidGridPos(m_hoverGridX, m_hoverGridY) && !isPathCell(m_hoverGridX, m_hoverGridY) && !isObstacleCell(m_hoverGridX, m_hoverGridY)) {
-        m_showRange = true;
-    } else {
-        m_showRange = false;
-    }
-    update();
-}
-
-void GameScene::mousePressEvent(QMouseEvent* event)
-{
-    if (!m_gameRunning || m_paused || m_gameOver) return;
-    if (event->button() != Qt::LeftButton) return;
-
-    QPoint g = pixelToGrid(event->pos());
-    if (!isValidGridPos(g.x(), g.y())) return;
-
-    CellEntities& cell = getCellAt(g.x(), g.y());
-    if (!cell.enemies.empty()) {
-        setPriorityTarget(cell.enemies.front());
-        return;
-    }
-    if (!cell.obstacles.empty()) {
-        setPriorityTarget(cell.obstacles.front());
-        return;
-    }
-    if (m_placingTower) {
-        placeTower(g.x(), g.y());
-        return;
-    }
-    clearPriorityTarget();
-}
-
-// ============ Resize ============
-
-void GameScene::resizeEvent(QResizeEvent* event)
-{
-    QWidget::resizeEvent(event);
-    double w = static_cast<double>(width());
-    double h = static_cast<double>(height());
-    m_cellSize = qMin(w / m_gridCols, h / m_gridRows);
-    if (m_cellSize < 20) m_cellSize = 20;
-    m_offsetX = (w - m_gridCols * m_cellSize) / 2.0;
-    m_offsetY = (h - m_gridRows * m_cellSize) / 2.0;
-
-    // Rebuild pixel waypoints on resize
-    m_waypoints.clear();
-    for (const QPoint& p : DataManager::instance().mapData().pathCells)
-    {
-        m_waypoints.push_back(gridToPixel(p.x(), p.y()));
-    }
-
-    // Update existing enemy paths
-    for (auto& e : m_enemies) {
-        if (e->isActive()) e->updatePath(m_waypoints);
-    }
-
-    // Update obstacle positions
-    repositionObstacles();
-
-    update();
-}
-
-// ============ Rendering ============
 
 void GameScene::paintEvent(QPaintEvent* event)
 {
     Q_UNUSED(event);
-    QPainter p(this);
-    p.setRenderHint(QPainter::Antialiasing, true);
-
-    // Background
-    p.fillRect(rect(), QColor(34, 40, 34));
-
-    drawGrid(p);
-    drawPath(p);
-    drawObstacles(p);
-    drawTowers(p);
-    drawEnemies(p);
-    drawProjectiles(p);
-
-    // Hover range
-    if (m_placingTower && m_showRange) {
-        auto previewTower = createTower(m_selectedTower, m_hoverGridX, m_hoverGridY, m_cellSize, m_offsetX, m_offsetY);
-        TowerStats stats = previewTower->stats();
-        QPointF center = gridToPixel(m_hoverGridX, m_hoverGridY);
-        double rangePx = stats.range * m_cellSize;
-
-        p.setPen(QPen(QColor(255, 255, 255, 80), 1, Qt::DashLine));
-        p.setBrush(QColor(100, 200, 100, 30));
-        p.drawEllipse(center, rangePx, rangePx);
-
-        p.setPen(QPen(QColor(100, 200, 100), 2));
-        p.setBrush(QColor(100, 200, 100, 40));
-        p.drawRect(QRectF(
-            m_offsetX + m_hoverGridX * m_cellSize + 1,
-            m_offsetY + m_hoverGridY * m_cellSize + 1,
-            m_cellSize - 2, m_cellSize - 2));
-    }
-
-    if (m_gameOver) {
-        p.fillRect(rect(), QColor(0, 0, 0, 150));
-    }
+    m_gameRenderer->render();
 }
 
-void GameScene::drawGrid(QPainter& p)
+void GameScene::mouseMoveEvent(QMouseEvent* event)
 {
-    double totalW = m_gridCols * m_cellSize;
-    double totalH = m_gridRows * m_cellSize;
+    m_inputHandler->handleMouseMove(event);
+    QWidget::mouseMoveEvent(event);
+}
 
-    // Base fill
-    p.fillRect(QRectF(m_offsetX, m_offsetY, totalW, totalH), QColor(60, 80, 45));
+void GameScene::mousePressEvent(QMouseEvent* event)
+{
+    m_inputHandler->handleMousePress(event);
+    QWidget::mousePressEvent(event);
+}
 
-    // Path cells: darker road color
-    for (int y = 0; y < m_gridRows; ++y) {
-        for (int x = 0; x < m_gridCols; ++x) {
-            if (m_isPath[y][x]) {
-                p.fillRect(QRectF(
-                    m_offsetX + x * m_cellSize + 1,
-                    m_offsetY + y * m_cellSize + 1,
-                    m_cellSize - 2, m_cellSize - 2),
-                    QColor(120, 90, 55)); // Road brown
-            }
-        }
+void GameScene::keyPressEvent(QKeyEvent* event)
+{
+    m_inputHandler->handleKeyPress(event);
+    QWidget::keyPressEvent(event);
+}
+
+void GameScene::onPanelControllerHideTowerPanel()
+{
+    m_towerManager->setSelectedTowerPtr(nullptr);
+    update();
+}
+
+void GameScene::resizeEvent(QResizeEvent* event)
+{
+    QWidget::resizeEvent(event);
+    m_inputHandler->handleResize(width(), height());
+    m_gameRenderer->setGeometry(rect());
+}
+
+void GameScene::gameLoop()
+{
+    if (!m_gameController->isRunning() || m_gameController->isPaused() || m_gameController->isGameOver()) {
+        return;
     }
 
-    // Tower cells: slightly darker
-    for (auto& t : m_towers) {
-        int x = t->gridX(), y = t->gridY();
-        p.fillRect(QRectF(
-            m_offsetX + x * m_cellSize + 1,
-            m_offsetY + y * m_cellSize + 1,
-            m_cellSize - 2, m_cellSize - 2),
-            QColor(45, 50, 40));
-    }
-
-    // Obstacle cells: distinct color
-    for (int y = 0; y < m_gridRows; ++y) {
-        for (int x = 0; x < m_gridCols; ++x) {
-            if (m_obstacleCell[y][x]) {
-                p.fillRect(QRectF(
-                    m_offsetX + x * m_cellSize + 1,
-                    m_offsetY + y * m_cellSize + 1,
-                    m_cellSize - 2, m_cellSize - 2),
-                    QColor(90, 70, 50));
-            }
-        }
-    }
-
-    // Grid lines
-    p.setPen(QPen(QColor(90, 100, 80), 1));
-    for (int x = 0; x <= m_gridCols; ++x)
-        p.drawLine(QPointF(m_offsetX + x * m_cellSize, m_offsetY),
-                    QPointF(m_offsetX + x * m_cellSize, m_offsetY + totalH));
-    for (int y = 0; y <= m_gridRows; ++y)
-        p.drawLine(QPointF(m_offsetX, m_offsetY + y * m_cellSize),
-                    QPointF(m_offsetX + totalW, m_offsetY + y * m_cellSize));
-
-    // Start marker (S)
-    {
-        QPointF c = gridToPixel(m_startX, m_startY);
-        double r = m_cellSize * 0.35;
-        p.setPen(Qt::NoPen);
-        p.setBrush(QColor(76, 175, 80));
-        p.drawEllipse(c, r, r);
-        p.setPen(Qt::white);
-        QFont f("Arial", qMax(8, static_cast<int>(m_cellSize * 0.35)), QFont::Bold);
-        p.setFont(f);
-        p.drawText(QRectF(c.x()-r, c.y()-r, r*2, r*2), Qt::AlignCenter, "S");
-    }
-
-    // End marker (E)
-    {
-        QPointF c = gridToPixel(m_endX, m_endY);
-        double r = m_cellSize * 0.35;
-        p.setPen(Qt::NoPen);
-        p.setBrush(QColor(244, 67, 54));
-        p.drawEllipse(c, r, r);
-        p.setPen(Qt::white);
-        QFont f("Arial", qMax(8, static_cast<int>(m_cellSize * 0.35)), QFont::Bold);
-        p.setFont(f);
-        p.drawText(QRectF(c.x()-r, c.y()-r, r*2, r*2), Qt::AlignCenter, "E");
-    }
-}
-
-void GameScene::drawPath(QPainter& p)
-{
-    if (m_waypoints.size() < 2) return;
-    // Draw a subtle road center line (not a thick filled path)
-    p.setPen(QPen(QColor(200, 170, 120, 100), m_cellSize * 0.15, Qt::SolidLine, Qt::RoundCap));
-    for (size_t i = 1; i < m_waypoints.size(); ++i)
-        p.drawLine(m_waypoints[i-1], m_waypoints[i]);
-}
-
-void GameScene::drawTowers(QPainter& p)
-{
-    for (auto& t : m_towers) {
-        QPointF center = gridToPixel(t->gridX(), t->gridY());
-        double r = m_cellSize * 0.4;
-        TowerStats stats = t->stats();
-
-        p.setPen(QPen(Qt::black, 2));
-        p.setBrush(stats.color);
-        p.drawRect(QRectF(center.x()-r, center.y()-r, r*2, r*2));
-
-        p.setPen(Qt::white);
-        QFont f("Arial", qMax(8, static_cast<int>(m_cellSize*0.3)), QFont::Bold);
-        p.setFont(f);
-        QString label;
-        switch (t->type()) {
-        case TowerType::Arrow: label = "A"; break;
-        case TowerType::Cannon: label = "C"; break;
-        case TowerType::Ice: label = "I"; break;
-        }
-        p.drawText(QRectF(center.x()-r, center.y()-r, r*2, r*2), Qt::AlignCenter, label);
-    }
-}
-
-void GameScene::drawEnemies(QPainter& p)
-{
-    for (auto& e : m_enemies)
-        if (e->isActive()) e->draw(p);
-}
-
-void GameScene::drawProjectiles(QPainter& p)
-{
-    for (auto& pj : m_projectiles)
-        if (pj->isActive()) pj->draw(p);
-}
-
-void GameScene::drawObstacles(QPainter& p)
-{
-    for (auto& obs : m_obstacles)
-        obs->draw(&p);
-}
-
-void GameScene::repositionObstacles()
-{
-    for (auto& obs : m_obstacles) {
-        QPointF newPos = gridToPixel(obs->gridX() + obs->gridWidth() / 2,
-                                     obs->gridY() + obs->gridHeight() / 2);
-        obs->setPosition(newPos);
-    }
-}
-
-void GameScene::updateObstacles(double dt)
-{
-    for (auto& obs : m_obstacles) {
-        obs->update(dt);
-    }
-
-    for (auto& obs : m_obstacles) {
-        if (obs->isDestroyed()) {
-            m_gold += obs->reward();
-            for (int dy = 0; dy < obs->gridHeight(); ++dy) {
-                for (int dx = 0; dx < obs->gridWidth(); ++dx) {
-                    int cx = obs->gridX() + dx;
-                    int cy = obs->gridY() + dy;
-                    if (isValidGridPos(cx, cy)) {
-                        m_obstacleCell[cy][cx] = false;
-                    }
-                }
-            }
-        }
-    }
-
-    m_obstacles.erase(
-        std::remove_if(m_obstacles.begin(), m_obstacles.end(),
-            [](auto& obs) { return obs->isDestroyed(); }),
-        m_obstacles.end());
-}
-
-void GameScene::syncEntityGrid()
-{
-    for (auto& row : m_entityGrid) {
-        for (auto& cell : row) {
-            cell.enemies.clear();
-            cell.obstacles.clear();
-        }
-    }
-
-    for (auto& e : m_enemies) {
-        if (!e->isActive()) continue;
-        QPoint g = pixelToGrid(e->pos());
-        if (isValidGridPos(g.x(), g.y())) {
-            m_entityGrid[g.y()][g.x()].enemies.push_back(e.get());
-        }
-    }
-
-    for (auto& obs : m_obstacles) {
-        if (!obs->isActive()) continue;
-        for (int dy = 0; dy < obs->gridHeight(); ++dy) {
-            for (int dx = 0; dx < obs->gridWidth(); ++dx) {
-                int cx = obs->gridX() + dx;
-                int cy = obs->gridY() + dy;
-                if (isValidGridPos(cx, cy)) {
-                    m_entityGrid[cy][cx].obstacles.push_back(obs.get());
-                }
-            }
-        }
-    }
-}
-
-CellEntities& GameScene::getCellAt(int gx, int gy)
-{
-    static CellEntities dummy;
-    if (!isValidGridPos(gx, gy)) return dummy;
-    return m_entityGrid[gy][gx];
-}
-
-bool GameScene::isObstacleCell(int gx, int gy) const
-{
-    if (!isValidGridPos(gx, gy)) return false;
-    return m_obstacleCell[gy][gx];
-}
-
-void GameScene::setPriorityTarget(Enemy* e)
-{
-    m_priorityEnemy = e;
-    m_priorityObstacle = nullptr;
-}
-
-void GameScene::setPriorityTarget(Obstacle* obs)
-{
-    m_priorityObstacle = obs;
-    m_priorityEnemy = nullptr;
-}
-
-void GameScene::clearPriorityTarget()
-{
-    m_priorityEnemy = nullptr;
-    m_priorityObstacle = nullptr;
+    double dt = 0.016;
+    m_gameController->update(dt, m_towerManager->towers());
+    m_gameRenderer->update();
 }

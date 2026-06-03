@@ -1,14 +1,8 @@
 #include "canntower.h"
-#include "../config/datamanager.h"
 
 CannonTower::CannonTower(int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : RemoteTower(TowerType::Cannon, gridX, gridY, cellSize, offsetX, offsetY)
 {
-    m_stats = DataManager::instance().getTowerStats(TowerType::Cannon);
-}
-
-TowerStats CannonTower::getStats() const {
-    return DataManager::instance().getTowerStats(TowerType::Cannon);
 }
 
 void CannonTower::drawBody(QPainter& p, const QPointF& center, double r) const {

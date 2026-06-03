@@ -15,11 +15,11 @@ void MeleeTower::update(double dt, const std::vector<std::unique_ptr<Enemy>>& en
     m_pendingEffect.fired = true;
     m_pendingEffect.center = centerPos();
     m_pendingEffect.radius = m_attackRadius;
-    m_pendingEffect.damage = getStats().damage;
-    m_pendingEffect.slowFactor = getStats().slowFactor;
-    m_pendingEffect.slowDuration = getStats().slowDuration;
-    m_pendingEffect.poisonDps = getStats().poisonDps;
-    m_pendingEffect.poisonDuration = getStats().poisonDuration;
-    m_pendingEffect.color = getStats().color;
-    m_cooldown = getStats().attackSpeed;
+    m_pendingEffect.damage = stats().damage;
+    m_pendingEffect.slowFactor = stats().slowFactor;
+    m_pendingEffect.slowDuration = stats().slowDuration;
+    m_pendingEffect.poisonDps = stats().poisonDps;
+    m_pendingEffect.poisonDuration = stats().poisonDuration;
+    m_pendingEffect.color = stats().color;
+    m_cooldown = stats().attackSpeed;
 }

@@ -26,7 +26,6 @@ MainWindow::MainWindow(QWidget* parent)
     , m_lblLives(nullptr)
     , m_lblWave(nullptr)
     , m_lblInfo(nullptr)
-    , m_selectedType(TowerType::Arrow)
 {
     ui->setupUi(this);
 

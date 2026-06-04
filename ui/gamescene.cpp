@@ -74,9 +74,9 @@ GameScene::GameScene(QWidget* parent)
     connect(m_gameTimer, &QTimer::timeout, this, &GameScene::gameLoop);
 
     // Panel connections
-    connect(m_towerPanel, SIGNAL(upgradeClicked()), m_panelController, SLOT(onUpgradeClicked()));
-    connect(m_towerPanel, SIGNAL(sellClicked()), m_panelController, SLOT(onSellClicked()));
-    connect(m_panelController, SIGNAL(hideTowerPanelRequested()), this, SLOT(onPanelControllerHideTowerPanel()));
+    connect(m_towerPanel, &TowerPanel::upgradeClicked, m_panelController, &PanelController::onUpgradeClicked);
+    connect(m_towerPanel, &TowerPanel::sellClicked, m_panelController, &PanelController::onSellClicked);
+    connect(m_panelController, &PanelController::hideTowerPanelRequested, this, &GameScene::onPanelControllerHideTowerPanel);
     connect(m_gameController, &GameController::statsChanged, m_panelController, &PanelController::onStatsChanged);
 
     // Selection popup connections

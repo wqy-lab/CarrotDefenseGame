@@ -35,6 +35,9 @@ set(PROJECT_SOURCES
         ui/gameoverlay.cpp
         ui/gameoverlay.h
         ui/gameoverlay.ui
+        ui/gamehud.cpp
+        ui/gamehud.h
+        ui/gamehud.ui
     game/enemies/enemy.cpp
     game/enemies/enemy.h
     game/towers/tower.cpp

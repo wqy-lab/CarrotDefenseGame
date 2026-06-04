@@ -14,6 +14,7 @@ class SpatialGrid;
 class TowerPanel;
 class TowerSelectionPopup;
 class GameOverlay;
+class GameHUD;
 
 class GameScene : public QWidget {
     Q_OBJECT
@@ -60,6 +61,7 @@ private slots:
     void onPanelControllerHideTowerPanel();
     void onOverlayContinue();
     void onOverlayExitConfirmed();
+    void onStatsChanged();
 
 private:
     SpatialGrid* m_spatialGrid = nullptr;
@@ -71,6 +73,7 @@ private:
     TowerPanel* m_towerPanel = nullptr;
     TowerSelectionPopup* m_selectionPopup = nullptr;
     GameOverlay* m_overlay = nullptr;
+    GameHUD* m_gameHUD = nullptr;
 
     QTimer* m_gameTimer = nullptr;
 };

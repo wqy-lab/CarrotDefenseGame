@@ -40,16 +40,9 @@ protected:
     virtual void onHit(Enemy* enemy, std::vector<std::unique_ptr<Enemy>>& enemies, CellEntities& cell) = 0;
     virtual void onObstacleHit(class Obstacle* obstacle);
 
-private:
-    bool lineIntersectsRect(const QPointF& p1, const QPointF& p2,
-                            const QPointF& rectMin, const QPointF& rectMax) const;
-    bool pointInRect(const QPointF& p, const QPointF& rectMin, const QPointF& rectMax) const;
-    bool lineIntersectsLine(const QPointF& p1, const QPointF& p2,
-                            const QPointF& q1, const QPointF& q2) const;
-
+protected:
     bool m_hit;
     QPointF m_pos;
-    QPointF m_prevPos;
     QPointF m_direction;  // Normalized direction vector for movement
     QPointF m_startPos;
     double m_maxDistance;

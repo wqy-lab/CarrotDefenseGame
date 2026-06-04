@@ -32,7 +32,9 @@ void RemoteTower::update(double dt, const std::vector<std::unique_ptr<Enemy>>& e
     }
 
     Enemy* target = findTarget(enemies);
-    if (!target) return;
+    if (!target) {
+        return;
+    }
 
     m_pendingAttack.fired = true;
     m_pendingAttack.targetPos = target->gridPos();
@@ -57,7 +59,7 @@ Enemy* RemoteTower::findTarget(const std::vector<std::unique_ptr<Enemy>>& enemie
         if (d2 <= r2) {
             return m_priorityEnemy;
         }
-        // Priority target out of range, still return it (tower will fire if in range)
+        // Priority target out of range - continue to find normal target
     }
 
     Enemy* best = nullptr;
@@ -80,14 +82,14 @@ Enemy* RemoteTower::findTarget(const std::vector<std::unique_ptr<Enemy>>& enemie
 
 double RemoteTower::distTo(const Enemy& e) const {
     QPointF gp = e.gridPos();
-    double dx = gp.x() - m_gridX;
-    double dy = gp.y() - m_gridY;
+    double dx = gp.x() - (m_gridX + 0.5);
+    double dy = gp.y() - (m_gridY + 0.5);
     return dx*dx + dy*dy;
 }
 
 double RemoteTower::distTo(const Obstacle& o) const {
-    double dx = (o.gridX() + o.gridWidth() / 2.0) - m_gridX;
-    double dy = (o.gridY() + o.gridHeight() / 2.0) - m_gridY;
+    double dx = (o.gridX() + o.gridWidth() / 2.0) - (m_gridX + 0.5);
+    double dy = (o.gridY() + o.gridHeight() / 2.0) - (m_gridY + 0.5);
     return dx*dx + dy*dy;
 }
 

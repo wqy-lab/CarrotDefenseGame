@@ -13,7 +13,7 @@ void MeleeTower::update(double dt, const std::vector<std::unique_ptr<Enemy>>& en
     if (m_cooldown > 0) { m_cooldown -= dt; return; }
 
     m_pendingEffect.fired = true;
-    m_pendingEffect.center = QPointF(m_gridX, m_gridY);
+    m_pendingEffect.center = QPointF(m_gridX + 0.5, m_gridY + 0.5);
     m_pendingEffect.radius = m_attackRadius;
     m_pendingEffect.damage = stats().damage;
     m_pendingEffect.slowFactor = stats().slowFactor;

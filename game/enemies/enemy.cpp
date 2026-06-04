@@ -5,7 +5,7 @@
 Enemy::Enemy(const std::vector<QPointF>& path, EnemyStats stats)
     : m_stats(stats)
     , m_hp(stats.maxHp)
-    , m_gridPos(path.empty() ? QPointF(0,0) : path[0])
+    , m_gridPos(path.empty() ? QPointF(0.5, 0.5) : QPointF(path[0].x() + 0.5, path[0].y() + 0.5))
     , m_path(path), m_pathIndex(1)
     , m_reachedEnd(false)
     , m_slowFactor(1.0), m_slowTimer(0.0)
@@ -36,7 +36,8 @@ void Enemy::update(double dt)
 
     if (m_pathIndex >= static_cast<int>(m_path.size())) { m_reachedEnd = true; return; }
 
-    QPointF target = m_path[m_pathIndex];
+    // target is stored as integer grid coordinates, add 0.5 for center
+    QPointF target = QPointF(m_path[m_pathIndex].x() + 0.5, m_path[m_pathIndex].y() + 0.5);
     QPointF dir = target - m_gridPos;
     double dist = std::sqrt(dir.x()*dir.x() + dir.y()*dir.y());
     // speed() is in grids/sec (1 grid = 1 cell, so movement is in grid units)
@@ -61,7 +62,9 @@ void Enemy::updatePath(const std::vector<QPointF>& newPath)
     m_pathIndex = 0;
     double bestDist = 1e9;
     for (size_t i = 0; i < newPath.size(); ++i) {
-        QPointF d = newPath[i] - m_gridPos;
+        // Compare with current gridPos (already has 0.5 offset)
+        QPointF pathPoint(newPath[i].x() + 0.5, newPath[i].y() + 0.5);
+        QPointF d = pathPoint - m_gridPos;
         double dist = d.x()*d.x() + d.y()*d.y();
         if (dist < bestDist) { bestDist = dist; m_pathIndex = static_cast<int>(i) + 1; }
     }
@@ -71,8 +74,8 @@ void Enemy::updatePath(const std::vector<QPointF>& newPath)
 QPointF Enemy::pos(double cellSize, double offsetX, double offsetY) const
 {
     return QPointF(
-        offsetX + m_gridPos.x() * cellSize + cellSize / 2.0,
-        offsetY + m_gridPos.y() * cellSize + cellSize / 2.0);
+        offsetX + m_gridPos.x() * cellSize,
+        offsetY + m_gridPos.y() * cellSize);
 }
 
 void Enemy::draw(QPainter& p, double cellSize, double offsetX, double offsetY) const

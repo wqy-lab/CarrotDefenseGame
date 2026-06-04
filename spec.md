@@ -265,7 +265,16 @@ Player 按 Esc / 点击其他地方
 | 启动游戏 | `GameScene::startGame()` → `GameController::startGame()` → `WaveManager::nextWave()` → `QTimer::start(16)` |
 | 暂停 | `GameScene::pauseGame()` → `GameController::pauseGame()` |
 | 恢复 | `GameScene::resumeGame()` → `GameController::resumeGame()` |
-| 重置 | `GameScene::resetGame()` → `QTimer::stop()` → `GameController::resetGame()` → `m_towers.clear()` → `hide TowerPanel` → `update()` |
+| 重置 | `GameScene::resetGame()` → `QTimer::stop()` → `GameController::resetGame()` → `WaveManager::reset()` + `m_towers.clear()` → `hide TowerPanel` → `update()` |
+
+> **WaveManager::reset()** 在重置状态后调用 `buildWaves()` 重新从 DataManager 拉取当前关卡波次数据，确保换关后波次正确。
+
+### 7.4 波次与出怪间隔
+
+- 波次数据由 JSON 的 `waves` 数组定义，每个 `WaveEntry` 包含 `type`、`count`、`interval`
+- `m_spawnQueue` 存储 `std::pair<EnemyType, double>`（类型 + 生成间隔）
+- `popSpawnType()` 使用队列中存储的 `interval` 而非硬编码值
+- 波次首怪延迟固定 1.5s
 
 ---
 
@@ -293,7 +302,7 @@ App启动 → 主菜单(idx 0)
   │
   └─ 游戏结束(overlay) → GameResultWidget
         ├─ "Retry" → 重新载入当前关
-        ├─ "Next Level" → 载入下一关
+        ├─ "Next Level" → 按 levels 列表顺序查找下一关并载入
         └─ "Menu" → 主菜单(idx 0)
 ```
 
@@ -301,7 +310,23 @@ App启动 → 主菜单(idx 0)
 
 - 显示菜单页：`toolBar->hide()` + `statusbar->hide()`
 - 显示游戏页：`toolBar->show()` + `statusbar->show()` + `updateStatusBar()` + `updateTowerButtons()`
-- `GameResultWidget` overlay 动态 `new` 在 MainWindow 上，`deleteLater` 回收
+- `GameResultWidget` overlay 动态 `new` 在 MainWindow 上，`cleanupOverlay()` 确保旧实例被 `deleteLater` 回收
+
+### 8.4 解锁逻辑
+
+通关后解锁下一关，按 `levels` 列表顺序（非 `id + 1`）：
+
+```cpp
+// onGameEnded 中：
+for (size_t i = 0; i < levels.size(); ++i) {
+    if (levels[i].id == levelId && i + 1 < levels.size()) {
+        m_levelSelect->unlockLevel(levels[i + 1].id);
+        break;
+    }
+}
+```
+
+Debug 构建下跳过此逻辑，所有关卡默认解锁。
 
 ---
 
@@ -312,11 +337,12 @@ App启动 → 主菜单(idx 0)
 ```
 main() 启动时:
   1. DataManager::instance().loadShared("config/shared.json")
-     → 填充 m_towerStats, m_enemyStats, m_obstacleStats
-  2. DataManager::instance().loadLevel("config/levels/level2.json")
-     → 填充 m_mapData, m_waves, m_obstacles, m_initialGold/Lives
-  3. DataManager::instance().loadLevelsIndex("config/levels.json")
+     → 清空旧数据后填充 m_towerStats, m_enemyStats, m_obstacleStats
+  2. DataManager::instance().loadLevelsIndex("config/levels.json")
      → 填充 m_levels（关卡列表）
+  3. DataManager::instance().loadLevel(levels[0].file)
+     → 填充 m_mapData, m_waves, m_obstacles, m_initialGold/Lives
+     → 从关卡索引取第一个关卡的路径
 
 运行时读取:
   - TowerStats    → Tower 构造（TowerFactory） + MainWindow 价格显示
@@ -372,9 +398,9 @@ main() 启动时:
 | 3 | 样式字符串 (QSS) 散落在 `mainwindow.cpp`、`towerpanel.cpp`、`towerselectionpopup.cpp`、`main.cpp` | 修改样式需改多处 |
 | 4 | `GameScene` 构造函数直接 `new` 8 个子系统 | 高耦合，难以测试 |
 | 5 | `PanelController` 仅做转发，无实质业务逻辑 | 增加跳转层数 |
-| 6 | `GameScene` 和 `GameRenderer` 同为 QWidget，存在绘制职责重叠 | `GameScene::paintEvent` 委托 `GameRenderer::render()`，后者再调用 `update()` |
+| 6 | `GameScene` 和 `GameRenderer` 同为 QWidget，存在绘制职责重叠 | 冗余委托 |
 | 7 | 魔法数字散布各处（宽高、偏移、颜色、阈值） | 维护性差 |
-| 8 | `drawTowers()` 中仅对 Arrow/Cannon/Ice 绘制字母标签 | Poison/Lightning/Sun 无标签，显示不一致 |
+| 8 | `drawTowers()` 中仅对 Arrow/Cannon/Ice 绘制字母标签 | Poison/Lightning/Sun 无标签，后续改为贴图 |
 | 9 | `mainwindow.cpp:257-266` 处的工具栏塔按钮禁用代码与 TowerSelectionPopup 重复逻辑 | 功能已被替代但未删除 |
 | 10 | `CMakeLists.txt` 中源文件手动列举 | 新增文件需手动更新 CMake |
 

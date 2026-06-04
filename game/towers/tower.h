@@ -6,6 +6,7 @@
 #include <QString>
 #include <vector>
 #include <memory>
+#include "../markers/marker.h"
 
 class Enemy;
 
@@ -77,6 +78,7 @@ public:
 protected:
     class Enemy* m_priorityEnemy = nullptr;
     class Obstacle* m_priorityObstacle = nullptr;
+    std::vector<std::unique_ptr<Marker>> m_markers;
 };
 
 #endif

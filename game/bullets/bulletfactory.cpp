@@ -5,6 +5,7 @@
 #include "icebullet.h"
 #include "poisonbullet.h"
 #include "lightningbullet.h"
+#include "../markers/marker.h"
 
 std::unique_ptr<Bullet> createBullet(BulletType type, const QPointF& start,
                                       const QPointF& target, double damage,

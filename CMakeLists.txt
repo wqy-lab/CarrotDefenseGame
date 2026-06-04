@@ -103,6 +103,11 @@ set(PROJECT_SOURCES
     game/bullets/lightningbullet.h
     game/bullets/bulletfactory.cpp
     game/bullets/bulletfactory.h
+    game/markers/marker.h
+    game/markers/slowmarker.cpp
+    game/markers/slowmarker.h
+    game/markers/poisonmarker.cpp
+    game/markers/poisonmarker.h
     game/cellentities.h
     game/config/datamanager.cpp
     game/config/datamanager.h

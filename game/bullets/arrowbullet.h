@@ -2,6 +2,9 @@
 #define ARROWBULLET_H
 
 #include "bullet.h"
+#include <vector>
+#include <memory>
+#include "../markers/marker.h"
 
 class ArrowBullet : public Bullet {
 protected:
@@ -13,10 +16,7 @@ public:
                 double poisonDps, double poisonDuration, const QColor& color);
 
 private:
-    double m_slowFactor;
-    double m_slowDuration;
-    double m_poisonDps;
-    double m_poisonDuration;
+    std::vector<std::unique_ptr<Marker>> m_markers;
 };
 
 #endif

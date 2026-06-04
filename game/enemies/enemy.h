@@ -5,6 +5,9 @@
 #include <QPainter>
 #include <vector>
 #include <utility>
+#include <map>
+#include <memory>
+#include "../markers/marker.h"
 
 struct EnemyStats {
     double maxHp;
@@ -44,6 +47,11 @@ public:
 
     void draw(QPainter& p, double cellSize, double offsetX, double offsetY) const;
 
+    // Marker management
+    void addMarker(std::unique_ptr<Marker> marker);
+    void updateMarkers(double dt);
+    void removeInactiveMarkers();
+
 protected:
     Enemy(const std::vector<QPointF>& path, EnemyStats stats);
 
@@ -64,8 +72,16 @@ protected:
     double m_poisonTimer;
     bool m_goldAwarded;
 
+    struct MarkerSlot {
+        std::unique_ptr<Marker> active;
+        std::vector<std::unique_ptr<Marker>> pending;  // 按 priority 降序
+    };
+    std::map<QString, MarkerSlot> m_markers;
+
+    void promoteNextPending(const QString& type);
+
 public:
-    bool consumeReward();  // Returns true if reward not yet claimed, marks as claimed
+    bool consumeReward();
     int pathIndex() const { return m_pathIndex; }
 };
 

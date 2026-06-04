@@ -10,6 +10,7 @@ MeleeTower::MeleeTower(TowerType type, int gridX, int gridY, double cellSize, do
 
 void MeleeTower::update(double dt, const std::vector<std::unique_ptr<Enemy>>& enemies)
 {
+    Q_UNUSED(enemies);
     if (m_cooldown > 0) { m_cooldown -= dt; return; }
 
     m_pendingEffect.fired = true;

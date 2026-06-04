@@ -2,6 +2,9 @@
 #define ICEBULLET_H
 
 #include "bullet.h"
+#include <vector>
+#include <memory>
+#include "../markers/marker.h"
 
 class IceBullet : public Bullet {
 protected:
@@ -12,8 +15,7 @@ public:
               double slowFactor, double slowDuration, const QColor& color);
 
 private:
-    double m_slowFactor;
-    double m_slowDuration;
+    std::unique_ptr<Marker> m_marker;
 };
 
 #endif

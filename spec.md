@@ -476,15 +476,96 @@ GameHUD 和 GameOverlay 作为独立 Widget 覆盖在 GameRenderer 上方，由 
 
 ---
 
-## 13. 网格坐标系统
+## 13. Marker 多态系统
 
-### 13.1 设计原则
+### 13.1 设计目标
+
+将效果（减速、中毒）从子弹/塔的属性迁移到独立的 Marker 类，实现效果的可堆叠、可扩展。
+
+### 13.2 Marker 基类
+
+**文件**: `game/markers/marker.h`
+
+```cpp
+class Marker {
+public:
+    virtual ~Marker() = default;
+    virtual void update(double dt, Enemy* enemy) = 0;
+    virtual bool isActive() const = 0;
+    virtual std::unique_ptr<Marker> clone() const = 0;
+    virtual QString type() const = 0;
+    virtual double priority() const = 0;  // 强度比较，越大越优先
+
+protected:
+    Marker() = default;
+    Marker(const Marker&) = default;
+};
+```
+
+### 13.3 具体 Marker 类
+
+| 类 | 文件 | update 行为 | priority 公式 |
+|---|---|---|---|
+| `SlowMarker` | `game/markers/slowmarker.h/cpp` | 每帧 `applySlow(factor, duration)` | `1.0 / m_factor`（factor 越小越强，priority 越大） |
+| `PoisonMarker` | `game/markers/poisonmarker.h/cpp` | 每帧 `applyPoison(dps, duration)` | `m_dps`（dps 越大越强） |
+
+### 13.4 Enemy 的 marker 管理
+
+```cpp
+struct MarkerSlot {
+    std::unique_ptr<Marker> active;                      // 当前激活的 marker
+    std::vector<std::unique_ptr<Marker>> pending;        // 等待队列，按 priority 降序
+};
+std::map<QString, MarkerSlot> m_markers;  // key: type()，如 "slow"、"poison"
+```
+
+**堆叠逻辑**:
+- `active` 有值时比较 priority
+- new marker 更强（priority 更大）→ active 入 pending，new 成为 active
+- new marker 更弱 → new 入 pending（保持 priority 降序）
+- active 过期时从 pending 队列 promote 下一个
+
+### 13.5 Tower 持有 markers
+
+Tower 可持有 `std::vector<std::unique_ptr<Marker>> m_markers`，创建子弹时 clone 自己的 markers 给子弹。
+
+### 13.6 子弹携带 markers
+
+| 子弹类 | 携带的 Marker |
+|--------|--------------|
+| `ArrowBullet` | `SlowMarker` + `PoisonMarker` |
+| `IceBullet` | `SlowMarker` |
+| `PoisonBullet` | `PoisonMarker` |
+| `CannonBullet` | 无 marker（溅射逻辑在 onHit） |
+| `LightningBullet` | 无 marker（链弹逻辑在 onHit） |
+
+```cpp
+// Bullet::onHit
+for (auto& marker : m_markers) {
+    enemy->addMarker(marker->clone());
+}
+```
+
+### 13.7 JSON 编码方案
+
+保持现有 JSON 格式不变，Marker 参数来源为 `TowerStats` 中的字段：
+
+| Marker 类型 | 来源字段 |
+|------------|---------|
+| `SlowMarker` | `slowFactor` + `slowDuration` |
+| `PoisonMarker` | `poisonDps` + `poisonDuration` |
+
+TowerFactory 加载 JSON 时按需构造 Marker 对象。暂不修改 JSON 结构。
+
+### 13.8 网格坐标系统
+
+### 13.9 设计原则
 
 所有游戏内部实体（Enemy、Obstacle、Tower、Bullet）的位置和移动全部使用**网格坐标**存储，渲染时通过 `cellSize` 和 `offset` 换算为像素坐标。
 
 **目的**：消除窗口 resize 时的同步需求——渲染时自动使用当前的 cellSize/offset 计算，无需更新任何实体的内部状态。
 
-### 13.2 单位约定
+### 13.10 单位约定
 
 | 类型 | 单位 | 说明 |
 |------|------|------|
@@ -497,7 +578,7 @@ GameHUD 和 GameOverlay 作为独立 Widget 覆盖在 GameRenderer 上方，由 
 | 碰撞半径 `hitRadius` | grids | 约0.5 grids |
 | 绘制半径 `radius()` | **像素** (pixels) | JSON中定义的是像素，用于绘制 |
 
-### 12.3 格子中心点约定
+### 14.1 格子中心点约定
 
 **格子 N 的中心点**位于 `(N+0.5, N+0.5)`
 **格子 N 的有效范围**为 `[N, N+1)`（左闭右开）
@@ -509,7 +590,7 @@ GameHUD 和 GameOverlay 作为独立 Widget 覆盖在 GameRenderer 上方，由 
 ...
 ```
 
-### 12.4 坐标转换
+### 14.4 坐标转换
 
 **网格 → 像素**（绘制）：
 ```cpp
@@ -525,7 +606,7 @@ int gx = static_cast<int>(std::floor((pos.x() - offsetX) / cellSize));
 int gy = static_cast<int>(std::floor((pos.y() - offsetY) / cellSize));
 ```
 
-### 12.5 各类实体的网格化实现
+### 14.5 各类实体的网格化实现
 
 #### Enemy
 - `m_gridPos` : QPointF — 网格坐标，初始值为 `(path[0].x() + 0.5, path[0].y() + 0.5)`
@@ -550,7 +631,7 @@ int gy = static_cast<int>(std::floor((pos.y() - offsetY) / cellSize));
 - 碰撞检测：直接在网格空间计算 `[gridX, gridX+gridW)` × `[gridY, gridY+gridH)`
 - `draw()` — 转为像素坐标 `offset + m_pos * cellSize`
 
-### 12.6 DataManager 加载时的单位转换
+### 14.6 DataManager 加载时的单位转换
 
 ```cpp
 // 敌人速度：pixels/sec → grids/sec
@@ -561,7 +642,7 @@ s.range = obj["range"].toDouble();
 s.splashRadius = obj["splashRadius"].toDouble();
 ```
 
-### 12.7 RemoteTower 距离计算（网格空间）
+### 14.7 RemoteTower 距离计算（网格空间）
 
 ```cpp
 double RemoteTower::distTo(const Enemy& e) const {
@@ -575,7 +656,7 @@ double RemoteTower::distTo(const Enemy& e) const {
 double r2 = m_stats.range * m_stats.range;
 ```
 
-### 12.8 MeleeTower 效果范围（GameController 中结算）
+### 14.8 MeleeTower 效果范围（GameController 中结算）
 
 ```cpp
 // effect.center 是网格坐标 QPointF(m_gridX + 0.5, m_gridY + 0.5)
@@ -585,7 +666,7 @@ double centerY = offsetY + effect.center.y() * cellSize;
 double effectRadiusPx = effect.radius * cellSize;
 ```
 
-### 12.9 Bullet 碰撞检测
+### 14.9 Bullet 碰撞检测
 
 ```cpp
 // 障碍物碰撞：使用左闭右开区间
@@ -600,7 +681,7 @@ double d2 = d.x()*d.x() + d.y()*d.y();
 if (d2 <= 0.5 * 0.5) { /* hit */ }
 ```
 
-### 12.10 Resize 行为
+### 14.10 Resize 行为
 
 resize 时**无需同步任何实体**：
 ```cpp
@@ -612,7 +693,7 @@ void InputHandler::handleResize(int width, int height) {
 }
 ```
 
-### 12.11 优先级系统
+### 14.11 优先级系统
 
 优先级目标互斥：设置敌方优先级自动清除障碍物优先级，反之亦然。
 ```cpp

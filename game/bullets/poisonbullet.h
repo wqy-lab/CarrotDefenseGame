@@ -2,6 +2,9 @@
 #define POISONBULLET_H
 
 #include "bullet.h"
+#include <vector>
+#include <memory>
+#include "../markers/marker.h"
 
 class PoisonBullet : public Bullet {
 protected:
@@ -12,8 +15,7 @@ public:
                  double poisonDps, double poisonDuration, const QColor& color);
 
 private:
-    double m_poisonDps;
-    double m_poisonDuration;
+    std::unique_ptr<Marker> m_marker;
 };
 
 #endif

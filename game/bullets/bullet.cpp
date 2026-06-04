@@ -9,6 +9,7 @@ Bullet::Bullet(const QPointF& start, const QPointF& target, double damage,
     : m_pos(start)
     , m_direction(0.0, 0.0)
     , m_startPos(start)
+    , m_prevPos(start)
     , m_maxDistance(0.0)
     , m_traveledDistance(0.0)
     , m_speed(400.0 / 48.0)  // 400 pixels/sec → grids/sec
@@ -36,6 +37,9 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
 {
     if (!m_active) return;
 
+    // Store previous position for line segment collision detection
+    m_prevPos = m_pos;
+
     // Speed is stored as grids/sec directly
     double moveDist = m_speed * dt;
 
@@ -56,11 +60,13 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
         return;
     }
 
-    // Check obstacle collision along the path
+    // Check obstacle collision using line segment intersection
+    // Bullet travels from m_prevPos to m_pos, check if this line intersects obstacle
     for (Obstacle* obs : cell.obstacles) {
         if (!obs->isActive()) continue;
-        if (m_pos.x() >= obs->gridX() && m_pos.x() < obs->gridX() + obs->gridWidth() &&
-            m_pos.y() >= obs->gridY() && m_pos.y() < obs->gridY() + obs->gridHeight()) {
+        if (lineIntersectsRect(m_prevPos, m_pos,
+                               QPointF(obs->gridX(), obs->gridY()),
+                               QPointF(obs->gridX() + obs->gridWidth(), obs->gridY() + obs->gridHeight()))) {
             m_hit = true;
             onObstacleHit(obs);
             m_active = false;
@@ -86,6 +92,47 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
 
 void Bullet::onObstacleHit(Obstacle* obstacle) {
     obstacle->takeDamage(m_damage);
+}
+
+// Check if line segment from p1 to p2 intersects rectangle
+bool Bullet::lineIntersectsRect(const QPointF& p1, const QPointF& p2,
+                                const QPointF& rectMin, const QPointF& rectMax) const
+{
+    // Check if either endpoint is inside the rectangle
+    if (pointInRect(p1, rectMin, rectMax) || pointInRect(p2, rectMin, rectMax))
+        return true;
+
+    // Check if line intersects any of the 4 edges
+    QPointF topLeft(rectMin.x(), rectMin.y());
+    QPointF topRight(rectMax.x(), rectMin.y());
+    QPointF bottomLeft(rectMin.x(), rectMax.y());
+    QPointF bottomRight(rectMax.x(), rectMax.y());
+
+    return lineIntersectsLine(p1, p2, topLeft, topRight) ||
+           lineIntersectsLine(p1, p2, topRight, bottomRight) ||
+           lineIntersectsLine(p1, p2, bottomRight, bottomLeft) ||
+           lineIntersectsLine(p1, p2, bottomLeft, topLeft);
+}
+
+bool Bullet::pointInRect(const QPointF& p, const QPointF& rectMin, const QPointF& rectMax) const
+{
+    return p.x() >= rectMin.x() && p.x() <= rectMax.x() &&
+           p.y() >= rectMin.y() && p.y() <= rectMax.y();
+}
+
+bool Bullet::lineIntersectsLine(const QPointF& p1, const QPointF& p2,
+                                 const QPointF& q1, const QPointF& q2) const
+{
+    QPointF r = p2 - p1;
+    QPointF s = q2 - q1;
+    double cross = r.x() * s.y() - r.y() * s.x();
+    if (qFuzzyCompare(cross, 0.0)) return false;  // Lines are parallel
+
+    QPointF qp = q1 - p1;
+    double t = (qp.x() * s.y() - qp.y() * s.x()) / cross;
+    double u = (qp.x() * r.y() - qp.y() * r.x()) / cross;
+
+    return t >= 0 && t <= 1 && u >= 0 && u <= 1;
 }
 
 void Bullet::draw(QPainter& p, double cellSize, double offsetX, double offsetY) const

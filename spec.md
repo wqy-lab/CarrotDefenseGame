@@ -294,6 +294,7 @@ Player 点击遮罩 "继续游戏"
 ### 8.1 时钟
 
 - `QTimer` 间隔 16ms（≈60 FPS）
+- 实际帧间隔 `dt` 由 `QElapsedTimer::restart()` 测量，上限钳位 0.1s 防止掉帧螺旋
 - `gameLoop()` 在三种情况下跳过更新：
   - `m_gameController->isRunning() == false`
   - `m_gameController->isPaused() == true`

@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GameHUD</class>
+ <widget class="QWidget" name="GameHUD">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>36</height>
+   </rect>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget#GameHUD { background-color: rgba(0, 0, 0, 120); }</string>
+  </property>
+  <layout class="QHBoxLayout" name="rootLayout">
+   <property name="leftMargin">
+    <number>10</number>
+   </property>
+   <property name="topMargin">
+    <number>4</number>
+   </property>
+   <property name="rightMargin">
+    <number>10</number>
+   </property>
+   <property name="bottomMargin">
+    <number>4</number>
+   </property>
+   <item>
+    <widget class="QPushButton" name="btnPause">
+     <property name="minimumSize">
+      <size>
+       <width>80</width>
+       <height>28</height>
+      </size>
+     </property>
+     <property name="cursor">
+      <cursorShape>PointingHandCursor</cursorShape>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton { background-color: rgba(255,255,255,30); color: white; font-size: 12px; border: 1px solid rgba(255,255,255,50); border-radius: 4px; } QPushButton:hover { background-color: rgba(255,255,255,50); }</string>
+     </property>
+     <property name="text">
+      <string>⏸ Pause</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="leftStretch">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QLabel" name="iconGold">
+     <property name="minimumSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="lblGold">
+     <property name="styleSheet">
+      <string notr="true">QLabel { color: #FFD700; font-size: 12px; font-weight: bold; padding: 0 2px; }</string>
+     </property>
+     <property name="text">
+      <string>200</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="spacerGoldAfter">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Policy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>8</width>
+       <height>0</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QLabel" name="iconLives">
+     <property name="minimumSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="lblLives">
+     <property name="styleSheet">
+      <string notr="true">QLabel { color: #EF5350; font-size: 12px; font-weight: bold; padding: 0 2px; }</string>
+     </property>
+     <property name="text">
+      <string>10</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="spacerLivesAfter">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Policy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>8</width>
+       <height>0</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QLabel" name="iconWave">
+     <property name="minimumSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="lblWave">
+     <property name="styleSheet">
+      <string notr="true">QLabel { color: #64B5F6; font-size: 12px; font-weight: bold; padding: 0 2px; }</string>
+     </property>
+     <property name="text">
+      <string>1/8</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="spacerWaveAfter">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Policy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>8</width>
+       <height>0</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QLabel" name="iconEnemies">
+     <property name="minimumSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="lblEnemies">
+     <property name="styleSheet">
+      <string notr="true">QLabel { color: #CCCCCC; font-size: 12px; font-weight: bold; padding: 0 2px; }</string>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="rightStretch">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

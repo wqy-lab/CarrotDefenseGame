@@ -32,8 +32,12 @@ set(PROJECT_SOURCES
     ui/gameresultwidget.ui
     ui/gameresultwidget.cpp
     ui/gameresultwidget.h
-    ui/gameoverlay.cpp
-    ui/gameoverlay.h
+        ui/gameoverlay.cpp
+        ui/gameoverlay.h
+        ui/gameoverlay.ui
+        ui/gamehud.cpp
+        ui/gamehud.h
+        ui/gamehud.ui
     game/enemies/enemy.cpp
     game/enemies/enemy.h
     game/towers/tower.cpp

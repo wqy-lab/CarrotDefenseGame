@@ -11,7 +11,7 @@ Bullet::Bullet(const QPointF& start, const QPointF& target, double damage,
     , m_startPos(start)
     , m_maxDistance(0.0)
     , m_traveledDistance(0.0)
-    , m_speed(400.0)
+    , m_speed(400.0 / 48.0)  // 400 pixels/sec → grids/sec
     , m_damage(damage)
     , m_splashRadius(splashRadius)
     , m_slowFactor(slowFactor)
@@ -38,8 +38,8 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
     double dist = std::sqrt(dir.x()*dir.x() + dir.y()*dir.y());
     if (dist > 0) dir /= dist;
 
-    // Speed in grid units per second (original 400 pixels/second converted to grids)
-    double moveDist = (m_speed / m_cellSize) * dt;
+    // Speed is stored as grids/sec directly (converted from pixels/sec when loading)
+    double moveDist = m_speed * dt;
 
     // Move bullet
     m_pos += dir * moveDist;
@@ -68,8 +68,8 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
         if (!e->isActive()) continue;
         QPointF d = e->gridPos() - m_pos;
         double d2 = d.x()*d.x() + d.y()*d.y();
-        // hitRadius: 0.5 grids (~24px at cellSize=48) - fixed size collision
-        double hitRadius = 0.5;
+        // hitRadius: 0.2 grids (~10px at cellSize=48) - tight collision
+        double hitRadius = 0.2;
         if (d2 <= hitRadius * hitRadius) {
             m_hit = true;
             onHit(e, enemies, cell);

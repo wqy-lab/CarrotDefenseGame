@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QTimer>
+#include <QElapsedTimer>
 #include "../game/towers/tower.h"
 
 class GameController;
@@ -76,6 +77,7 @@ private:
     GameHUD* m_gameHUD = nullptr;
 
     QTimer* m_gameTimer = nullptr;
+    QElapsedTimer m_clock;
 };
 
 #endif

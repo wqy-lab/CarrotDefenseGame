@@ -113,6 +113,7 @@ void GameScene::startGame()
 {
     m_gameController->startGame();
     m_gameHUD->setPausedState(false);
+    m_clock.start();
     m_gameTimer->start(16);
 }
 
@@ -252,7 +253,8 @@ void GameScene::gameLoop()
         return;
     }
 
-    double dt = 0.016;
+    double dt = m_clock.restart() / 1000.0;
+    if (dt > 0.1) dt = 0.1;  // clamp to prevent spiral of death
     m_gameController->update(dt, m_towerManager->towers());
     m_gameRenderer->update();
 }

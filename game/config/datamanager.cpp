@@ -57,6 +57,10 @@ bool DataManager::loadShared(const QString& path)
 
     QJsonObject root = doc.object();
 
+    m_towerStats.clear();
+    m_enemyStats.clear();
+    m_obstacleStats.clear();
+
     // --- towers ---
     QJsonArray towers = root["towers"].toArray();
     for (const QJsonValue& val : towers)

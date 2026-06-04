@@ -36,8 +36,8 @@ private:
     int m_currentWave;
     std::vector<std::vector<WaveEntry>> m_waves;
 
-    // Spawn state
-    std::vector<EnemyType> m_spawnQueue;
+    // Spawn state — pair stores (enemyType, interval in seconds)
+    std::vector<std::pair<EnemyType, double>> m_spawnQueue;
     double m_spawnTimer;
     bool m_spawnedAll;
 };

@@ -138,13 +138,23 @@ void MainWindow::onGameEnded(bool won, int levelId)
     if (won)
     {
 #ifndef QT_DEBUG
-        m_levelSelect->unlockLevel(levelId + 1);
+        // Find next level by order in the levels list, not by id + 1
+        const auto& levels = DataManager::instance().levels();
+        for (size_t i = 0; i < levels.size(); ++i)
+        {
+            if (levels[i].id == levelId && i + 1 < levels.size())
+            {
+                m_levelSelect->unlockLevel(levels[i + 1].id);
+                break;
+            }
+        }
 #endif
     }
 
     m_btnStart->setEnabled(true);
     m_btnPause->setEnabled(false);
 
+    cleanupOverlay();
     m_resultOverlay = new GameResultWidget(won, m_currentLevelId, this);
     m_resultOverlay->setGeometry(m_stacked->geometry());
     m_resultOverlay->raise();
@@ -176,9 +186,17 @@ void MainWindow::onRetry()
 void MainWindow::onNextLevel()
 {
     cleanupOverlay();
-    int nextId = m_currentLevelId + 1;
-    QString nextFile = QString("config/levels/level%1.json").arg(nextId);
-    loadAndStartLevel(nextId, nextFile);
+
+    // Find next level by order in the levels list
+    const auto& levels = DataManager::instance().levels();
+    for (size_t i = 0; i < levels.size(); ++i)
+    {
+        if (levels[i].id == m_currentLevelId && i + 1 < levels.size())
+        {
+            loadAndStartLevel(levels[i + 1].id, levels[i + 1].file);
+            return;
+        }
+    }
 }
 
 void MainWindow::onMenu()

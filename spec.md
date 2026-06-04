@@ -27,17 +27,18 @@ ui/  ── #include ──>  game/  ── 读取 JSON ──>  config/
 | 所有页面 | `QStackedWidget` 持有 3 个页面：`MainMenuWidget`(idx 0)、`LevelSelectWidget`(idx 1)、`GameScene`(idx 2) |
 | 页面创建 | 构造函数中 `new` 三个页面，通过 `addWidget()` 加入 StackedWidget |
 | 页面销毁 | StackedWidget 随 MainWindow 销毁，子页面由 Qt parent 机制自动释放 |
-| 信号转发 | 监听 `GameScene::statsChanged`、`GameScene::gameEnded`，转发到自身 slot |
+| 信号转发 | 监听 `GameScene::statsChanged`、`GameScene::gameEnded`、`GameScene::exitToLevelSelectRequested`、`GameScene::overlayVisibilityChanged` |
+| 暂停按钮 | 监听 `overlayVisibilityChanged(bool)` → 禁用/启用 `m_btnPause` |
 | 生命周期 | `main.cpp` 栈上创建，`app.exec()` 期间存活 |
 
 ### 2.2 GameScene（游戏页面）
 
 | 职责 | 详情 |
 |------|------|
-| 子系统创建 | 构造时直接 `new` 全部 8 个子系统（见 2.3） |
+| 子系统创建 | 构造时直接 `new` 全部 9 个子系统（见 2.3） |
 | 生命周期 | 随 MainWindow 销毁而销毁 |
-| 输入分发 | `mouseMoveEvent` → `InputHandler::handleMouseMove`，`mousePressEvent` → `InputHandler::handleMousePress`，`keyPressEvent` → `InputHandler::handleKeyPress` |
-| 绘制委托 | `paintEvent` → `GameRenderer::render()` → `GameRenderer::update()` |
+| 输入分发 | `mouseMoveEvent` → `InputHandler::handleMouseMove`，`mousePressEvent` → `InputHandler::handleMousePress`，`keyPressEvent` → 先 Esc 暂停/恢复 → `InputHandler::handleKeyPress` |
+| 绘制委托 | `paintEvent` → `GameRenderer::render()` |
 | 游戏时钟 | 持有 `QTimer*`，16ms 间隔触发 `gameLoop()` |
 
 ### 2.3 GameScene 持有的子系统
@@ -52,6 +53,7 @@ ui/  ── #include ──>  game/  ── 读取 JSON ──>  config/
 | `m_panelController` | `PanelController*` | 面板协调，QObject |
 | `m_towerPanel` | `TowerPanel*` | 塔详情面板，QWidget |
 | `m_selectionPopup` | `TowerSelectionPopup*` | 塔选择弹窗，QWidget |
+| `m_overlay` | `GameOverlay*` | 暂停/退出遮罩层，QWidget |
 
 **注意**：`InputHandler` 当前不是 QObject，无法使用信号/槽，仅通过直接方法调用与各子系统交互。
 
@@ -63,33 +65,42 @@ ui/  ── #include ──>  game/  ── 读取 JSON ──>  config/
 
 | 发送者 | 信号 | 接收者 | 连接位置 |
 |--------|------|--------|----------|
-| `GameController` | `statsChanged()` | `GameScene` | `gamescene.cpp:50` |
-| `GameScene` | `statsChanged()` | `MainWindow` | `mainwindow.cpp:63` |
-| `GameController` | `gameEnded(bool, int)` | `GameScene` | `gamescene.cpp:51` |
-| `GameScene` | `gameEnded(bool, int)` | `MainWindow` | `mainwindow.cpp:65` |
-| `TowerManager` | `towersChanged()` | `GameRenderer::update()` | `gamescene.cpp:52` |
+| `GameController` | `statsChanged()` | `GameScene` | `gamescene.cpp` |
+| `GameScene` | `statsChanged()` | `MainWindow` | `mainwindow.cpp` |
+| `GameController` | `gameEnded(bool, int)` | `GameScene` | `gamescene.cpp` |
+| `GameScene` | `gameEnded(bool, int)` | `MainWindow` | `mainwindow.cpp` |
+| `TowerManager` | `towersChanged()` | `GameRenderer::update()` | `gamescene.cpp` |
+| `GameScene` | `exitToLevelSelectRequested()` | `MainWindow::onExitToLevelSelect()` | `mainwindow.cpp` |
+| `GameScene` | `overlayVisibilityChanged(bool)` | `MainWindow` (lambda) | `mainwindow.cpp` |
 
-### 3.2 面板信号
-
-| 发送者 | 信号 | 接收者 | 连接位置 |
-|--------|------|--------|----------|
-| `TowerPanel` | `upgradeClicked()` | `PanelController::onUpgradeClicked()` | `gamescene.cpp:75` |
-| `TowerPanel` | `sellClicked()` | `PanelController::onSellClicked()` | `gamescene.cpp:76` |
-| `PanelController` | `hideTowerPanelRequested()` | `GameScene::onPanelControllerHideTowerPanel()` | `gamescene.cpp:77` |
-| `TowerSelectionPopup` | `towerSelected(TowerType)` | `PanelController::onTowerSelectedFromPopup()` | `gamescene.cpp:80` |
-| `TowerSelectionPopup` | `cancelled()` | `PanelController::hideTowerSelectionPopup()` | `gamescene.cpp:81` |
-
-### 3.3 菜单信号
+### 3.2 遮罩层信号
 
 | 发送者 | 信号 | 接收者 | 连接位置 |
 |--------|------|--------|----------|
-| `MainMenuWidget` | `startGameClicked()` | `MainWindow::onStartGame()` | `mainwindow.cpp:51` |
-| `MainMenuWidget` | `levelSelectClicked()` | `MainWindow` (lambda → 切换到页面1) | `mainwindow.cpp:53` |
-| `LevelSelectWidget` | `levelSelected(int, QString)` | `MainWindow::onLevelSelected()` | `mainwindow.cpp:57` |
-| `LevelSelectWidget` | `backClicked()` | `MainWindow` (lambda → 切换到页面0) | `mainwindow.cpp:59` |
-| `GameResultWidget` | `retryClicked()` | `MainWindow::onRetry()` | `mainwindow.cpp:141` |
-| `GameResultWidget` | `nextLevelClicked()` | `MainWindow::onNextLevel()` | `mainwindow.cpp:143` |
-| `GameResultWidget` | `menuClicked()` | `MainWindow::onMenu()` | `mainwindow.cpp:145` |
+| `GameOverlay` | `continueClicked()` | `GameScene::onOverlayContinue()` | `gamescene.cpp` |
+| `GameOverlay` | `exitToLevelSelectConfirmed()` | `GameScene::onOverlayExitConfirmed()` | `gamescene.cpp` |
+
+### 3.3 面板信号
+
+| 发送者 | 信号 | 接收者 | 连接位置 |
+|--------|------|--------|----------|
+| `TowerPanel` | `upgradeClicked()` | `PanelController::onUpgradeClicked()` | `gamescene.cpp` |
+| `TowerPanel` | `sellClicked()` | `PanelController::onSellClicked()` | `gamescene.cpp` |
+| `PanelController` | `hideTowerPanelRequested()` | `GameScene::onPanelControllerHideTowerPanel()` | `gamescene.cpp` |
+| `TowerSelectionPopup` | `towerSelected(TowerType)` | `PanelController::onTowerSelectedFromPopup()` | `gamescene.cpp` |
+| `TowerSelectionPopup` | `cancelled()` | `PanelController::hideTowerSelectionPopup()` | `gamescene.cpp` |
+
+### 3.4 菜单信号
+
+| 发送者 | 信号 | 接收者 | 连接位置 |
+|--------|------|--------|----------|
+| `MainMenuWidget` | `startGameClicked()` | `MainWindow::onStartGame()` | `mainwindow.cpp` |
+| `MainMenuWidget` | `levelSelectClicked()` | `MainWindow` (lambda → 切换到页面1 + clearSelection) | `mainwindow.cpp` |
+| `LevelSelectWidget` | `levelSelected(int, QString)` | `MainWindow::onLevelSelected()` | `mainwindow.cpp` |
+| `LevelSelectWidget` | `backClicked()` | `MainWindow` (lambda → 切换到页面0) | `mainwindow.cpp` |
+| `GameResultWidget` | `retryClicked()` | `MainWindow::onRetry()` | `mainwindow.cpp` |
+| `GameResultWidget` | `nextLevelClicked()` | `MainWindow::onNextLevel()` | `mainwindow.cpp` |
+| `GameResultWidget` | `menuClicked()` | `MainWindow::onMenu()` | `mainwindow.cpp` |
 
 ---
 
@@ -124,15 +135,16 @@ resizeEvent     → InputHandler::handleResize
 
 ### 4.4 KeyPress 行为
 
-- `Esc` → `m_panelController->hideTowerPanel()`
+- `Esc`（遮罩未显示）→ 暂停游戏并弹出 `GameOverlay`
+- `Esc`（遮罩已显示）→ 恢复游戏并隐藏遮罩
+- 其他按键 → `m_panelController->hideTowerPanel()`
 
 ### 4.5 Resize 行为
 
-1. 根据窗口宽高和网格行列数重新计算 `cellSize`
-2. 最小 cellSize = 20px
-3. 计算 offset 使网格居中
-4. 调用 `m_spatialGrid->setCellSize()` / `setOffset()`
-5. 触发 `m_gameRenderer->update()`
+1. 根据窗口宽高和网格行列数重新计算 `cellSize`（20px 下限）
+2. 计算 offset 使网格居中
+3. 调用 `m_spatialGrid->setCellSize()` / `setOffset()`
+4. **无需同步实体**：网格坐标系统下，实体位置在渲染时通过 `gridToPixel()` 自动使用最新 cellSize/offset 计算
 
 ---
 
@@ -332,8 +344,8 @@ main() 启动时:
 ```
 玩家操作 → TowerManager / GameController 数据变更
            → emit statsChanged() / towersChanged()
-             → MainWindow::onStatsChanged()
-               → updateStatusBar() / updateTowerButtons()
+             → MainWindow::onStatsChanged() → updateStatusBar() / updateTowerButtons()
+             → GameRenderer 每帧 paintEvent 从 GameController 读取数据并绘制
 ```
 
 ---
@@ -345,13 +357,13 @@ main() 启动时:
 `GameRenderer::paintEvent` 按以下顺序绘制（由底到顶）：
 
 1. 背景填充 `QColor(34, 40, 34)`
-2. **drawGrid** — 网格底色 + 路径格 + 塔格 + 障碍物格 + 网格线 + 起点(S)/终点(E)标记
-3. **drawPath** — 半透明宽线连接 waypoints
-4. **drawObstacles** — 调用 `obstacle->draw()`
-5. **drawTowers** — 绘制塔方块 + 字母标签（仅 Arrow(A)/Cannon(C)/Ice(I) 有标签）
-6. **drawEnemies** — 调用每个活跃敌人的 `draw()`
-7. **drawProjectiles** — 调用每个活跃子弹的 `draw()`
-8. **drawHoverPreview** — 放置预览（范围圈 + 半透明方块），条件：`isPlacingTower() && showRange()`
+2. **drawGrid** — 网格底色 + 路径格 + 塔格 + 障碍物格 + 网格线 + 起点(S)/终点(E)标记（已用 `gridToPixel` 转为像素）
+3. **drawPath** — 连接 waypoints 的线（waypoints 已由 `SpatialGrid::waypoints()` 返回网络坐标，渲染时按需转像素）
+4. **drawObstacles** — 调用 `obs->draw(&p, cellSize, offsetX, offsetY)`
+5. **drawTowers** — 绘制塔，中心像素通过 `gridToPixel(gridX, gridY)` 计算
+6. **drawEnemies** — 调用 `e->draw(p, cellSize, offsetX, offsetY)`
+7. **drawProjectiles** — 调用 `pj->draw(p, cellSize, offsetX, offsetY)`
+8. **drawHoverPreview** — 放置预览（范围圈 + 半透明方块）
 9. **游戏结束遮罩** — 半透明黑色 `QColor(0,0,0,150)`
 
 ### 10.2 触发重绘的时机
@@ -368,15 +380,12 @@ main() 启动时:
 | # | 问题 | 影响 |
 |---|------|------|
 | 1 | `InputHandler` 不是 QObject，依赖直接方法调用 | 无法使用信号/槽解耦 |
-| 2 | `MainWindow` 中 6 个塔按钮已初始化但始终 disabled | 死代码，约 40 行 |
-| 3 | 样式字符串 (QSS) 散落在 `mainwindow.cpp`、`towerpanel.cpp`、`towerselectionpopup.cpp`、`main.cpp` | 修改样式需改多处 |
-| 4 | `GameScene` 构造函数直接 `new` 8 个子系统 | 高耦合，难以测试 |
-| 5 | `PanelController` 仅做转发，无实质业务逻辑 | 增加跳转层数 |
-| 6 | `GameScene` 和 `GameRenderer` 同为 QWidget，存在绘制职责重叠 | `GameScene::paintEvent` 委托 `GameRenderer::render()`，后者再调用 `update()` |
-| 7 | 魔法数字散布各处（宽高、偏移、颜色、阈值） | 维护性差 |
-| 8 | `drawTowers()` 中仅对 Arrow/Cannon/Ice 绘制字母标签 | Poison/Lightning/Sun 无标签，显示不一致 |
-| 9 | `mainwindow.cpp:257-266` 处的工具栏塔按钮禁用代码与 TowerSelectionPopup 重复逻辑 | 功能已被替代但未删除 |
-| 10 | `CMakeLists.txt` 中源文件手动列举 | 新增文件需手动更新 CMake |
+| 2 | `MainWindow` 中 6 个塔按钮已初始化但始终 disabled + 大量重复 QSS | 死代码 / 维护负担 |
+| 3 | `GameScene` 构造函数直接 `new` 9 个子系统 | 高耦合，难以测试 |
+| 4 | `PanelController` 仅做转发，无实质业务逻辑 | 增加跳转层数 |
+| 5 | `drawHoverPreview()` 中每次都 `createTower()` 临时塔对象 | 每帧额外分配 |
+| 6 | 魔法数字散布各处（宽高、偏移、颜色、阈值） | 维护性差 |
+| 7 | `CMakeLists.txt` 中源文件手动列举 | 新增文件需手动更新 CMake |
 
 ---
 

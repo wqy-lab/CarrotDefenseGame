@@ -20,11 +20,8 @@ public:
     bool hasHit() const { return m_hit; }
 
     QPointF pos() const { return m_pos; }
-    QPointF targetPos() const { return m_targetPos; }
-    void setTargetPos(const QPointF& pos) { m_targetPos = pos; }
     void setMaxDistance(double dist) { m_maxDistance = dist; }
-    void setCellSize(double cs) { m_cellSize = cs; }
-    void setOffset(double ox, double oy) { m_offsetX = ox; m_offsetY = oy; }
+    void setDirection(const QPointF& dir) { m_direction = dir; }
     double damage() const { return m_damage; }
     double splashRadius() const { return m_splashRadius; }
     double slowFactor() const { return m_slowFactor; }
@@ -44,7 +41,7 @@ protected:
 
     bool m_hit;
     QPointF m_pos;
-    QPointF m_targetPos;
+    QPointF m_direction;  // Normalized direction vector for movement
     QPointF m_startPos;
     double m_maxDistance;
     double m_traveledDistance;

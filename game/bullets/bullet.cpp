@@ -7,7 +7,7 @@ Bullet::Bullet(const QPointF& start, const QPointF& target, double damage,
                double splashRadius, double slowFactor, double slowDuration,
                double poisonDps, double poisonDuration, int chainCount, const QColor& color)
     : m_pos(start)
-    , m_targetPos(target)
+    , m_direction(0.0, 0.0)
     , m_startPos(start)
     , m_maxDistance(0.0)
     , m_traveledDistance(0.0)
@@ -26,26 +26,24 @@ Bullet::Bullet(const QPointF& start, const QPointF& target, double damage,
     , m_offsetX(0.0)
     , m_offsetY(0.0)
 {
+    // Calculate direction from start to target
+    QPointF dir = target - start;
+    double dist = std::sqrt(dir.x()*dir.x() + dir.y()*dir.y());
+    if (dist > 0) m_direction = dir / dist;
 }
 
 void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, CellEntities& cell)
 {
     if (!m_active) return;
 
-    QPointF prevPos = m_pos;
-
-    QPointF dir = m_targetPos - m_pos;
-    double dist = std::sqrt(dir.x()*dir.x() + dir.y()*dir.y());
-    if (dist > 0) dir /= dist;
-
-    // Speed is stored as grids/sec directly (converted from pixels/sec when loading)
+    // Speed is stored as grids/sec directly
     double moveDist = m_speed * dt;
 
-    // Move bullet
-    m_pos += dir * moveDist;
+    // Move bullet in the fixed direction
+    m_pos += m_direction * moveDist;
     m_traveledDistance += moveDist;
 
-    // Check max range (maxDistance was stored in grids)
+    // Check max range
     if (m_maxDistance > 0 && m_traveledDistance > m_maxDistance) {
         m_active = false;
         return;
@@ -63,7 +61,7 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
         }
     }
 
-    // Check enemy collision - enemy can be at float grid pos, bullet at float grid pos
+    // Check enemy collision
     for (Enemy* e : cell.enemies) {
         if (!e->isActive()) continue;
         QPointF d = e->gridPos() - m_pos;

@@ -11,6 +11,6 @@ enum class ObstacleType {
     Statue
 };
 
-std::unique_ptr<Obstacle> createObstacle(ObstacleType type, int gridX, int gridY, int gridW, int gridH, const QPointF& pos);
+std::unique_ptr<Obstacle> createObstacle(ObstacleType type, int gridX, int gridY, int gridW, int gridH);
 
 #endif

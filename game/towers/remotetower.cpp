@@ -16,7 +16,8 @@ void RemoteTower::update(double dt, const std::vector<std::unique_ptr<Enemy>>& e
     Obstacle* obsTarget = findObstacleTarget();
     if (obsTarget) {
         m_pendingAttack.fired = true;
-        m_pendingAttack.targetPos = obsTarget->pos();
+        m_pendingAttack.targetPos = QPointF(obsTarget->gridX() + obsTarget->gridWidth() / 2.0,
+                                             obsTarget->gridY() + obsTarget->gridHeight() / 2.0);
         m_pendingAttack.damage = stats().damage;
         m_pendingAttack.maxDistance = rangePx();
         m_pendingAttack.splashRadius = stats().splashRadius * m_cellSize;
@@ -34,7 +35,7 @@ void RemoteTower::update(double dt, const std::vector<std::unique_ptr<Enemy>>& e
     if (!target) return;
 
     m_pendingAttack.fired = true;
-    m_pendingAttack.targetPos = target->pos();
+    m_pendingAttack.targetPos = target->gridPos();
     m_pendingAttack.damage = stats().damage;
     m_pendingAttack.maxDistance = rangePx();
     m_pendingAttack.splashRadius = stats().splashRadius * m_cellSize;
@@ -78,13 +79,16 @@ Enemy* RemoteTower::findTarget(const std::vector<std::unique_ptr<Enemy>>& enemie
 }
 
 double RemoteTower::distTo(const Enemy& e) const {
-    QPointF d = e.pos() - m_center;
-    return d.x()*d.x() + d.y()*d.y();
+    QPointF gp = e.gridPos();
+    double dx = gp.x() - m_gridX;
+    double dy = gp.y() - m_gridY;
+    return dx*dx + dy*dy;
 }
 
 double RemoteTower::distTo(const Obstacle& o) const {
-    QPointF d = o.pos() - m_center;
-    return d.x()*d.x() + d.y()*d.y();
+    double dx = (o.gridX() + o.gridWidth() / 2.0) - m_gridX;
+    double dy = (o.gridY() + o.gridHeight() / 2.0) - m_gridY;
+    return dx*dx + dy*dy;
 }
 
 Obstacle* RemoteTower::findObstacleTarget() const

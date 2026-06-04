@@ -1,20 +1,18 @@
 #include "obstacle.h"
 
-Obstacle::Obstacle(int gridX, int gridY, int gridW, int gridH, const QPointF& pos, double maxHp, int reward, const QColor& color, int radius)
+Obstacle::Obstacle(int gridX, int gridY, int gridW, int gridH, double maxHp, int reward, const QColor& color, int radius)
     : m_hp(maxHp)
     , m_maxHp(maxHp)
     , m_gridX(gridX)
     , m_gridY(gridY)
     , m_gridW(gridW)
     , m_gridH(gridH)
-    , m_pos(pos)
     , m_reward(reward)
     , m_color(color)
     , m_radius(radius)
     , m_destroying(false)
     , m_destroyed(false)
     , m_destroyTimer(0.0)
-    , m_cellSize(48)
 {}
 
 void Obstacle::update(double dt) {
@@ -41,10 +39,12 @@ void Obstacle::startDestruction() {
     m_destroyTimer = 0.0;
 }
 
-void Obstacle::draw(QPainter* p) const {
+void Obstacle::draw(QPainter* p, double cellSize, double offsetX, double offsetY) const {
     if (m_destroyed) return;
 
-    QPointF center = m_pos;
+    double centerX = offsetX + (m_gridX + m_gridW / 2.0) * cellSize;
+    double centerY = offsetY + (m_gridY + m_gridH / 2.0) * cellSize;
+    QPointF center(centerX, centerY);
     int r = m_radius;
 
     if (m_destroying) {

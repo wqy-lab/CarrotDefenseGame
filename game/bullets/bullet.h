@@ -15,7 +15,7 @@ public:
     virtual ~Bullet() = default;
 
     void update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, CellEntities& cell);
-    void draw(QPainter& p) const;
+    void draw(QPainter& p, double cellSize, double offsetX, double offsetY) const;
     bool isActive() const { return m_active; }
     bool hasHit() const { return m_hit; }
 

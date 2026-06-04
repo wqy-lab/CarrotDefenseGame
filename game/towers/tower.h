@@ -37,11 +37,11 @@ public:
     virtual ~Tower() = default;
 
     virtual void update(double dt, const std::vector<std::unique_ptr<Enemy>>& enemies) = 0;
-    virtual void draw(QPainter& p) const;
+    virtual void draw(QPainter& p, double cellSize, double offsetX, double offsetY) const;
 
     int gridX() const { return m_gridX; }
     int gridY() const { return m_gridY; }
-    QPointF centerPos() const { return m_center; }
+    QPointF centerPos(double cellSize, double offsetX, double offsetY) const;
     double rangePx() const { return m_stats.range * m_cellSize; }
     double cellSize() const { return m_cellSize; }
     int cost() const { return m_baseCost; }
@@ -61,7 +61,6 @@ protected:
     TowerType m_type;
     TowerStats m_stats;
     int m_gridX, m_gridY;
-    QPointF m_center;
     double m_cellSize;
     int m_level = 1;
     int m_baseCost = 0;

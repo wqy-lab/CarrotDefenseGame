@@ -22,11 +22,11 @@ void NormalBullet::onHit(Enemy* enemy, std::vector<std::unique_ptr<Enemy>>& enem
         enemy->applyPoison(m_poisonDps, m_poisonDuration);
     }
 
-    // Splash damage
+    // Splash damage (splashRadius stored in grid units)
     if (m_splashRadius > 0) {
         for (auto& e : enemies) {
             if (!e->isActive() || e.get() == enemy) continue;
-            QPointF d = e->pos() - m_pos;
+            QPointF d = e->gridPos() - m_pos;
             double dist2 = d.x()*d.x() + d.y()*d.y();
             if (dist2 <= m_splashRadius * m_splashRadius) {
                 e->takeDamage(m_damage * 0.5);
@@ -36,14 +36,15 @@ void NormalBullet::onHit(Enemy* enemy, std::vector<std::unique_ptr<Enemy>>& enem
 
     // Chain lightning - find nearest unchained enemy in range
     m_chainedEnemies.insert(enemy);  // mark initial hit so we don't chain back to it
-    QPointF origin = enemy->pos();
+    QPointF origin = enemy->gridPos();
     while (m_chainCount > 0) {
         Enemy* nextTarget = nullptr;
-        double minDist = 150.0 * 150.0;
+        double minDist = 3.0;  // 150 pixels / 48 = ~3.125 grids, use 3 grids
+        minDist = minDist * minDist;
         for (auto& e : enemies) {
             if (!e->isActive()) continue;
             if (m_chainedEnemies.count(e.get()) > 0) continue;
-            QPointF d = e->pos() - origin;
+            QPointF d = e->gridPos() - origin;
             double dist2 = d.x()*d.x() + d.y()*d.y();
             if (dist2 < minDist) {
                 minDist = dist2;
@@ -53,7 +54,7 @@ void NormalBullet::onHit(Enemy* enemy, std::vector<std::unique_ptr<Enemy>>& enem
         if (!nextTarget) break;
         m_chainedEnemies.insert(nextTarget);
         nextTarget->takeDamage(m_damage);
-        origin = nextTarget->pos();
+        origin = nextTarget->gridPos();
         --m_chainCount;
     }
 }

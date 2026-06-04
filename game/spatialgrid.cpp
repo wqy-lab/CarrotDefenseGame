@@ -22,13 +22,23 @@ void SpatialGrid::initMap(const MapData& map)
     m_obstacleCell.assign(m_gridRows, std::vector<bool>(m_gridCols, false));
     m_entityGrid.assign(m_gridRows, std::vector<CellEntities>(m_gridCols));
     m_pathSet.clear();
-    m_waypoints.clear();
+    m_pathCells.clear();
 
     for (const QPoint& p : map.pathCells) {
         m_pathSet.insert({p.x(), p.y()});
         m_isPath[p.y()][p.x()] = true;
-        m_waypoints.push_back(gridToPixel(p.x(), p.y()));
+        m_pathCells.push_back(p);
     }
+}
+
+std::vector<QPointF> SpatialGrid::waypoints() const
+{
+    std::vector<QPointF> result;
+    result.reserve(m_pathCells.size());
+    for (const QPoint& p : m_pathCells) {
+        result.push_back(QPointF(p.x(), p.y()));
+    }
+    return result;
 }
 
 QPointF SpatialGrid::gridToPixel(int gx, int gy) const
@@ -81,7 +91,8 @@ void SpatialGrid::syncEntityGrid(const std::vector<std::unique_ptr<Enemy>>& enem
 
     for (auto& e : enemies) {
         if (!e->isActive()) continue;
-        QPoint g = pixelToGrid(e->pos());
+        QPointF gp = e->gridPos();
+        QPoint g(static_cast<int>(gp.x()), static_cast<int>(gp.y()));
         if (isValidGridPos(g.x(), g.y())) {
             m_entityGrid[g.y()][g.x()].enemies.push_back(e.get());
         }
@@ -99,20 +110,6 @@ void SpatialGrid::syncEntityGrid(const std::vector<std::unique_ptr<Enemy>>& enem
             }
         }
     }
-}
-
-void SpatialGrid::repositionObstacles(std::vector<std::unique_ptr<Obstacle>>& obstacles)
-{
-    for (auto& obs : obstacles) {
-        QPointF newPos = gridToPixel(obs->gridX() + obs->gridWidth() / 2,
-                                     obs->gridY() + obs->gridHeight() / 2);
-        obs->setPosition(newPos);
-    }
-}
-
-void SpatialGrid::rebuildWaypoints(const std::vector<QPointF>& waypoints)
-{
-    m_waypoints = waypoints;
 }
 
 void SpatialGrid::clearObstacles()

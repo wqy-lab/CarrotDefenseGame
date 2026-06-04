@@ -33,28 +33,29 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
     if (!m_active) return;
 
     // Determine which grid cell the bullet is currently in
-    int bulletCellX = static_cast<int>((m_pos.x() - m_offsetX) / m_cellSize);
-    int bulletCellY = static_cast<int>((m_pos.y() - m_offsetY) / m_cellSize);
+    int bulletCellX = static_cast<int>(m_pos.x());
+    int bulletCellY = static_cast<int>(m_pos.y());
 
     QPointF dir = m_targetPos - m_pos;
     double dist = std::sqrt(dir.x()*dir.x() + dir.y()*dir.y());
     if (dist > 0) dir /= dist;
 
-    double moveDist = m_speed * dt;
+    // Speed in grid units per second (original 400 pixels/second converted to grids)
+    double moveDist = (m_speed / m_cellSize) * dt;
 
     // Move bullet
     m_pos += dir * moveDist;
     m_traveledDistance += moveDist;
 
-    // Check max range
+    // Check max range (maxDistance was stored in grids)
     if (m_maxDistance > 0 && m_traveledDistance > m_maxDistance) {
         m_active = false;
         return;
     }
 
     // Check which cell the bullet is in after moving
-    int newCellX = static_cast<int>((m_pos.x() - m_offsetX) / m_cellSize);
-    int newCellY = static_cast<int>((m_pos.y() - m_offsetY) / m_cellSize);
+    int newCellX = static_cast<int>(m_pos.x());
+    int newCellY = static_cast<int>(m_pos.y());
 
     // Check obstacle collision first (obstacle takes priority)
     for (Obstacle* obs : cell.obstacles) {
@@ -71,9 +72,10 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
     // Check enemy collision
     for (Enemy* e : cell.enemies) {
         if (!e->isActive()) continue;
-        QPointF d = e->pos() - m_pos;
+        // Both m_pos and e->gridPos() are in grid units
+        QPointF d = e->gridPos() - m_pos;
         double d2 = d.x()*d.x() + d.y()*d.y();
-        double hitRadius = static_cast<double>(e->radius()) * 1.5;
+        double hitRadius = static_cast<double>(e->radius()) / m_cellSize * 1.5;
         if (d2 <= hitRadius * hitRadius) {
             m_hit = true;
             onHit(e, enemies, cell);
@@ -87,11 +89,13 @@ void Bullet::onObstacleHit(Obstacle* obstacle) {
     obstacle->takeDamage(m_damage);
 }
 
-void Bullet::draw(QPainter& p) const
+void Bullet::draw(QPainter& p, double cellSize, double offsetX, double offsetY) const
 {
     if (!m_active) return;
     p.setRenderHint(QPainter::Antialiasing);
     p.setBrush(m_color);
     p.setPen(Qt::NoPen);
-    p.drawEllipse(m_pos, 5, 5);
+    QPointF pixelPos = QPointF(offsetX + m_pos.x() * cellSize + cellSize / 2.0,
+                               offsetY + m_pos.y() * cellSize + cellSize / 2.0);
+    p.drawEllipse(pixelPos, 5, 5);
 }

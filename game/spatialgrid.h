@@ -2,6 +2,7 @@
 #define SPATIALGRID_H
 
 #include <QPointF>
+#include <QPoint>
 #include <vector>
 #include <memory>
 #include <set>
@@ -25,7 +26,7 @@ public:
     double cellSize() const { return m_cellSize; }
     double offsetX() const { return m_offsetX; }
     double offsetY() const { return m_offsetY; }
-    const std::vector<QPointF>& waypoints() const { return m_waypoints; }
+    std::vector<QPointF> waypoints() const;
 
     QPointF gridToPixel(int gx, int gy) const;
     QPoint pixelToGrid(const QPointF& pos) const;
@@ -36,11 +37,9 @@ public:
     CellEntities& getCellAt(int gx, int gy);
     void syncEntityGrid(const std::vector<std::unique_ptr<class Enemy>>& enemies,
                        const std::vector<std::unique_ptr<Obstacle>>& obstacles);
-    void repositionObstacles(std::vector<std::unique_ptr<Obstacle>>& obstacles);
 
     void setCellSize(double size) { m_cellSize = size; }
     void setOffset(double ox, double oy) { m_offsetX = ox; m_offsetY = oy; }
-    void rebuildWaypoints(const std::vector<QPointF>& waypoints);
     void clearObstacles();
 
 private:
@@ -54,7 +53,7 @@ private:
     std::vector<std::vector<bool>> m_isPath;
     std::vector<std::vector<bool>> m_obstacleCell;
     std::vector<std::vector<CellEntities>> m_entityGrid;
-    std::vector<QPointF> m_waypoints;
+    std::vector<QPoint> m_pathCells;
     std::set<std::pair<int,int>> m_pathSet;
 };
 

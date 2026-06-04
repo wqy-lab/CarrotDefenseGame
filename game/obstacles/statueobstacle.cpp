@@ -1,7 +1,7 @@
 #include "statueobstacle.h"
 
-StatueObstacle::StatueObstacle(int gridX, int gridY, int gridW, int gridH, const QPointF& pos)
-    : Obstacle(gridX, gridY, gridW, gridH, pos, 200.0, 30, QColor(189, 189, 189), 16)
+StatueObstacle::StatueObstacle(int gridX, int gridY, int gridW, int gridH)
+    : Obstacle(gridX, gridY, gridW, gridH, 200.0, 30, QColor(189, 189, 189), 16)
 {}
 
 void StatueObstacle::drawBody(QPainter* p, const QPointF& center, int radius) const {

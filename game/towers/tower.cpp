@@ -7,8 +7,6 @@ Tower::Tower(TowerType type, int gridX, int gridY, double cellSize, double offse
     : m_type(type), m_stats()
     , m_gridX(gridX), m_gridY(gridY), m_cellSize(cellSize)
 {
-    m_center = QPointF(offsetX + gridX*cellSize + cellSize/2.0,
-                       offsetY + gridY*cellSize + cellSize/2.0);
     m_baseStats = DataManager::instance().getTowerStats(type);
     m_stats = m_baseStats;
     m_baseCost = m_baseStats.cost;
@@ -46,10 +44,17 @@ QString Tower::name() const {
     return "Unknown";
 }
 
-void Tower::draw(QPainter& p) const
+QPointF Tower::centerPos(double cellSize, double offsetX, double offsetY) const
 {
-    double r = m_cellSize * 0.42;
-    double cx = m_center.x(), cy = m_center.y();
+    return QPointF(offsetX + m_gridX * cellSize + cellSize / 2.0,
+                   offsetY + m_gridY * cellSize + cellSize / 2.0);
+}
+
+void Tower::draw(QPainter& p, double cellSize, double offsetX, double offsetY) const
+{
+    double r = cellSize * 0.42;
+    QPointF center = centerPos(cellSize, offsetX, offsetY);
+    double cx = center.x(), cy = center.y();
     p.setRenderHint(QPainter::Antialiasing, true);
 
     // Base shadow
@@ -57,5 +62,5 @@ void Tower::draw(QPainter& p) const
     p.setBrush(QColor(0,0,0,60));
     p.drawEllipse(QPointF(cx, cy + r*0.2), r*0.8, r*0.3);
 
-    drawBody(p, m_center, r);
+    drawBody(p, center, r);
 }

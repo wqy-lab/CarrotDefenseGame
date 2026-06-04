@@ -135,7 +135,9 @@ void GameRenderer::drawPath(QPainter& p)
 
     p.setPen(QPen(QColor(200, 170, 120, 100), m_spatialGrid->cellSize() * 0.15, Qt::SolidLine, Qt::RoundCap));
     for (size_t i = 1; i < waypoints.size(); ++i) {
-        p.drawLine(waypoints[i-1], waypoints[i]);
+        QPointF prev = m_spatialGrid->gridToPixel(static_cast<int>(waypoints[i-1].x()), static_cast<int>(waypoints[i-1].y()));
+        QPointF curr = m_spatialGrid->gridToPixel(static_cast<int>(waypoints[i].x()), static_cast<int>(waypoints[i].y()));
+        p.drawLine(prev, curr);
     }
 }
 
@@ -169,7 +171,7 @@ void GameRenderer::drawEnemies(QPainter& p)
 {
     if (!m_gameController) return;
     for (auto& e : m_gameController->enemies()) {
-        if (e->isActive()) e->draw(p);
+        if (e->isActive()) e->draw(p, m_spatialGrid->cellSize(), m_spatialGrid->offsetX(), m_spatialGrid->offsetY());
     }
 }
 
@@ -177,7 +179,7 @@ void GameRenderer::drawProjectiles(QPainter& p)
 {
     if (!m_gameController) return;
     for (auto& pj : m_gameController->projectiles()) {
-        if (pj->isActive()) pj->draw(p);
+        if (pj->isActive()) pj->draw(p, m_spatialGrid->cellSize(), m_spatialGrid->offsetX(), m_spatialGrid->offsetY());
     }
 }
 
@@ -185,7 +187,7 @@ void GameRenderer::drawObstacles(QPainter& p)
 {
     if (!m_gameController) return;
     for (auto& obs : m_gameController->obstacles()) {
-        obs->draw(&p);
+        obs->draw(&p, m_spatialGrid->cellSize(), m_spatialGrid->offsetX(), m_spatialGrid->offsetY());
     }
 }
 

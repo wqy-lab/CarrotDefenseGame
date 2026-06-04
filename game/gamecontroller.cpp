@@ -68,9 +68,7 @@ void GameController::resetGame()
             }
         }
 
-        QPointF centerPos = m_spatialGrid->gridToPixel(gx + gw / 2, gy + gh / 2);
-        auto obs = createObstacle(entry.type, gx, gy, gw, gh, centerPos);
-        obs->setCellSize(static_cast<int>(m_spatialGrid->cellSize()));
+        auto obs = createObstacle(entry.type, gx, gy, gw, gh);
         m_obstacles.push_back(std::move(obs));
     }
 }
@@ -118,7 +116,8 @@ void GameController::updateGame(double dt, const std::vector<std::unique_ptr<Tow
                 auto effect = mt->getEffect();
                 for (auto& e : m_enemies) {
                     if (!e->isActive()) continue;
-                    QPointF d = e->pos() - effect.center;
+                    QPointF ePixel = e->pos(m_spatialGrid->cellSize(), m_spatialGrid->offsetX(), m_spatialGrid->offsetY());
+                    QPointF d = ePixel - effect.center;
                     double dist = std::sqrt(d.x()*d.x() + d.y()*d.y());
                     if (dist <= effect.radius) {
                         double falloff = 1.0 - (dist / effect.radius) * 0.5;
@@ -133,7 +132,7 @@ void GameController::updateGame(double dt, const std::vector<std::unique_ptr<Tow
         } else if (RemoteTower* rt = dynamic_cast<RemoteTower*>(t.get())) {
             if (rt->hasPendingAttack()) {
                 auto attack = rt->getAttack();
-                auto b = createBullet(BulletType::Normal, t->centerPos(), attack.targetPos,
+                auto b = createBullet(BulletType::Normal, QPointF(t->gridX(), t->gridY()), attack.targetPos,
                                       attack.damage, attack.splashRadius, attack.slowFactor,
                                       attack.slowDuration, attack.poisonDps, attack.poisonDuration,
                                       attack.chainCount, attack.color);
@@ -151,7 +150,8 @@ void GameController::updateGame(double dt, const std::vector<std::unique_ptr<Tow
 
     for (auto& p : m_projectiles) {
         if (p->isActive()) {
-            QPoint g = m_spatialGrid->pixelToGrid(p->pos());
+            QPointF bp = p->pos();
+            QPoint g(static_cast<int>(bp.x()), static_cast<int>(bp.y()));
             CellEntities& cell = m_spatialGrid->getCellAt(g.x(), g.y());
             p->update(dt, m_enemies, cell);
         }

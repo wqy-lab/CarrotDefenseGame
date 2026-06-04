@@ -30,7 +30,8 @@ public:
 
     void updatePath(const std::vector<QPointF>& newPath);
 
-    QPointF pos() const { return m_pos; }
+    QPointF pos(double cellSize, double offsetX, double offsetY) const;
+    QPointF gridPos() const { return m_gridPos; }
     double hp() const { return m_hp; }
     double maxHp() const { return m_stats.maxHp; }
     int reward() const { return m_stats.reward; }
@@ -41,7 +42,7 @@ public:
 
     EnemyStats getStats() const { return m_stats; }
 
-    void draw(QPainter& p) const;
+    void draw(QPainter& p, double cellSize, double offsetX, double offsetY) const;
 
 protected:
     Enemy(const std::vector<QPointF>& path, EnemyStats stats);
@@ -52,7 +53,7 @@ protected:
     void drawFace(QPainter& p, const QPointF& center, int r) const;
 
     double m_hp;
-    QPointF m_pos;
+    QPointF m_gridPos;
     std::vector<QPointF> m_path;
     int m_pathIndex;
     bool m_reachedEnd;

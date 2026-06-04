@@ -5,7 +5,7 @@
 Enemy::Enemy(const std::vector<QPointF>& path, EnemyStats stats)
     : m_stats(stats)
     , m_hp(stats.maxHp)
-    , m_pos(path.empty() ? QPointF(0,0) : path[0])
+    , m_gridPos(path.empty() ? QPointF(0,0) : path[0])
     , m_path(path), m_pathIndex(1)
     , m_reachedEnd(false)
     , m_slowFactor(1.0), m_slowTimer(0.0)
@@ -37,11 +37,12 @@ void Enemy::update(double dt)
     if (m_pathIndex >= static_cast<int>(m_path.size())) { m_reachedEnd = true; return; }
 
     QPointF target = m_path[m_pathIndex];
-    QPointF dir = target - m_pos;
+    QPointF dir = target - m_gridPos;
     double dist = std::sqrt(dir.x()*dir.x() + dir.y()*dir.y());
+    // speed() is already in grids/sec (pixel speed / 48 reference cellSize)
     double moveDist = speed() * dt;
-    if (moveDist >= dist) { m_pos = target; ++m_pathIndex; }
-    else { dir /= dist; m_pos += dir * moveDist; }
+    if (moveDist >= dist) { m_gridPos = target; ++m_pathIndex; }
+    else { dir /= dist; m_gridPos += dir * moveDist; }
 }
 
 void Enemy::applySlow(double factor, double duration) {
@@ -60,18 +61,26 @@ void Enemy::updatePath(const std::vector<QPointF>& newPath)
     m_pathIndex = 0;
     double bestDist = 1e9;
     for (size_t i = 0; i < newPath.size(); ++i) {
-        QPointF d = newPath[i] - m_pos;
+        QPointF d = newPath[i] - m_gridPos;
         double dist = d.x()*d.x() + d.y()*d.y();
         if (dist < bestDist) { bestDist = dist; m_pathIndex = static_cast<int>(i) + 1; }
     }
     if (m_pathIndex >= static_cast<int>(m_path.size())) m_reachedEnd = true;
 }
 
-void Enemy::draw(QPainter& p) const
+QPointF Enemy::pos(double cellSize, double offsetX, double offsetY) const
+{
+    return QPointF(
+        offsetX + m_gridPos.x() * cellSize + cellSize / 2.0,
+        offsetY + m_gridPos.y() * cellSize + cellSize / 2.0);
+}
+
+void Enemy::draw(QPainter& p, double cellSize, double offsetX, double offsetY) const
 {
     if (!isActive()) return;
     int r = static_cast<int>(radius());
-    double cx = m_pos.x(), cy = m_pos.y();
+    QPointF pixelPos = pos(cellSize, offsetX, offsetY);
+    double cx = pixelPos.x(), cy = pixelPos.y();
 
     int barW = r * 3;
     int barH = 4;

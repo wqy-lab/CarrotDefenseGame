@@ -49,6 +49,13 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
         return;
     }
 
+    // Check if bullet is out of grid bounds
+    if (m_pos.x() < 0 || m_pos.x() >= m_gridCols ||
+        m_pos.y() < 0 || m_pos.y() >= m_gridRows) {
+        m_active = false;
+        return;
+    }
+
     // Check obstacle collision along the path
     for (Obstacle* obs : cell.obstacles) {
         if (!obs->isActive()) continue;

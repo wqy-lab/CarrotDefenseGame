@@ -142,7 +142,7 @@ void GameController::updateGame(double dt, const std::vector<std::unique_ptr<Tow
                                       attack.slowDuration, attack.poisonDps, attack.poisonDuration,
                                       attack.chainCount, attack.color);
                 b->setMaxDistance(attack.maxDistance);
-                // Bullet stores and uses grids/sec directly, no cellSize conversion needed
+                b->setGridBounds(m_spatialGrid->gridCols(), m_spatialGrid->gridRows());
                 m_projectiles.push_back(std::move(b));
             }
         }

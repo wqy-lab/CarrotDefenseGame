@@ -22,6 +22,7 @@ public:
     QPointF pos() const { return m_pos; }
     void setMaxDistance(double dist) { m_maxDistance = dist; }
     void setDirection(const QPointF& dir) { m_direction = dir; }
+    void setGridBounds(int cols, int rows) { m_gridCols = cols; m_gridRows = rows; }
     double damage() const { return m_damage; }
     double splashRadius() const { return m_splashRadius; }
     double slowFactor() const { return m_slowFactor; }
@@ -55,6 +56,8 @@ protected:
     int m_chainCount;
     QColor m_color;
     bool m_active;
+    int m_gridCols = 15;
+    int m_gridRows = 12;
     double m_cellSize;
     double m_offsetX;
     double m_offsetY;

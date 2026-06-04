@@ -68,9 +68,8 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
         if (!e->isActive()) continue;
         QPointF d = e->gridPos() - m_pos;
         double d2 = d.x()*d.x() + d.y()*d.y();
-        // hitRadius in grid units: pixel radius / cellSize * factor
-        // With factor=4, a 10-pixel radius enemy has ~0.83 grid hit radius
-        double hitRadius = static_cast<double>(e->radius()) / m_cellSize * 1.5;
+        // hitRadius: 0.5 grids (~24px at cellSize=48) - fixed size collision
+        double hitRadius = 0.5;
         if (d2 <= hitRadius * hitRadius) {
             m_hit = true;
             onHit(e, enemies, cell);

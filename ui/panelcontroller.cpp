@@ -70,6 +70,17 @@ void PanelController::onSellClicked()
     emit m_gameController->statsChanged();
 }
 
+void PanelController::onStatsChanged()
+{
+    int gold = m_gameController->gold();
+    if (m_selectionPopup && m_selectionPopup->isVisible()) {
+        m_selectionPopup->updateGold(gold);
+    }
+    if (m_towerPanel && m_towerPanel->isVisible()) {
+        m_towerPanel->updateGold(gold);
+    }
+}
+
 void PanelController::showTowerSelectionPopup(int gridX, int gridY, const QPoint& globalPos)
 {
     if (!m_selectionPopup || !m_gameController || !m_spatialGrid) return;

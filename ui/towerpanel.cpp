@@ -103,11 +103,24 @@ void TowerPanel::updateInfo() {
     TowerStats s = m_tower->stats();
     m_lblStats->setText(QString("DMG: %1  RNG: %2").arg(s.damage, 0, 'f', 1).arg(s.range, 0, 'f', 1));
 
-    int upgradeCost = m_tower->upgradeCost();
-    m_btnUpgrade->setText(QString("Upgrade: %1g").arg(upgradeCost));
+    if (m_tower->level() >= Tower::MAX_LEVEL) {
+        m_btnUpgrade->setText("MAX");
+        m_btnUpgrade->setEnabled(false);
+    } else {
+        int upgradeCost = m_tower->upgradeCost();
+        m_btnUpgrade->setText(QString("Upgrade: %1g").arg(upgradeCost));
+        m_btnUpgrade->setEnabled(true);
+    }
 
     int sellValue = m_tower->sellValue();
     m_btnSell->setText(QString("Sell: %1g").arg(sellValue));
+}
+
+void TowerPanel::updateGold(int gold) {
+    if (!m_tower) return;
+    if (m_tower->level() >= Tower::MAX_LEVEL) return;
+    int upgradeCost = m_tower->upgradeCost();
+    m_btnUpgrade->setEnabled(gold >= upgradeCost);
 }
 
 void TowerPanel::onUpgradeClicked() {

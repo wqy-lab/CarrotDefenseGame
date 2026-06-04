@@ -48,6 +48,7 @@ public:
     TowerStats stats() const { return m_stats; }
     TowerType type() const { return m_type; }
     int level() const { return m_level; }
+    static const int MAX_LEVEL = 3;
     int upgradeCost() const { return m_baseCost * (1 << (m_level - 1)); }
     int sellValue() const { return static_cast<int>(m_totalInvested / 2.0); }
     bool upgrade();

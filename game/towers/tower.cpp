@@ -15,7 +15,7 @@ Tower::Tower(TowerType type, int gridX, int gridY, double cellSize, double offse
 }
 
 bool Tower::upgrade() {
-    if (m_level >= 10) return false;
+    if (m_level >= MAX_LEVEL) return false;
     int cost = upgradeCost();
     m_totalInvested += cost;
     m_level++;

@@ -15,6 +15,9 @@ public:
     void setTower(Tower* tower);
     void updateInfo();
 
+public slots:
+    void updateGold(int gold);
+
 signals:
     void upgradeClicked();
     void sellClicked();

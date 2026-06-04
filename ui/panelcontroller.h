@@ -33,6 +33,7 @@ public slots:
     void showTowerSelectionPopup(int gridX, int gridY, const QPoint& globalPos);
     void hideTowerSelectionPopup();
     void onTowerSelectedFromPopup(TowerType type);
+    void onStatsChanged();
 
 private slots:
 

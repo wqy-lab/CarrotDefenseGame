@@ -32,8 +32,12 @@ set(PROJECT_SOURCES
     ui/gameresultwidget.ui
     ui/gameresultwidget.cpp
     ui/gameresultwidget.h
-    ui/gameoverlay.cpp
-    ui/gameoverlay.h
+        ui/gameoverlay.cpp
+        ui/gameoverlay.h
+        ui/gameoverlay.ui
+        ui/gamehud.cpp
+        ui/gamehud.h
+        ui/gamehud.ui
     game/enemies/enemy.cpp
     game/enemies/enemy.h
     game/towers/tower.cpp
@@ -87,10 +91,23 @@ set(PROJECT_SOURCES
     game/towers/towerfactory.h
     game/bullets/bullet.cpp
     game/bullets/bullet.h
-    game/bullets/normalbullet.cpp
-    game/bullets/normalbullet.h
+    game/bullets/arrowbullet.cpp
+    game/bullets/arrowbullet.h
+    game/bullets/cannonbullet.cpp
+    game/bullets/cannonbullet.h
+    game/bullets/icebullet.cpp
+    game/bullets/icebullet.h
+    game/bullets/poisonbullet.cpp
+    game/bullets/poisonbullet.h
+    game/bullets/lightningbullet.cpp
+    game/bullets/lightningbullet.h
     game/bullets/bulletfactory.cpp
     game/bullets/bulletfactory.h
+    game/markers/marker.h
+    game/markers/slowmarker.cpp
+    game/markers/slowmarker.h
+    game/markers/poisonmarker.cpp
+    game/markers/poisonmarker.h
     game/cellentities.h
     game/config/datamanager.cpp
     game/config/datamanager.h
@@ -111,6 +128,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(CarrotDefense
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        ${CONFIG_FILES}
     )
 else()
     if(ANDROID)

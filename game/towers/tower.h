@@ -6,6 +6,7 @@
 #include <QString>
 #include <vector>
 #include <memory>
+#include "../markers/marker.h"
 
 class Enemy;
 
@@ -48,6 +49,7 @@ public:
     TowerStats stats() const { return m_stats; }
     TowerType type() const { return m_type; }
     int level() const { return m_level; }
+    static const int MAX_LEVEL = 3;
     int upgradeCost() const { return m_baseCost * (1 << (m_level - 1)); }
     int sellValue() const { return static_cast<int>(m_totalInvested / 2.0); }
     bool upgrade();
@@ -68,14 +70,15 @@ protected:
     TowerStats m_baseStats;
 
 public:
-    void setPriorityEnemy(class Enemy* e) { m_priorityEnemy = e; }
+    void setPriorityEnemy(class Enemy* e) { m_priorityEnemy = e; m_priorityObstacle = nullptr; }
     class Enemy* priorityEnemy() const { return m_priorityEnemy; }
-    void setPriorityObstacle(class Obstacle* o) { m_priorityObstacle = o; }
+    void setPriorityObstacle(class Obstacle* o) { m_priorityObstacle = o; m_priorityEnemy = nullptr; }
     class Obstacle* priorityObstacle() const { return m_priorityObstacle; }
 
 protected:
     class Enemy* m_priorityEnemy = nullptr;
     class Obstacle* m_priorityObstacle = nullptr;
+    std::vector<std::unique_ptr<Marker>> m_markers;
 };
 
 #endif

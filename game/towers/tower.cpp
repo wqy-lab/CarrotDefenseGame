@@ -15,7 +15,7 @@ Tower::Tower(TowerType type, int gridX, int gridY, double cellSize, double offse
 }
 
 bool Tower::upgrade() {
-    if (m_level >= 10) return false;
+    if (m_level >= MAX_LEVEL) return false;
     int cost = upgradeCost();
     m_totalInvested += cost;
     m_level++;
@@ -46,8 +46,8 @@ QString Tower::name() const {
 
 QPointF Tower::centerPos(double cellSize, double offsetX, double offsetY) const
 {
-    return QPointF(offsetX + m_gridX * cellSize + cellSize / 2.0,
-                   offsetY + m_gridY * cellSize + cellSize / 2.0);
+    return QPointF(offsetX + (m_gridX + 0.5) * cellSize,
+                   offsetY + (m_gridY + 0.5) * cellSize);
 }
 
 void Tower::draw(QPainter& p, double cellSize, double offsetX, double offsetY) const

@@ -3,14 +3,11 @@
 
 #include <QMainWindow>
 #include <QStackedWidget>
-#include <QPushButton>
-#include <QLabel>
 
 #include "gamescene.h"
 #include "mainmenuwidget.h"
 #include "levelselectwidget.h"
 #include "gameresultwidget.h"
-#include "../game/towers/tower.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -27,8 +24,6 @@ public:
     ~MainWindow();
 
 private slots:
-    void onStartWave();
-    void onPauseResume();
     void onStatsChanged();
     void onGameEnded(bool won, int levelId);
 
@@ -40,10 +35,6 @@ private slots:
     void onExitToLevelSelect();
 
 private:
-    void setupToolbar();
-    void setupStatusBar();
-    void updateStatusBar();
-    void updateTowerButtons();
     void loadAndStartLevel(int id, const QString& file);
     void showGamePage();
     void showMenuPage();
@@ -56,20 +47,6 @@ private:
     LevelSelectWidget* m_levelSelect;
     GameScene* m_scene;
     GameResultWidget* m_resultOverlay = nullptr;
-
-    QPushButton* m_btnStart;
-    QPushButton* m_btnPause;
-    QPushButton* m_btnArrow;
-    QPushButton* m_btnCannon;
-    QPushButton* m_btnIce;
-    QPushButton* m_btnPoison;
-    QPushButton* m_btnLightning;
-    QPushButton* m_btnSun;
-
-    QLabel* m_lblGold;
-    QLabel* m_lblLives;
-    QLabel* m_lblWave;
-    QLabel* m_lblInfo;
 
     int m_currentLevelId = 1;
     QString m_currentLevelFile;

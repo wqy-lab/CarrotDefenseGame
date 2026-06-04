@@ -14,15 +14,6 @@
    <string>CarrotDefense - Tower Defense</string>
   </property>
   <widget class="QStackedWidget" name="centralwidget"/>
-  <widget class="QToolBar" name="toolBar">
-   <property name="movable">
-    <bool>false</bool>
-   </property>
-   <property name="windowTitle">
-    <string>Controls</string>
-   </property>
-  </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
  <connections/>

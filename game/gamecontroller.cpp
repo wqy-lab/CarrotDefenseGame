@@ -8,6 +8,11 @@
 #include "towers/tower.h"
 #include "towers/remotetower.h"
 #include "towers/meleetower.h"
+#include "towers/arrowtower.h"
+#include "towers/canntower.h"
+#include "towers/icetower.h"
+#include "towers/poisontower.h"
+#include "towers/lighttower.h"
 #include <algorithm>
 #include <cmath>
 
@@ -105,8 +110,14 @@ void GameController::updateGame(double dt, const std::vector<std::unique_ptr<Tow
     }
 
     for (auto& t : towers) {
-        t->setPriorityEnemy(m_priorityEnemy);
-        t->setPriorityObstacle(m_priorityObstacle);
+        if (m_priorityObstacle) {
+            t->setPriorityObstacle(m_priorityObstacle);
+        } else if (m_priorityEnemy) {
+            t->setPriorityEnemy(m_priorityEnemy);
+        } else {
+            t->setPriorityEnemy(nullptr);
+            t->setPriorityObstacle(nullptr);
+        }
         t->update(dt, m_enemies);
     }
 
@@ -137,13 +148,24 @@ void GameController::updateGame(double dt, const std::vector<std::unique_ptr<Tow
         } else if (RemoteTower* rt = dynamic_cast<RemoteTower*>(t.get())) {
             if (rt->hasPendingAttack()) {
                 auto attack = rt->getAttack();
-                auto b = createBullet(BulletType::Normal, QPointF(t->gridX(), t->gridY()), attack.targetPos,
-                                      attack.damage, attack.splashRadius, attack.slowFactor,
+                BulletType btype = BulletType::Arrow;
+                if (ArrowTower* at = dynamic_cast<ArrowTower*>(t.get())) {
+                    btype = BulletType::Arrow;
+                } else if (CannonTower* ct = dynamic_cast<CannonTower*>(t.get())) {
+                    btype = BulletType::Cannon;
+                } else if (IceTower* it = dynamic_cast<IceTower*>(t.get())) {
+                    btype = BulletType::Ice;
+                } else if (PoisonTower* pt = dynamic_cast<PoisonTower*>(t.get())) {
+                    btype = BulletType::Poison;
+                } else if (LightningTower* lt = dynamic_cast<LightningTower*>(t.get())) {
+                    btype = BulletType::Lightning;
+                }
+                auto b = createBullet(btype, QPointF(t->gridX() + 0.5, t->gridY() + 0.5), attack.targetPos,
+                                      attack.damage, attack.slowFactor,
                                       attack.slowDuration, attack.poisonDps, attack.poisonDuration,
-                                      attack.chainCount, attack.color);
+                                      attack.splashRadius, attack.chainCount, attack.color);
                 b->setMaxDistance(attack.maxDistance);
-                b->setCellSize(m_spatialGrid->cellSize());
-                b->setOffset(m_spatialGrid->offsetX(), m_spatialGrid->offsetY());
+                b->setGridBounds(m_spatialGrid->gridCols(), m_spatialGrid->gridRows());
                 m_projectiles.push_back(std::move(b));
             }
         }
@@ -156,8 +178,9 @@ void GameController::updateGame(double dt, const std::vector<std::unique_ptr<Tow
     for (auto& p : m_projectiles) {
         if (p->isActive()) {
             QPointF bp = p->pos();
-            QPoint g(static_cast<int>(bp.x()), static_cast<int>(bp.y()));
-            CellEntities& cell = m_spatialGrid->getCellAt(g.x(), g.y());
+            int gx = static_cast<int>(std::floor(bp.x()));
+            int gy = static_cast<int>(std::floor(bp.y()));
+            CellEntities& cell = m_spatialGrid->getCellAt(gx, gy);
             p->update(dt, m_enemies, cell);
         }
     }
@@ -176,6 +199,23 @@ void GameController::updateGame(double dt, const std::vector<std::unique_ptr<Tow
         std::remove_if(m_enemies.begin(), m_enemies.end(),
             [](auto& e) { return e->isDead() || e->reachedEnd(); }),
         m_enemies.end());
+
+    // Clear priority if target was removed
+    if (m_priorityEnemy) {
+        bool found = false;
+        for (auto& e : m_enemies) {
+            if (e.get() == m_priorityEnemy) { found = true; break; }
+        }
+        if (!found) m_priorityEnemy = nullptr;
+    }
+    if (m_priorityObstacle) {
+        bool found = false;
+        for (auto& o : m_obstacles) {
+            if (o.get() == m_priorityObstacle) { found = true; break; }
+        }
+        if (!found) m_priorityObstacle = nullptr;
+    }
+
     m_projectiles.erase(
         std::remove_if(m_projectiles.begin(), m_projectiles.end(),
             [](auto& p) { return !p->isActive(); }),

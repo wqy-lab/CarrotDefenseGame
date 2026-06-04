@@ -8,6 +8,7 @@
 #include "towerselectionpopup.h"
 #include <QMouseEvent>
 #include <QKeyEvent>
+#include <QDebug>
 
 InputHandler::InputHandler()
 {
@@ -17,14 +18,16 @@ void InputHandler::handleMouseMove(QMouseEvent* event)
 {
     if (!m_spatialGrid) return;
 
-    QPoint g = m_spatialGrid->pixelToGrid(event->pos());
+    QPointF g = m_spatialGrid->pixelToGrid(event->pos());
+    int gx = static_cast<int>(std::floor(g.x()));
+    int gy = static_cast<int>(std::floor(g.y()));
     if (m_towerManager) {
-        m_towerManager->setHoverGrid(g.x(), g.y());
+        m_towerManager->setHoverGrid(gx, gy);
 
         if (m_towerManager->isPlacingTower() &&
-            m_spatialGrid->isValidGridPos(g.x(), g.y()) &&
-            !m_spatialGrid->isPathCell(g.x(), g.y()) &&
-            !m_spatialGrid->isObstacleCell(g.x(), g.y())) {
+            m_spatialGrid->isValidGridPos(gx, gy) &&
+            !m_spatialGrid->isPathCell(gx, gy) &&
+            !m_spatialGrid->isObstacleCell(gx, gy)) {
             m_towerManager->setShowRange(true);
         } else {
             m_towerManager->setShowRange(false);
@@ -43,11 +46,13 @@ void InputHandler::handleMousePress(QMouseEvent* event)
     if (event->button() != Qt::LeftButton) return;
     if (!m_spatialGrid) return;
 
-    QPoint g = m_spatialGrid->pixelToGrid(event->pos());
-    if (!m_spatialGrid->isValidGridPos(g.x(), g.y())) return;
+    QPointF g = m_spatialGrid->pixelToGrid(event->pos());
+    int gx = static_cast<int>(std::floor(g.x()));
+    int gy = static_cast<int>(std::floor(g.y()));
+    if (!m_spatialGrid->isValidGridPos(gx, gy)) return;
 
     if (m_towerManager) {
-        Tower* t = m_towerManager->getTowerAt(g.x(), g.y());
+        Tower* t = m_towerManager->getTowerAt(gx, gy);
         if (t) {
             m_towerManager->setSelectedTowerPtr(t);
             if (m_panelController) {
@@ -57,7 +62,7 @@ void InputHandler::handleMousePress(QMouseEvent* event)
         }
     }
 
-    auto cell = m_spatialGrid->getCellAt(g.x(), g.y());
+    auto cell = m_spatialGrid->getCellAt(gx, gy);
     if (!cell.enemies.empty()) {
         m_gameController->setPriorityEnemy(cell.enemies.front());
         if (m_panelController) {
@@ -75,11 +80,11 @@ void InputHandler::handleMousePress(QMouseEvent* event)
 
     // Click on empty ground - show tower selection popup
     if (m_towerManager &&
-        !m_spatialGrid->isPathCell(g.x(), g.y()) &&
-        !m_spatialGrid->isObstacleCell(g.x(), g.y()) &&
-        !m_towerManager->getTowerAt(g.x(), g.y())) {
+        !m_spatialGrid->isPathCell(gx, gy) &&
+        !m_spatialGrid->isObstacleCell(gx, gy) &&
+        !m_towerManager->getTowerAt(gx, gy)) {
         if (m_panelController) {
-            m_panelController->showTowerSelectionPopup(g.x(), g.y(), event->globalPosition().toPoint());
+            m_panelController->showTowerSelectionPopup(gx, gy, event->globalPosition().toPoint());
         }
         return;
     }

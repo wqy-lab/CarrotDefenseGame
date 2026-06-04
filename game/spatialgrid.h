@@ -29,7 +29,7 @@ public:
     std::vector<QPointF> waypoints() const;
 
     QPointF gridToPixel(int gx, int gy) const;
-    QPoint pixelToGrid(const QPointF& pos) const;
+    QPointF pixelToGrid(const QPointF& pos) const;
     bool isValidGridPos(int gx, int gy) const;
     bool isPathCell(int gx, int gy) const;
     bool isObstacleCell(int gx, int gy) const;

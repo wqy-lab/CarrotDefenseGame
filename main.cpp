@@ -15,17 +15,24 @@ int main(int argc, char *argv[])
         qCritical() << "Failed to load config/shared.json";
         return 1;
     }
-    // Load level data (map + waves + settings)
-    if (!DataManager::instance().loadLevel("config/levels/level2.json"))
-    {
-        qCritical() << "Failed to load config/levels/level2.json";
-        return 1;
-    }
 
-    // Load level index
+    // Load level index first to know available levels
     if (!DataManager::instance().loadLevelsIndex("config/levels.json"))
     {
         qCritical() << "Failed to load config/levels.json";
+        return 1;
+    }
+
+    // Load first available level from the index
+    const auto& levels = DataManager::instance().levels();
+    if (levels.empty())
+    {
+        qCritical() << "No levels found in config/levels.json";
+        return 1;
+    }
+    if (!DataManager::instance().loadLevel(levels[0].file))
+    {
+        qCritical() << "Failed to load" << levels[0].file;
         return 1;
     }
 

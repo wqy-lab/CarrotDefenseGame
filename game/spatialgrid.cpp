@@ -4,6 +4,7 @@
 #include "enemies/enemy.h"
 #include "obstacles/obstacle.h"
 #include <algorithm>
+#include <cmath>
 
 SpatialGrid::SpatialGrid()
 {
@@ -48,11 +49,11 @@ QPointF SpatialGrid::gridToPixel(int gx, int gy) const
         m_offsetY + gy * m_cellSize + m_cellSize / 2.0);
 }
 
-QPoint SpatialGrid::pixelToGrid(const QPointF& pos) const
+QPointF SpatialGrid::pixelToGrid(const QPointF& pos) const
 {
-    return QPoint(
-        static_cast<int>((pos.x() - m_offsetX) / m_cellSize),
-        static_cast<int>((pos.y() - m_offsetY) / m_cellSize));
+    return QPointF(
+        (pos.x() - m_offsetX) / m_cellSize,
+        (pos.y() - m_offsetY) / m_cellSize);
 }
 
 bool SpatialGrid::isValidGridPos(int gx, int gy) const
@@ -92,9 +93,10 @@ void SpatialGrid::syncEntityGrid(const std::vector<std::unique_ptr<Enemy>>& enem
     for (auto& e : enemies) {
         if (!e->isActive()) continue;
         QPointF gp = e->gridPos();
-        QPoint g(static_cast<int>(gp.x()), static_cast<int>(gp.y()));
-        if (isValidGridPos(g.x(), g.y())) {
-            m_entityGrid[g.y()][g.x()].enemies.push_back(e.get());
+        int gx = static_cast<int>(std::floor(gp.x()));
+        int gy = static_cast<int>(std::floor(gp.y()));
+        if (isValidGridPos(gx, gy)) {
+            m_entityGrid[gy][gx].enemies.push_back(e.get());
         }
     }
 

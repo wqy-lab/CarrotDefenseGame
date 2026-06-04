@@ -3,6 +3,7 @@
 #include "inputhandler.h"
 #include "panelcontroller.h"
 #include "gameoverlay.h"
+#include "gamehud.h"
 #include "../game/gamecontroller.h"
 #include "../game/spatialgrid.h"
 #include "../game/towermanager.h"
@@ -73,9 +74,10 @@ GameScene::GameScene(QWidget* parent)
     connect(m_gameTimer, &QTimer::timeout, this, &GameScene::gameLoop);
 
     // Panel connections
-    connect(m_towerPanel, SIGNAL(upgradeClicked()), m_panelController, SLOT(onUpgradeClicked()));
-    connect(m_towerPanel, SIGNAL(sellClicked()), m_panelController, SLOT(onSellClicked()));
-    connect(m_panelController, SIGNAL(hideTowerPanelRequested()), this, SLOT(onPanelControllerHideTowerPanel()));
+    connect(m_towerPanel, &TowerPanel::upgradeClicked, m_panelController, &PanelController::onUpgradeClicked);
+    connect(m_towerPanel, &TowerPanel::sellClicked, m_panelController, &PanelController::onSellClicked);
+    connect(m_panelController, &PanelController::hideTowerPanelRequested, this, &GameScene::onPanelControllerHideTowerPanel);
+    connect(m_gameController, &GameController::statsChanged, m_panelController, &PanelController::onStatsChanged);
 
     // Selection popup connections
     connect(m_selectionPopup, &TowerSelectionPopup::towerSelected, m_panelController, &PanelController::onTowerSelectedFromPopup);
@@ -91,22 +93,39 @@ GameScene::GameScene(QWidget* parent)
             this, &GameScene::onOverlayContinue);
     connect(m_overlay, &GameOverlay::exitToLevelSelectConfirmed,
             this, &GameScene::onOverlayExitConfirmed);
+
+    // HUD
+    m_gameHUD = new GameHUD(this);
+    m_gameHUD->setGeometry(0, 0, w, m_gameHUD->sizeHint().height());
+    m_gameHUD->raise();
+
+    connect(m_gameHUD, &GameHUD::pauseClicked, this, [this]() {
+        if (m_gameController->isPaused())
+            hidePauseOverlay();
+        else
+            showPauseOverlay();
+    });
+    connect(m_gameController, &GameController::statsChanged,
+            this, &GameScene::onStatsChanged);
 }
 
 void GameScene::startGame()
 {
     m_gameController->startGame();
+    m_gameHUD->setPausedState(false);
     m_gameTimer->start(16);
 }
 
 void GameScene::pauseGame()
 {
     m_gameController->pauseGame();
+    m_gameHUD->setPausedState(true);
 }
 
 void GameScene::resumeGame()
 {
     m_gameController->resumeGame();
+    m_gameHUD->setPausedState(false);
 }
 
 void GameScene::resetGame()
@@ -127,6 +146,15 @@ bool GameScene::isPaused() const
 bool GameScene::isRunning() const
 {
     return m_gameController->isRunning();
+}
+
+void GameScene::onStatsChanged()
+{
+    m_gameHUD->setGold(m_gameController->gold());
+    m_gameHUD->setLives(m_gameController->lives());
+    m_gameHUD->setWave(m_gameController->currentWave(),
+                       m_gameController->totalWaves());
+    m_gameHUD->setEnemies(m_gameController->enemiesInWave());
 }
 
 void GameScene::selectTowerType(TowerType type)
@@ -215,6 +243,7 @@ void GameScene::resizeEvent(QResizeEvent* event)
     m_inputHandler->handleResize(width(), height());
     m_gameRenderer->setGeometry(rect());
     m_overlay->setGeometry(rect());
+    m_gameHUD->setGeometry(0, 0, width(), m_gameHUD->sizeHint().height());
 }
 
 void GameScene::gameLoop()
@@ -230,7 +259,7 @@ void GameScene::gameLoop()
 
 void GameScene::showPauseOverlay()
 {
-    m_gameController->pauseGame();
+    pauseGame();
     m_overlay->showPauseMenu();
     emit overlayVisibilityChanged(true);
 }
@@ -238,13 +267,14 @@ void GameScene::showPauseOverlay()
 void GameScene::hidePauseOverlay()
 {
     m_overlay->hideOverlay();
+    m_gameHUD->setPausedState(false);
     emit overlayVisibilityChanged(false);
 }
 
 void GameScene::onOverlayContinue()
 {
     hidePauseOverlay();
-    m_gameController->resumeGame();
+    resumeGame();
 }
 
 void GameScene::onOverlayExitConfirmed()

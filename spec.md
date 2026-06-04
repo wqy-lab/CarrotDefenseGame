@@ -398,53 +398,63 @@ main() 启动时:
 | 溅射半径 `splashRadius` | grids | 网格单位 |
 | 攻击半径 `m_attackRadius` | grids | 网格单位（MeleeTower） |
 | 链式闪电距离 `chainDist` | grids | 硬编码约3 grids |
-| 碰撞半径 `hitRadius` | grids | `radius / cellSize * factor` |
+| 碰撞半径 `hitRadius` | grids | 约0.5 grids |
 | 绘制半径 `radius()` | **像素** (pixels) | JSON中定义的是像素，用于绘制 |
 
-### 12.3 坐标转换
+### 12.3 格子中心点约定
 
-**网格 → 像素**：
+**格子 N 的中心点**位于 `(N+0.5, N+0.5)`
+**格子 N 的有效范围**为 `[N, N+1)`（左闭右开）
+
+```
+格子 0  中心: (0.5, 0.5)  范围: [0, 1)
+格子 1  中心: (1.5, 1.5)  范围: [1, 2)
+格子 2  中心: (2.5, 2.5)  范围: [2, 3)
+...
+```
+
+### 12.4 坐标转换
+
+**网格 → 像素**（绘制）：
 ```cpp
 QPointF gridToPixel(int gx, int gy) {
-    return QPointF(offsetX + gx * cellSize + cellSize / 2.0,
-                   offsetY + gy * cellSize + cellSize / 2.0);
+    return QPointF(offsetX + (gx + 0.5) * cellSize,
+                   offsetY + (gy + 0.5) * cellSize);
 }
 ```
 
-**像素 → 网格**：
+**像素 → 网格**（查格子）：
 ```cpp
-QPoint pixelToGrid(const QPointF& pos) {
-    return QPoint(static_cast<int>((pos.x() - offsetX) / cellSize),
-                  static_cast<int>((pos.y() - offsetY) / cellSize));
-}
+int gx = static_cast<int>(std::floor((pos.x() - offsetX) / cellSize));
+int gy = static_cast<int>(std::floor((pos.y() - offsetY) / cellSize));
 ```
 
-### 12.4 各类实体的网格化实现
+### 12.5 各类实体的网格化实现
 
 #### Enemy
-- `m_gridPos` : QPointF — 网格坐标（小数表示格子内精确位置）
-- `m_path` : std::vector<QPointF> — 网格坐标数组（waypoints）
+- `m_gridPos` : QPointF — 网格坐标，初始值为 `(path[0].x() + 0.5, path[0].y() + 0.5)`
+- `m_path` : std::vector<QPointF> — 存储整数坐标，移动时加 0.5 转换为中心点
 - `speed()` : 从 JSON 加载时 `speed / 48.0` 转为 grids/sec
-- `pos(cellSize, offsetX, offsetY)` — 返回像素坐标用于绘制
+- `pos(cellSize, offsetX, offsetY)` — 返回像素坐标 `offset + m_gridPos * cellSize`
 - `draw()` — 使用 `pos()` 转为像素后绘制
 
 #### Obstacle
-- 仅存储 `m_gridX/Y/W/H`（网格坐标），无像素坐标成员
-- `draw(cellSize, offsetX, offsetY)` — 计算像素位置绘制
-- 不再需要 `setPosition()` / `pos()` 方法
+- `m_gridX/Y/W/H` — 整数网格坐标
+- `draw(cellSize, offsetX, offsetY)` — 中心 `(gridX + gridW/2, gridY + gridH/2) * cellSize`
+- 碰撞范围：`[gridX, gridX+gridW)` × `[gridY, gridY+gridH)`（左闭右开）
 
 #### Tower
-- 仅存储 `m_gridX/Y`（网格坐标），无 `m_center` 像素坐标
-- `centerPos(cellSize, offsetX, offsetY)` — 返回像素坐标
+- `m_gridX/Y` — 整数网格坐标
+- `centerPos(cellSize, offsetX, offsetY)` — 返回 `(gridX + 0.5, gridY + 0.5) * cellSize`
 - `rangePx()` — 返回 `m_stats.range * m_cellSize`（像素，用于渲染预览圈）
 
 #### Bullet
-- `m_pos` / `m_targetPos` / `m_startPos` — 网格坐标（QPointF）
-- 移动：`moveDist = (m_speed / m_cellSize) * dt` — 在网格空间移动
-- 碰撞检测：使用 `e->gridPos()` 直接在网格空间计算距离
-- `draw()` — 转为像素坐标绘制
+- `m_pos` — 网格坐标（中心点），初始化为塔的中心 `(gridX + 0.5, gridY + 0.5)`
+- 移动：`m_pos += m_direction * m_speed * dt`（固定方向，不追踪目标）
+- 碰撞检测：直接在网格空间计算 `[gridX, gridX+gridW)` × `[gridY, gridY+gridH)`
+- `draw()` — 转为像素坐标 `offset + m_pos * cellSize`
 
-### 12.5 DataManager 加载时的单位转换
+### 12.6 DataManager 加载时的单位转换
 
 ```cpp
 // 敌人速度：pixels/sec → grids/sec
@@ -455,13 +465,13 @@ s.range = obj["range"].toDouble();
 s.splashRadius = obj["splashRadius"].toDouble();
 ```
 
-### 12.6 RemoteTower 距离计算（网格空间）
+### 12.7 RemoteTower 距离计算（网格空间）
 
 ```cpp
 double RemoteTower::distTo(const Enemy& e) const {
     QPointF gp = e.gridPos();
-    double dx = gp.x() - m_gridX;
-    double dy = gp.y() - m_gridY;
+    double dx = gp.x() - (m_gridX + 0.5);
+    double dy = gp.y() - (m_gridY + 0.5);
     return dx*dx + dy*dy;  // 平方距离，避免开方
 }
 
@@ -469,38 +479,30 @@ double RemoteTower::distTo(const Enemy& e) const {
 double r2 = m_stats.range * m_stats.range;
 ```
 
-### 12.7 MeleeTower 效果范围（GameController 中结算）
+### 12.8 MeleeTower 效果范围（GameController 中结算）
 
 ```cpp
-// effect.center 是网格坐标 QPointF(m_gridX, m_gridY)
+// effect.center 是网格坐标 QPointF(m_gridX + 0.5, m_gridY + 0.5)
 // effect.radius 是网格单位（如 2.0 grids）
-double centerX = offsetX + effect.center.x() * cellSize + cellSize / 2.0;
-double centerY = offsetY + effect.center.y() * cellSize + cellSize / 2.0;
+double centerX = offsetX + effect.center.x() * cellSize;
+double centerY = offsetY + effect.center.y() * cellSize;
 double effectRadiusPx = effect.radius * cellSize;
 ```
 
-### 12.8 Bullet 碰撞检测
+### 12.9 Bullet 碰撞检测
 
 ```cpp
-// hitRadius：敌人像素半径 / cellSize * factor（约4.0）
-double hitRadius = static_cast<double>(e->radius()) / m_cellSize * 4.0;
-// 距离比较直接在网格空间进行
+// 障碍物碰撞：使用左闭右开区间
+if (m_pos.x() >= obs->gridX() && m_pos.x() < obs->gridX() + obs->gridWidth() &&
+    m_pos.y() >= obs->gridY() && m_pos.y() < obs->gridY() + obs->gridHeight()) {
+    // 碰撞
+}
+
+// 敌人碰撞：hitRadius 约 0.5 grids
 QPointF d = e->gridPos() - m_pos;
 double d2 = d.x()*d.x() + d.y()*d.y();
-if (d2 <= hitRadius * hitRadius) { /* hit */ }
+if (d2 <= 0.5 * 0.5) { /* hit */ }
 ```
-
-### 12.9 渲染时的坐标转换
-
-**GameRenderer** 中各 draw 调用：
-```cpp
-drawEnemies:  e->draw(p, cellSize, offsetX, offsetY)
-drawProjectiles: pj->draw(p, cellSize, offsetX, offsetY)
-drawObstacles: obs->draw(&p, cellSize, offsetX, offsetY)
-drawTowers:   t->centerPos(cellSize, offsetX, offsetY)
-```
-
-**drawPath** 需将 waypoints 从网格转像素后绘制连接线。
 
 ### 12.10 Resize 行为
 
@@ -512,4 +514,12 @@ void InputHandler::handleResize(int width, int height) {
     m_spatialGrid->setOffset(offsetX, offsetY);
     // 渲染器在下一次 paintEvent 时自动使用新的 cellSize/offset
 }
+```
+
+### 12.11 优先级系统
+
+优先级目标互斥：设置敌方优先级自动清除障碍物优先级，反之亦然。
+```cpp
+void setPriorityEnemy(Enemy* e) { m_priorityEnemy = e; m_priorityObstacle = nullptr; }
+void setPriorityObstacle(Obstacle* o) { m_priorityObstacle = o; m_priorityEnemy = nullptr; }
 ```

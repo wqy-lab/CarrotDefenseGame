@@ -91,8 +91,16 @@ set(PROJECT_SOURCES
     game/towers/towerfactory.h
     game/bullets/bullet.cpp
     game/bullets/bullet.h
-    game/bullets/normalbullet.cpp
-    game/bullets/normalbullet.h
+    game/bullets/arrowbullet.cpp
+    game/bullets/arrowbullet.h
+    game/bullets/cannonbullet.cpp
+    game/bullets/cannonbullet.h
+    game/bullets/icebullet.cpp
+    game/bullets/icebullet.h
+    game/bullets/poisonbullet.cpp
+    game/bullets/poisonbullet.h
+    game/bullets/lightningbullet.cpp
+    game/bullets/lightningbullet.h
     game/bullets/bulletfactory.cpp
     game/bullets/bulletfactory.h
     game/cellentities.h

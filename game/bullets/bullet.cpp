@@ -3,30 +3,18 @@
 #include "../enemies/enemy.h"
 #include <QtMath>
 
-Bullet::Bullet(const QPointF& start, const QPointF& target, double damage,
-               double splashRadius, double slowFactor, double slowDuration,
-               double poisonDps, double poisonDuration, int chainCount, const QColor& color)
+Bullet::Bullet(const QPointF& start, const QPointF& target, double damage, const QColor& color)
     : m_pos(start)
     , m_direction(0.0, 0.0)
     , m_startPos(start)
     , m_maxDistance(0.0)
     , m_traveledDistance(0.0)
-    , m_speed(400.0 / 48.0)  // 400 pixels/sec → grids/sec
+    , m_speed(400.0 / 48.0)
     , m_damage(damage)
-    , m_splashRadius(splashRadius)
-    , m_slowFactor(slowFactor)
-    , m_slowDuration(slowDuration)
-    , m_poisonDps(poisonDps)
-    , m_poisonDuration(poisonDuration)
-    , m_chainCount(chainCount)
     , m_color(color)
     , m_active(true)
     , m_hit(false)
-    , m_cellSize(48.0)
-    , m_offsetX(0.0)
-    , m_offsetY(0.0)
 {
-    // Calculate direction from start to target
     QPointF dir = target - start;
     double dist = std::sqrt(dir.x()*dir.x() + dir.y()*dir.y());
     if (dist > 0) m_direction = dir / dist;
@@ -36,27 +24,21 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
 {
     if (!m_active) return;
 
-    // Speed is stored as grids/sec directly
     double moveDist = m_speed * dt;
-
-    // Move bullet in the fixed direction
     m_pos += m_direction * moveDist;
     m_traveledDistance += moveDist;
 
-    // Check max range
     if (m_maxDistance > 0 && m_traveledDistance > m_maxDistance) {
         m_active = false;
         return;
     }
 
-    // Check if bullet is out of grid bounds
     if (m_pos.x() < 0 || m_pos.x() >= m_gridCols ||
         m_pos.y() < 0 || m_pos.y() >= m_gridRows) {
         m_active = false;
         return;
     }
 
-    // Check obstacle collision - obstacle occupies [gridX, gridX+gridW) x [gridY, gridY+gridH)
     for (Obstacle* obs : cell.obstacles) {
         if (!obs->isActive()) continue;
         if (m_pos.x() >= obs->gridX() && m_pos.x() < obs->gridX() + obs->gridWidth() &&
@@ -68,12 +50,10 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
         }
     }
 
-    // Check enemy collision
     for (Enemy* e : cell.enemies) {
         if (!e->isActive()) continue;
         QPointF d = e->gridPos() - m_pos;
         double d2 = d.x()*d.x() + d.y()*d.y();
-        // hitRadius: 0.5 grids (~24px at cellSize=48) - enemy occupies full cell
         double hitRadius = 0.5;
         if (d2 <= hitRadius * hitRadius) {
             m_hit = true;

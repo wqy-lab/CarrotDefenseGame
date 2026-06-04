@@ -8,6 +8,11 @@
 #include "towers/tower.h"
 #include "towers/remotetower.h"
 #include "towers/meleetower.h"
+#include "towers/arrowtower.h"
+#include "towers/canntower.h"
+#include "towers/icetower.h"
+#include "towers/poisontower.h"
+#include "towers/lighttower.h"
 #include <algorithm>
 #include <cmath>
 
@@ -143,10 +148,22 @@ void GameController::updateGame(double dt, const std::vector<std::unique_ptr<Tow
         } else if (RemoteTower* rt = dynamic_cast<RemoteTower*>(t.get())) {
             if (rt->hasPendingAttack()) {
                 auto attack = rt->getAttack();
-                auto b = createBullet(BulletType::Normal, QPointF(t->gridX() + 0.5, t->gridY() + 0.5), attack.targetPos,
-                                      attack.damage, attack.splashRadius, attack.slowFactor,
+                BulletType btype = BulletType::Arrow;
+                if (ArrowTower* at = dynamic_cast<ArrowTower*>(t.get())) {
+                    btype = BulletType::Arrow;
+                } else if (CannonTower* ct = dynamic_cast<CannonTower*>(t.get())) {
+                    btype = BulletType::Cannon;
+                } else if (IceTower* it = dynamic_cast<IceTower*>(t.get())) {
+                    btype = BulletType::Ice;
+                } else if (PoisonTower* pt = dynamic_cast<PoisonTower*>(t.get())) {
+                    btype = BulletType::Poison;
+                } else if (LightningTower* lt = dynamic_cast<LightningTower*>(t.get())) {
+                    btype = BulletType::Lightning;
+                }
+                auto b = createBullet(btype, QPointF(t->gridX() + 0.5, t->gridY() + 0.5), attack.targetPos,
+                                      attack.damage, attack.slowFactor,
                                       attack.slowDuration, attack.poisonDps, attack.poisonDuration,
-                                      attack.chainCount, attack.color);
+                                      attack.splashRadius, attack.chainCount, attack.color);
                 b->setMaxDistance(attack.maxDistance);
                 b->setGridBounds(m_spatialGrid->gridCols(), m_spatialGrid->gridRows());
                 m_projectiles.push_back(std::move(b));

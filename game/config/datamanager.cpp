@@ -67,9 +67,9 @@ bool DataManager::loadShared(const QString& path)
         TowerStats s;
         s.cost           = obj["cost"].toInt();
         s.damage         = obj["damage"].toDouble();
-        s.range          = obj["range"].toDouble() / 48.0;  // Convert to grids
+        s.range          = obj["range"].toDouble();  // Already in grid units
         s.attackSpeed    = obj["attackSpeed"].toDouble();
-        s.splashRadius   = obj["splashRadius"].toDouble(0) / 48.0;  // Convert to grids
+        s.splashRadius   = obj["splashRadius"].toDouble(0);  // Already in grid units
         s.slowFactor     = obj["slowFactor"].toDouble(1.0);
         s.slowDuration   = obj["slowDuration"].toDouble(0);
         s.poisonDps      = obj["poisonDps"].toDouble(0);
@@ -89,7 +89,7 @@ bool DataManager::loadShared(const QString& path)
 
         EnemyStats s;
         s.maxHp  = obj["maxHp"].toDouble();
-        s.speed  = obj["speed"].toDouble() / 48.0;  // Convert pixel/sec to grids/sec
+        s.speed  = obj["speed"].toDouble() / 48.0;  // Convert to grids/sec
         s.reward = obj["reward"].toInt();
         s.damage = obj["damage"].toInt();
         s.radius = obj["radius"].toInt(10);

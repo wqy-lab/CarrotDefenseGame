@@ -19,8 +19,8 @@ void RemoteTower::update(double dt, const std::vector<std::unique_ptr<Enemy>>& e
         m_pendingAttack.targetPos = QPointF(obsTarget->gridX() + obsTarget->gridWidth() / 2.0,
                                              obsTarget->gridY() + obsTarget->gridHeight() / 2.0);
         m_pendingAttack.damage = stats().damage;
-        m_pendingAttack.maxDistance = rangePx();
-        m_pendingAttack.splashRadius = stats().splashRadius * m_cellSize;
+        m_pendingAttack.maxDistance = stats().range;  // Already in grid units
+        m_pendingAttack.splashRadius = stats().splashRadius;  // Already in grid units
         m_pendingAttack.slowFactor = stats().slowFactor;
         m_pendingAttack.slowDuration = stats().slowDuration;
         m_pendingAttack.poisonDps = stats().poisonDps;
@@ -37,8 +37,8 @@ void RemoteTower::update(double dt, const std::vector<std::unique_ptr<Enemy>>& e
     m_pendingAttack.fired = true;
     m_pendingAttack.targetPos = target->gridPos();
     m_pendingAttack.damage = stats().damage;
-    m_pendingAttack.maxDistance = rangePx();
-    m_pendingAttack.splashRadius = stats().splashRadius * m_cellSize;
+    m_pendingAttack.maxDistance = stats().range;  // Already in grid units
+    m_pendingAttack.splashRadius = stats().splashRadius;  // Already in grid units
     m_pendingAttack.slowFactor = stats().slowFactor;
     m_pendingAttack.slowDuration = stats().slowDuration;
     m_pendingAttack.poisonDps = stats().poisonDps;
@@ -52,7 +52,7 @@ Enemy* RemoteTower::findTarget(const std::vector<std::unique_ptr<Enemy>>& enemie
 {
     // Priority target first
     if (m_priorityEnemy && m_priorityEnemy->isActive()) {
-        double r2 = rangePx() * rangePx();
+        double r2 = m_stats.range * m_stats.range;  // range is in grids
         double d2 = distTo(*m_priorityEnemy);
         if (d2 <= r2) {
             return m_priorityEnemy;
@@ -62,7 +62,7 @@ Enemy* RemoteTower::findTarget(const std::vector<std::unique_ptr<Enemy>>& enemie
 
     Enemy* best = nullptr;
     int bestIndex = -1;
-    double r2 = rangePx() * rangePx();
+    double r2 = m_stats.range * m_stats.range;
     for (auto& e : enemies) {
         if (!e->isActive()) continue;
         // Skip priority enemy (already tried above)
@@ -94,7 +94,7 @@ double RemoteTower::distTo(const Obstacle& o) const {
 Obstacle* RemoteTower::findObstacleTarget() const
 {
     if (m_priorityObstacle && m_priorityObstacle->isActive()) {
-        double r2 = rangePx() * rangePx();
+        double r2 = m_stats.range * m_stats.range;
         double d2 = distTo(*m_priorityObstacle);
         if (d2 <= r2) {
             return m_priorityObstacle;

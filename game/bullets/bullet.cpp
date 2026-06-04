@@ -32,9 +32,7 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
 {
     if (!m_active) return;
 
-    // Determine which grid cell the bullet is currently in
-    int bulletCellX = static_cast<int>(m_pos.x());
-    int bulletCellY = static_cast<int>(m_pos.y());
+    QPointF prevPos = m_pos;
 
     QPointF dir = m_targetPos - m_pos;
     double dist = std::sqrt(dir.x()*dir.x() + dir.y()*dir.y());
@@ -53,15 +51,11 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
         return;
     }
 
-    // Check which cell the bullet is in after moving
-    int newCellX = static_cast<int>(m_pos.x());
-    int newCellY = static_cast<int>(m_pos.y());
-
-    // Check obstacle collision first (obstacle takes priority)
+    // Check obstacle collision along the path
     for (Obstacle* obs : cell.obstacles) {
         if (!obs->isActive()) continue;
-        if (newCellX >= obs->gridX() && newCellX < obs->gridX() + obs->gridWidth() &&
-            newCellY >= obs->gridY() && newCellY < obs->gridY() + obs->gridHeight()) {
+        if (m_pos.x() >= obs->gridX() && m_pos.x() < obs->gridX() + obs->gridWidth() &&
+            m_pos.y() >= obs->gridY() && m_pos.y() < obs->gridY() + obs->gridHeight()) {
             m_hit = true;
             onObstacleHit(obs);
             m_active = false;
@@ -69,13 +63,14 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
         }
     }
 
-    // Check enemy collision
+    // Check enemy collision - enemy can be at float grid pos, bullet at float grid pos
     for (Enemy* e : cell.enemies) {
         if (!e->isActive()) continue;
-        // Both m_pos and e->gridPos() are in grid units
         QPointF d = e->gridPos() - m_pos;
         double d2 = d.x()*d.x() + d.y()*d.y();
-        double hitRadius = static_cast<double>(e->radius()) / m_cellSize * 1.5;
+        // hitRadius in grid units: pixel radius / cellSize * factor
+        // With factor=4, a 10-pixel radius enemy has ~0.83 grid hit radius
+        double hitRadius = static_cast<double>(e->radius()) / m_cellSize * 4.0;
         if (d2 <= hitRadius * hitRadius) {
             m_hit = true;
             onHit(e, enemies, cell);

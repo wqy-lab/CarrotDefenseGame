@@ -377,3 +377,139 @@ main() 启动时:
 | 8 | `drawTowers()` 中仅对 Arrow/Cannon/Ice 绘制字母标签 | Poison/Lightning/Sun 无标签，显示不一致 |
 | 9 | `mainwindow.cpp:257-266` 处的工具栏塔按钮禁用代码与 TowerSelectionPopup 重复逻辑 | 功能已被替代但未删除 |
 | 10 | `CMakeLists.txt` 中源文件手动列举 | 新增文件需手动更新 CMake |
+
+---
+
+## 12. 网格坐标系统
+
+### 12.1 设计原则
+
+所有游戏内部实体（Enemy、Obstacle、Tower、Bullet）的位置和移动全部使用**网格坐标**存储，渲染时通过 `cellSize` 和 `offset` 换算为像素坐标。
+
+**目的**：消除窗口 resize 时的同步需求——渲染时自动使用当前的 cellSize/offset 计算，无需更新任何实体的内部状态。
+
+### 12.2 单位约定
+
+| 类型 | 单位 | 说明 |
+|------|------|------|
+| 位置 `m_gridPos` / `m_gridX/Y` | 网格单位 (grid) | 1 grid = 1 cell |
+| 速度 `speed()` | grids/sec | 网格单位/秒 |
+| 射程/范围 `range` | grids | 网格单位 |
+| 溅射半径 `splashRadius` | grids | 网格单位 |
+| 攻击半径 `m_attackRadius` | grids | 网格单位（MeleeTower） |
+| 链式闪电距离 `chainDist` | grids | 硬编码约3 grids |
+| 碰撞半径 `hitRadius` | grids | `radius / cellSize * factor` |
+| 绘制半径 `radius()` | **像素** (pixels) | JSON中定义的是像素，用于绘制 |
+
+### 12.3 坐标转换
+
+**网格 → 像素**：
+```cpp
+QPointF gridToPixel(int gx, int gy) {
+    return QPointF(offsetX + gx * cellSize + cellSize / 2.0,
+                   offsetY + gy * cellSize + cellSize / 2.0);
+}
+```
+
+**像素 → 网格**：
+```cpp
+QPoint pixelToGrid(const QPointF& pos) {
+    return QPoint(static_cast<int>((pos.x() - offsetX) / cellSize),
+                  static_cast<int>((pos.y() - offsetY) / cellSize));
+}
+```
+
+### 12.4 各类实体的网格化实现
+
+#### Enemy
+- `m_gridPos` : QPointF — 网格坐标（小数表示格子内精确位置）
+- `m_path` : std::vector<QPointF> — 网格坐标数组（waypoints）
+- `speed()` : 从 JSON 加载时 `speed / 48.0` 转为 grids/sec
+- `pos(cellSize, offsetX, offsetY)` — 返回像素坐标用于绘制
+- `draw()` — 使用 `pos()` 转为像素后绘制
+
+#### Obstacle
+- 仅存储 `m_gridX/Y/W/H`（网格坐标），无像素坐标成员
+- `draw(cellSize, offsetX, offsetY)` — 计算像素位置绘制
+- 不再需要 `setPosition()` / `pos()` 方法
+
+#### Tower
+- 仅存储 `m_gridX/Y`（网格坐标），无 `m_center` 像素坐标
+- `centerPos(cellSize, offsetX, offsetY)` — 返回像素坐标
+- `rangePx()` — 返回 `m_stats.range * m_cellSize`（像素，用于渲染预览圈）
+
+#### Bullet
+- `m_pos` / `m_targetPos` / `m_startPos` — 网格坐标（QPointF）
+- 移动：`moveDist = (m_speed / m_cellSize) * dt` — 在网格空间移动
+- 碰撞检测：使用 `e->gridPos()` 直接在网格空间计算距离
+- `draw()` — 转为像素坐标绘制
+
+### 12.5 DataManager 加载时的单位转换
+
+```cpp
+// 敌人速度：pixels/sec → grids/sec
+s.speed = obj["speed"].toDouble() / 48.0;
+
+// 塔射程/溅射：直接使用网格单位（JSON 中已是 grids）
+s.range = obj["range"].toDouble();
+s.splashRadius = obj["splashRadius"].toDouble();
+```
+
+### 12.6 RemoteTower 距离计算（网格空间）
+
+```cpp
+double RemoteTower::distTo(const Enemy& e) const {
+    QPointF gp = e.gridPos();
+    double dx = gp.x() - m_gridX;
+    double dy = gp.y() - m_gridY;
+    return dx*dx + dy*dy;  // 平方距离，避免开方
+}
+
+// 射程检测：直接用 m_stats.range（grids）的平方比较
+double r2 = m_stats.range * m_stats.range;
+```
+
+### 12.7 MeleeTower 效果范围（GameController 中结算）
+
+```cpp
+// effect.center 是网格坐标 QPointF(m_gridX, m_gridY)
+// effect.radius 是网格单位（如 2.0 grids）
+double centerX = offsetX + effect.center.x() * cellSize + cellSize / 2.0;
+double centerY = offsetY + effect.center.y() * cellSize + cellSize / 2.0;
+double effectRadiusPx = effect.radius * cellSize;
+```
+
+### 12.8 Bullet 碰撞检测
+
+```cpp
+// hitRadius：敌人像素半径 / cellSize * factor（约4.0）
+double hitRadius = static_cast<double>(e->radius()) / m_cellSize * 4.0;
+// 距离比较直接在网格空间进行
+QPointF d = e->gridPos() - m_pos;
+double d2 = d.x()*d.x() + d.y()*d.y();
+if (d2 <= hitRadius * hitRadius) { /* hit */ }
+```
+
+### 12.9 渲染时的坐标转换
+
+**GameRenderer** 中各 draw 调用：
+```cpp
+drawEnemies:  e->draw(p, cellSize, offsetX, offsetY)
+drawProjectiles: pj->draw(p, cellSize, offsetX, offsetY)
+drawObstacles: obs->draw(&p, cellSize, offsetX, offsetY)
+drawTowers:   t->centerPos(cellSize, offsetX, offsetY)
+```
+
+**drawPath** 需将 waypoints 从网格转像素后绘制连接线。
+
+### 12.10 Resize 行为
+
+resize 时**无需同步任何实体**：
+```cpp
+void InputHandler::handleResize(int width, int height) {
+    // 仅更新 cellSize 和 offset
+    m_spatialGrid->setCellSize(cellSize);
+    m_spatialGrid->setOffset(offsetX, offsetY);
+    // 渲染器在下一次 paintEvent 时自动使用新的 cellSize/offset
+}
+```

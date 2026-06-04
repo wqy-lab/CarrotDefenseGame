@@ -39,7 +39,7 @@ void Enemy::update(double dt)
     QPointF target = m_path[m_pathIndex];
     QPointF dir = target - m_gridPos;
     double dist = std::sqrt(dir.x()*dir.x() + dir.y()*dir.y());
-    // speed() is already in grids/sec (pixel speed / 48 reference cellSize)
+    // speed() is in grids/sec (1 grid = 1 cell, so movement is in grid units)
     double moveDist = speed() * dt;
     if (moveDist >= dist) { m_gridPos = target; ++m_pathIndex; }
     else { dir /= dist; m_gridPos += dir * moveDist; }

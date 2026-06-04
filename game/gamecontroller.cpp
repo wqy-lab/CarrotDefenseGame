@@ -114,13 +114,18 @@ void GameController::updateGame(double dt, const std::vector<std::unique_ptr<Tow
         if (MeleeTower* mt = dynamic_cast<MeleeTower*>(t.get())) {
             if (mt->hasPendingEffect()) {
                 auto effect = mt->getEffect();
+                // effect.center is in grid units, convert to pixels
+                double centerX = m_spatialGrid->offsetX() + effect.center.x() * m_spatialGrid->cellSize() + m_spatialGrid->cellSize() / 2.0;
+                double centerY = m_spatialGrid->offsetY() + effect.center.y() * m_spatialGrid->cellSize() + m_spatialGrid->cellSize() / 2.0;
+                QPointF effectCenterPixel(centerX, centerY);
+                double effectRadiusPx = effect.radius * m_spatialGrid->cellSize();
                 for (auto& e : m_enemies) {
                     if (!e->isActive()) continue;
                     QPointF ePixel = e->pos(m_spatialGrid->cellSize(), m_spatialGrid->offsetX(), m_spatialGrid->offsetY());
-                    QPointF d = ePixel - effect.center;
+                    QPointF d = ePixel - effectCenterPixel;
                     double dist = std::sqrt(d.x()*d.x() + d.y()*d.y());
-                    if (dist <= effect.radius) {
-                        double falloff = 1.0 - (dist / effect.radius) * 0.5;
+                    if (dist <= effectRadiusPx) {
+                        double falloff = 1.0 - (dist / effectRadiusPx) * 0.5;
                         e->takeDamage(effect.damage * falloff);
                         if (effect.slowFactor < 1.0)
                             e->applySlow(effect.slowFactor, effect.slowDuration);

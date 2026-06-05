@@ -18,7 +18,7 @@ void ArrowTower::drawBody(QPainter& p, const QPointF& center, double r) const
         return;
     }
 
-    p.setBrush(m_stats.color);
+    p.setBrush(color());
     p.setPen(QPen(QColor(100,140,50), 1.5));
     QPolygonF poly;
     for (int i = 0; i < 5; ++i) {

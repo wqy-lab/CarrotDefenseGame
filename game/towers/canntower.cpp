@@ -17,7 +17,7 @@ void CannonTower::drawBody(QPainter& p, const QPointF& center, double r) const
         return;
     }
 
-    p.setBrush(m_stats.color);
+    p.setBrush(color());
     p.setPen(QPen(QColor(200,120,0), 2));
     p.drawEllipse(center, r*0.9, r*0.9);
     p.setBrush(QColor(180,100,0));

@@ -71,20 +71,27 @@ bool DataManager::loadShared(const QString& path)
         QJsonObject obj = val.toObject();
         TowerType type = stringToTowerType(obj["type"].toString());
 
-        TowerStats s;
-        s.cost           = obj["cost"].toInt();
-        s.damage         = obj["damage"].toDouble();
-        s.range          = obj["range"].toDouble();  // Already in grid units
-        s.attackSpeed    = obj["attackSpeed"].toDouble();
-        s.splashRadius   = obj["splashRadius"].toDouble(0);  // Already in grid units
-        s.slowFactor     = obj["slowFactor"].toDouble(1.0);
-        s.slowDuration   = obj["slowDuration"].toDouble(0);
-        s.poisonDps      = obj["poisonDps"].toDouble(0);
-        s.poisonDuration = obj["poisonDuration"].toDouble(0);
-        s.chainCount     = obj["chainCount"].toInt(0);
-        s.color          = QColor(obj["color"].toString());
+        QJsonArray levels = obj["levels"].toArray();
+        for (int i = 0; i < levels.size() && i < 3; ++i) {
+            QJsonObject lv = levels[i].toObject();
+            TowerStats s;
+            s.cost = lv["cost"].toInt();
+            s.damage = lv["damage"].toDouble();
+            s.range = lv["range"].toDouble();
+            s.attackSpeed = lv["attackSpeed"].toDouble();
+            s.color = QColor(lv["color"].toString());
+            m_towerStats[type][i+1] = s;
+        }
 
-        m_towerStats[type] = s;
+        QJsonArray markers = obj["markers"].toArray();
+        for (int i = 0; i < markers.size() && i < 3; ++i) {
+            QJsonObject mk = markers[i].toObject();
+            MarkerConfig mc;
+            mc.type = mk["type"].toString();
+            mc.factor = mk["factor"].toDouble();
+            mc.duration = mk["duration"].toDouble();
+            m_towerMarkers[type][i+1].push_back(mc);
+        }
     }
 
     // --- enemies ---
@@ -228,9 +235,14 @@ bool DataManager::loadLevelsIndex(const QString& path)
 
 // --- lookup ---
 
-TowerStats DataManager::getTowerStats(TowerType type) const
+TowerStats DataManager::getTowerStats(TowerType type, int level) const
 {
-    return m_towerStats.value(type);
+    return m_towerStats.value(type)[level];
+}
+
+std::vector<MarkerConfig> DataManager::getTowerMarkers(TowerType type, int level) const
+{
+    return m_towerMarkers.value(type)[level];
 }
 
 EnemyStats DataManager::getEnemyStats(EnemyType type) const

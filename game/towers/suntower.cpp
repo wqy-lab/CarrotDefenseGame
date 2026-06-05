@@ -26,7 +26,7 @@ void SunTower::drawBody(QPainter& p, const QPointF& center, double r) const
         return;
     }
 
-    p.setBrush(m_stats.color);
+    p.setBrush(color());
     p.setPen(QPen(QColor(200, 150, 30), 2));
     p.drawEllipse(center, r, r);
     p.setPen(QPen(Qt::white, 2));

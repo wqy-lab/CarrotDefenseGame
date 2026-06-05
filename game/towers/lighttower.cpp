@@ -18,7 +18,7 @@ void LightningTower::drawBody(QPainter& p, const QPointF& center, double r) cons
         return;
     }
 
-    p.setBrush(m_stats.color);
+    p.setBrush(color());
     p.setPen(QPen(QColor(180, 160, 30), 2));
     QPolygonF poly;
     for (int i = 0; i < 10; ++i) {

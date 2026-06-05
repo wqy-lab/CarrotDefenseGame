@@ -1,17 +1,30 @@
 #include "tower.h"
 #include "../enemies/enemy.h"
 #include "../config/datamanager.h"
-#include <cmath>
 
 Tower::Tower(TowerType type, int gridX, int gridY, double cellSize, double offsetX, double offsetY)
-    : m_type(type), m_stats()
+    : m_type(type)
     , m_gridX(gridX), m_gridY(gridY), m_cellSize(cellSize)
 {
-    m_baseStats = DataManager::instance().getTowerStats(type);
-    m_stats = m_baseStats;
-    m_baseCost = m_baseStats.cost;
-    m_level = 1;
-    m_totalInvested = m_baseCost;
+    TowerStats s1 = DataManager::instance().getTowerStats(type, 1);
+    TowerStats s2 = DataManager::instance().getTowerStats(type, 2);
+    TowerStats s3 = DataManager::instance().getTowerStats(type, 3);
+    m_baseStats[1] = s1;
+    m_baseStats[2] = s2;
+    m_baseStats[3] = s3;
+
+    for (int lvl = 1; lvl <= 3; ++lvl) {
+        auto markerCfgs = DataManager::instance().getTowerMarkers(type, lvl);
+        for (const auto& cfg : markerCfgs) {
+            if (cfg.type == "slow") {
+                m_markerTemplates[lvl].push_back(std::make_unique<SlowMarker>(cfg.factor, cfg.duration));
+            } else if (cfg.type == "poison") {
+                m_markerTemplates[lvl].push_back(std::make_unique<PoisonMarker>(cfg.factor, cfg.duration));
+            }
+        }
+    }
+
+    m_totalInvested = m_baseStats[1].cost;
 }
 
 bool Tower::upgrade() {
@@ -19,16 +32,6 @@ bool Tower::upgrade() {
     int cost = upgradeCost();
     m_totalInvested += cost;
     m_level++;
-    double lvl = m_level - 1;
-    m_stats.damage = m_baseStats.damage * std::pow(1.15, lvl);
-    m_stats.range = m_baseStats.range * std::pow(1.05, lvl);
-    m_stats.attackSpeed = m_baseStats.attackSpeed * std::pow(1.10, lvl);
-    m_stats.splashRadius = m_baseStats.splashRadius * std::pow(1.10, lvl);
-    m_stats.slowFactor = m_baseStats.slowFactor * std::pow(1.10, lvl);
-    m_stats.slowDuration = m_baseStats.slowDuration * std::pow(1.10, lvl);
-    m_stats.poisonDps = m_baseStats.poisonDps * std::pow(1.10, lvl);
-    m_stats.poisonDuration = m_baseStats.poisonDuration * std::pow(1.10, lvl);
-    m_stats.chainCount = m_baseStats.chainCount + (m_level > 1 ? 1 : 0);
     return true;
 }
 

@@ -179,9 +179,8 @@ void GameRenderer::drawHoverPreview(QPainter& p)
                                    m_spatialGrid->cellSize(),
                                    m_spatialGrid->offsetX(),
                                    m_spatialGrid->offsetY());
-    auto stats = previewTower->stats();
     QPointF center = m_spatialGrid->gridToPixel(hx, hy);
-    double rangePx = stats.range * m_spatialGrid->cellSize();
+    double rangePx = previewTower->range() * m_spatialGrid->cellSize();
 
     p.setPen(QPen(QColor(255, 255, 255, 80), 1, Qt::DashLine));
     p.setBrush(QColor(100, 200, 100, 30));

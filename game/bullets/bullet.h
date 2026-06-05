@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include "../cellentities.h"
+#include "../markers/marker.h"
 
 class Enemy;
 
@@ -24,6 +25,10 @@ public:
     void setGridBounds(int cols, int rows) { m_gridCols = cols; m_gridRows = rows; }
     double damage() const { return m_damage; }
     QColor color() const { return m_color; }
+
+    void setMarkers(std::vector<std::unique_ptr<Marker>> markers) {
+        m_markerTemplates = std::move(markers);
+    }
 
 protected:
     Bullet(const QPointF& start, const QPointF& target, double damage, const QColor& color);
@@ -44,6 +49,7 @@ protected:
     bool m_active;
     int m_gridCols = 15;
     int m_gridRows = 12;
+    std::vector<std::unique_ptr<Marker>> m_markerTemplates;
 };
 
 #endif

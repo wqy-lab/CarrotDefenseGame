@@ -52,70 +52,89 @@ void GameRenderer::drawGrid(QPainter& p)
 {
     if (!m_spatialGrid) return;
 
-    double totalW = m_spatialGrid->gridCols() * m_spatialGrid->cellSize();
-    double totalH = m_spatialGrid->gridRows() * m_spatialGrid->cellSize();
+    double cs = m_spatialGrid->cellSize();
+    double ox = m_spatialGrid->offsetX();
+    double oy = m_spatialGrid->offsetY();
+    int cols = m_spatialGrid->gridCols();
+    int rows = m_spatialGrid->gridRows();
 
-    p.fillRect(QRectF(m_spatialGrid->offsetX(), m_spatialGrid->offsetY(), totalW, totalH),
-               QColor(60, 80, 45));
+    double totalW = cols * cs;
+    double totalH = rows * cs;
 
-    for (int y = 0; y < m_spatialGrid->gridRows(); ++y) {
-        for (int x = 0; x < m_spatialGrid->gridCols(); ++x) {
+    const QPixmap& grassTex = DataManager::instance().getTexture("assets/map/grass_tile.png");
+    const QPixmap& pathTex = DataManager::instance().getTexture("assets/map/path_tile.png");
+
+    p.fillRect(QRectF(ox, oy, totalW, totalH), QColor(60, 80, 45));
+
+    for (int y = 0; y < rows; ++y) {
+        for (int x = 0; x < cols; ++x) {
+            QRectF target(ox + x * cs + 1, oy + y * cs + 1, cs - 2, cs - 2);
             if (m_spatialGrid->isPathCell(x, y)) {
-                p.fillRect(QRectF(
-                    m_spatialGrid->offsetX() + x * m_spatialGrid->cellSize() + 1,
-                    m_spatialGrid->offsetY() + y * m_spatialGrid->cellSize() + 1,
-                    m_spatialGrid->cellSize() - 2, m_spatialGrid->cellSize() - 2),
-                    QColor(120, 90, 55));
+                if (!pathTex.isNull()) {
+                    p.drawPixmap(target.toRect(), pathTex);
+                } else {
+                    p.fillRect(target, QColor(120, 90, 55));
+                }
+            } else if (!m_spatialGrid->isObstacleCell(x, y)) {
+                if (!grassTex.isNull()) {
+                    p.drawPixmap(target.toRect(), grassTex);
+                }
             }
         }
     }
 
-    for (int y = 0; y < m_spatialGrid->gridRows(); ++y) {
-        for (int x = 0; x < m_spatialGrid->gridCols(); ++x) {
+    for (int y = 0; y < rows; ++y) {
+        for (int x = 0; x < cols; ++x) {
             if (m_spatialGrid->isObstacleCell(x, y)) {
-                p.fillRect(QRectF(
-                    m_spatialGrid->offsetX() + x * m_spatialGrid->cellSize() + 1,
-                    m_spatialGrid->offsetY() + y * m_spatialGrid->cellSize() + 1,
-                    m_spatialGrid->cellSize() - 2, m_spatialGrid->cellSize() - 2),
-                    QColor(90, 70, 50));
+                p.fillRect(QRectF(ox + x * cs + 1, oy + y * cs + 1, cs - 2, cs - 2),
+                           QColor(90, 70, 50));
             }
         }
     }
 
     p.setPen(QPen(QColor(90, 100, 80), 1));
-    for (int x = 0; x <= m_spatialGrid->gridCols(); ++x) {
-        p.drawLine(QPointF(m_spatialGrid->offsetX() + x * m_spatialGrid->cellSize(), m_spatialGrid->offsetY()),
-                    QPointF(m_spatialGrid->offsetX() + x * m_spatialGrid->cellSize(),
-                            m_spatialGrid->offsetY() + m_spatialGrid->gridRows() * m_spatialGrid->cellSize()));
+    for (int x = 0; x <= cols; ++x) {
+        p.drawLine(QPointF(ox + x * cs, oy), QPointF(ox + x * cs, oy + rows * cs));
     }
-    for (int y = 0; y <= m_spatialGrid->gridRows(); ++y) {
-        p.drawLine(QPointF(m_spatialGrid->offsetX(), m_spatialGrid->offsetY() + y * m_spatialGrid->cellSize()),
-                    QPointF(m_spatialGrid->offsetX() + m_spatialGrid->gridCols() * m_spatialGrid->cellSize(),
-                            m_spatialGrid->offsetY() + y * m_spatialGrid->cellSize()));
+    for (int y = 0; y <= rows; ++y) {
+        p.drawLine(QPointF(ox, oy + y * cs), QPointF(ox + cols * cs, oy + y * cs));
     }
+
+    const QPixmap& startTex = DataManager::instance().getTexture("assets/map/start_marker.png");
+    const QPixmap& endTex = DataManager::instance().getTexture("assets/map/end_marker.png");
 
     {
         QPointF c = m_spatialGrid->gridToPixel(m_spatialGrid->startX(), m_spatialGrid->startY());
-        double r = m_spatialGrid->cellSize() * 0.35;
-        p.setPen(Qt::NoPen);
-        p.setBrush(QColor(76, 175, 80));
-        p.drawEllipse(c, r, r);
-        p.setPen(Qt::white);
-        QFont f("Arial", qMax(8, static_cast<int>(m_spatialGrid->cellSize() * 0.35)), QFont::Bold);
-        p.setFont(f);
-        p.drawText(QRectF(c.x()-r, c.y()-r, r*2, r*2), Qt::AlignCenter, "S");
+        double r = cs * 0.42;
+        if (!startTex.isNull()) {
+            QRectF target(c.x() - r, c.y() - r, r * 2, r * 2);
+            p.drawPixmap(target.toRect(), startTex);
+        } else {
+            p.setPen(Qt::NoPen);
+            p.setBrush(QColor(76, 175, 80));
+            p.drawEllipse(c, r, r);
+            p.setPen(Qt::white);
+            QFont f("Arial", qMax(8, static_cast<int>(cs * 0.35)), QFont::Bold);
+            p.setFont(f);
+            p.drawText(QRectF(c.x()-r, c.y()-r, r*2, r*2), Qt::AlignCenter, "S");
+        }
     }
 
     {
         QPointF c = m_spatialGrid->gridToPixel(m_spatialGrid->endX(), m_spatialGrid->endY());
-        double r = m_spatialGrid->cellSize() * 0.35;
-        p.setPen(Qt::NoPen);
-        p.setBrush(QColor(244, 67, 54));
-        p.drawEllipse(c, r, r);
-        p.setPen(Qt::white);
-        QFont f("Arial", qMax(8, static_cast<int>(m_spatialGrid->cellSize() * 0.35)), QFont::Bold);
-        p.setFont(f);
-        p.drawText(QRectF(c.x()-r, c.y()-r, r*2, r*2), Qt::AlignCenter, "E");
+        double r = cs * 0.42;
+        if (!endTex.isNull()) {
+            QRectF target(c.x() - r, c.y() - r, r * 2, r * 2);
+            p.drawPixmap(target.toRect(), endTex);
+        } else {
+            p.setPen(Qt::NoPen);
+            p.setBrush(QColor(244, 67, 54));
+            p.drawEllipse(c, r, r);
+            p.setPen(Qt::white);
+            QFont f("Arial", qMax(8, static_cast<int>(cs * 0.35)), QFont::Bold);
+            p.setFont(f);
+            p.drawText(QRectF(c.x()-r, c.y()-r, r*2, r*2), Qt::AlignCenter, "E");
+        }
     }
 }
 

@@ -101,12 +101,27 @@ void Enemy::draw(QPainter& p, double cellSize, double offsetX, double offsetY) c
     p.fillRect(QRectF(cx - barW / 2.0, cy - half - 6, barW * hpR, barH), hpC);
 
     QRectF targetRect(cx - half, cy - half, scale, scale);
+    bool hasState = (m_slowFactor < 1.0) || (m_poisonTimer > 0);
     bool drewTexture = false;
+
     if (!m_textureTag.isEmpty()) {
         QString path = QString("assets/enemies/enemy_%1.png").arg(m_textureTag);
         const QPixmap& tex = DataManager::instance().getTexture(path);
         if (!tex.isNull()) {
-            p.drawPixmap(targetRect.toRect(), tex);
+            if (hasState) {
+                QPixmap tinted = tex.scaled(static_cast<int>(scale), static_cast<int>(scale),
+                                            Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                QPainter tp(&tinted);
+                tp.setCompositionMode(QPainter::CompositionMode_SourceAtop);
+                if (m_slowFactor < 1.0)
+                    tp.fillRect(tinted.rect(), QColor(100, 180, 255, 80));
+                if (m_poisonTimer > 0)
+                    tp.fillRect(tinted.rect(), QColor(120, 200, 80, 80));
+                tp.end();
+                p.drawPixmap(targetRect.toRect(), tinted);
+            } else {
+                p.drawPixmap(targetRect.toRect(), tex);
+            }
             drewTexture = true;
         }
     }
@@ -116,18 +131,18 @@ void Enemy::draw(QPainter& p, double cellSize, double offsetX, double offsetY) c
         p.setPen(Qt::NoPen);
         p.setBrush(body);
         drawBody(p, QPointF(cx, cy), r);
-    }
 
-    p.save();
-    p.setCompositionMode(QPainter::CompositionMode_SourceAtop);
-    if (m_slowFactor < 1.0) {
-        p.fillRect(targetRect, QColor(100, 180, 255, 80));
+        if (hasState) {
+            p.save();
+            p.setCompositionMode(QPainter::CompositionMode_SourceAtop);
+            if (m_slowFactor < 1.0)
+                p.fillRect(targetRect, QColor(100, 180, 255, 80));
+            if (m_poisonTimer > 0)
+                p.fillRect(targetRect, QColor(120, 200, 80, 80));
+            p.setCompositionMode(QPainter::CompositionMode_SourceOver);
+            p.restore();
+        }
     }
-    if (m_poisonTimer > 0) {
-        p.fillRect(targetRect, QColor(120, 200, 80, 80));
-    }
-    p.setCompositionMode(QPainter::CompositionMode_SourceOver);
-    p.restore();
 }
 
 void Enemy::drawFace(QPainter& p, const QPointF& center, int r) const {

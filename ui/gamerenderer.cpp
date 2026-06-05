@@ -67,17 +67,6 @@ void GameRenderer::drawGrid(QPainter& p)
         }
     }
 
-    if (m_towerManager) {
-        for (auto& t : m_towerManager->towers()) {
-            int x = t->gridX(), y = t->gridY();
-            p.fillRect(QRectF(
-                m_spatialGrid->offsetX() + x * m_spatialGrid->cellSize() + 1,
-                m_spatialGrid->offsetY() + y * m_spatialGrid->cellSize() + 1,
-                m_spatialGrid->cellSize() - 2, m_spatialGrid->cellSize() - 2),
-                QColor(45, 50, 40));
-        }
-    }
-
     for (int y = 0; y < m_spatialGrid->gridRows(); ++y) {
         for (int x = 0; x < m_spatialGrid->gridCols(); ++x) {
             if (m_spatialGrid->isObstacleCell(x, y)) {

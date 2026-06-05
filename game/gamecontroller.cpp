@@ -52,6 +52,7 @@ void GameController::resetGame()
     m_enemies.clear();
     m_projectiles.clear();
     m_obstacles.clear();
+    clearPriorityTarget();
     m_waveManager.reset();
 
     if (m_spatialGrid) {

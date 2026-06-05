@@ -47,13 +47,16 @@ public:
 
     void draw(QPainter& p, double cellSize, double offsetX, double offsetY) const;
 
+    QString textureTag() const { return m_textureTag; }
+
     // Marker management
     void addMarker(std::unique_ptr<Marker> marker);
     void updateMarkers(double dt);
     void removeInactiveMarkers();
 
 protected:
-    Enemy(const std::vector<QPointF>& path, EnemyStats stats);
+    Enemy(const std::vector<QPointF>& path, EnemyStats stats,
+          const QString& textureTag = QString());
 
     EnemyStats m_stats;
 
@@ -71,6 +74,7 @@ protected:
     double m_poisonDps;
     double m_poisonTimer;
     bool m_goldAwarded;
+    QString m_textureTag;
 
     struct MarkerSlot {
         std::unique_ptr<Marker> active;

@@ -7,6 +7,7 @@
 #include "../game/towers/remotetower.h"
 #include "../game/towers/meleetower.h"
 #include "../game/cellentities.h"
+#include "../game/config/datamanager.h"
 #include "towerpanel.h"
 #include <QPainter>
 
@@ -39,6 +40,8 @@ void GameRenderer::paintEvent(QPaintEvent* event)
     if (m_towerManager && m_towerManager->isPlacingTower() && m_towerManager->showRange()) {
         drawHoverPreview(p);
     }
+
+    drawPriorityTarget(p);
 
     if (m_gameController && m_gameController->isGameOver()) {
         p.fillRect(rect(), QColor(0, 0, 0, 150));
@@ -192,4 +195,48 @@ void GameRenderer::drawHoverPreview(QPainter& p)
         m_spatialGrid->offsetX() + hx * m_spatialGrid->cellSize() + 1,
         m_spatialGrid->offsetY() + hy * m_spatialGrid->cellSize() + 1,
         m_spatialGrid->cellSize() - 2, m_spatialGrid->cellSize() - 2));
+}
+
+void GameRenderer::drawPriorityTarget(QPainter& p)
+{
+    if (!m_gameController || !m_spatialGrid) return;
+
+    double cs = m_spatialGrid->cellSize();
+    double ox = m_spatialGrid->offsetX();
+    double oy = m_spatialGrid->offsetY();
+
+    QPointF center;
+    int radius = 12;
+
+    Enemy* e = m_gameController->priorityEnemy();
+    if (e && e->isActive()) {
+        center = e->pos(cs, ox, oy);
+        radius = e->radius();
+    } else {
+        Obstacle* obs = m_gameController->priorityObstacle();
+        if (obs && obs->isActive()) {
+            double cx = ox + (obs->gridX() + obs->gridWidth() / 2.0) * cs;
+            double cy = oy + (obs->gridY() + obs->gridHeight() / 2.0) * cs;
+            center = QPointF(cx, cy);
+            radius = obs->radius();
+        } else {
+            return;
+        }
+    }
+
+    const QPixmap& tex = DataManager::instance().getTexture("assets/ui/target_lock.png");
+    if (!tex.isNull()) {
+        int hw = tex.width() / 2;
+        int hh = tex.height() / 2;
+        p.drawPixmap(static_cast<int>(center.x()) - hw,
+                     static_cast<int>(center.y()) - hh, tex);
+        return;
+    }
+
+    int len = qMin(radius + 6, 16);
+    p.setPen(QPen(QColor(255, 50, 50), 2));
+    p.drawLine(QPointF(center.x() - len, center.y()),
+               QPointF(center.x() + len, center.y()));
+    p.drawLine(QPointF(center.x(), center.y() - len),
+               QPointF(center.x(), center.y() + len));
 }

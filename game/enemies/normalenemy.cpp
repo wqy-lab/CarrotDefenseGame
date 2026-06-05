@@ -2,7 +2,7 @@
 #include "../config/datamanager.h"
 
 NormalEnemy::NormalEnemy(const std::vector<QPointF>& path)
-    : Enemy(path, DataManager::instance().getEnemyStats(EnemyType::Normal)) {}
+    : Enemy(path, DataManager::instance().getEnemyStats(EnemyType::Normal), "normal") {}
 
 void NormalEnemy::drawBody(QPainter& p, const QPointF& center, int r) const {
     p.setBrush(color());

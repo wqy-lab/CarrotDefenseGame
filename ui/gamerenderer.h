@@ -39,6 +39,7 @@ private:
     void drawProjectiles(QPainter& p);
     void drawObstacles(QPainter& p);
     void drawHoverPreview(QPainter& p);
+    void drawPriorityTarget(QPainter& p);
 
     GameController* m_gameController = nullptr;
     SpatialGrid* m_spatialGrid = nullptr;

@@ -3,7 +3,7 @@
 #include <cmath>
 
 BossEnemy::BossEnemy(const std::vector<QPointF>& path)
-    : Enemy(path, DataManager::instance().getEnemyStats(EnemyType::Boss)) {}
+    : Enemy(path, DataManager::instance().getEnemyStats(EnemyType::Boss), "boss") {}
 
 void BossEnemy::drawBody(QPainter& p, const QPointF& center, int r) const {
     p.setBrush(color());

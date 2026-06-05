@@ -1,8 +1,10 @@
 #include "enemy.h"
+#include "../config/datamanager.h"
 #include <QtMath>
 #include <algorithm>
 
-Enemy::Enemy(const std::vector<QPointF>& path, EnemyStats stats)
+Enemy::Enemy(const std::vector<QPointF>& path, EnemyStats stats,
+             const QString& textureTag)
     : m_stats(stats)
     , m_hp(stats.maxHp)
     , m_gridPos(path.empty() ? QPointF(0.5, 0.5) : QPointF(path[0].x() + 0.5, path[0].y() + 0.5))
@@ -11,6 +13,7 @@ Enemy::Enemy(const std::vector<QPointF>& path, EnemyStats stats)
     , m_slowFactor(1.0), m_slowTimer(0.0)
     , m_poisonDps(0.0), m_poisonTimer(0.0)
     , m_goldAwarded(false)
+    , m_textureTag(textureTag)
 {}
 
 bool Enemy::consumeReward()
@@ -91,12 +94,31 @@ void Enemy::draw(QPainter& p, double cellSize, double offsetX, double offsetY) c
     QColor hpC = hpR > 0.5 ? QColor(76,175,80) : hpR > 0.25 ? QColor(255,193,7) : QColor(244,67,54);
     p.fillRect(QRectF(cx - barW/2.0, cy - r - 10, barW * hpR, barH), hpC);
 
-    QColor body = color();
-    if (m_poisonTimer > 0) body = QColor(120, 200, 80);
-    else if (m_slowFactor < 1.0) body = QColor(100, 180, 255);
+    bool drewTexture = false;
+    if (!m_textureTag.isEmpty()) {
+        QString path = QString("assets/enemies/enemy_%1.png").arg(m_textureTag);
+        const QPixmap& tex = DataManager::instance().getTexture(path);
+        if (!tex.isNull()) {
+            QRectF target(cx - r, cy - r, r * 2, r * 2);
+            p.drawPixmap(target.toRect(), tex);
+            drewTexture = true;
+        }
+    }
 
-    p.setPen(Qt::NoPen);
-    drawBody(p, QPointF(cx, cy), r);
+    if (!drewTexture) {
+        QColor body = color();
+        p.setPen(Qt::NoPen);
+        p.setBrush(body);
+        drawBody(p, QPointF(cx, cy), r);
+    }
+
+    QRectF stateRect(cx - r, cy - r, r * 2, r * 2);
+    if (m_slowFactor < 1.0) {
+        p.fillRect(stateRect, QColor(100, 180, 255, 80));
+    }
+    if (m_poisonTimer > 0) {
+        p.fillRect(stateRect, QColor(120, 200, 80, 80));
+    }
 }
 
 void Enemy::drawFace(QPainter& p, const QPointF& center, int r) const {

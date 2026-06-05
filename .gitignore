@@ -24,6 +24,8 @@ Makefile.*
 
 # CMake
 CMakeUserPresets.json
+cmake-build-debug/
+cmake-build-debug-mingw/
 
 # Tooling
 .opencode/

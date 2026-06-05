@@ -38,6 +38,10 @@ set(PROJECT_SOURCES
         ui/gamehud.cpp
         ui/gamehud.h
         ui/gamehud.ui
+        ui/tutorialarrow.cpp
+        ui/tutorialarrow.h
+        ui/tutorialcontroller.cpp
+        ui/tutorialcontroller.h
     game/enemies/enemy.cpp
     game/enemies/enemy.h
     game/towers/tower.cpp

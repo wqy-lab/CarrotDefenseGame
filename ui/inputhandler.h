@@ -14,6 +14,7 @@ class GameRenderer;
 class TowerManager;
 class PanelController;
 class SpatialGrid;
+class TutorialController;
 
 class InputHandler {
 public:
@@ -24,6 +25,7 @@ public:
     void setTowerManager(TowerManager* tm) { m_towerManager = tm; }
     void setPanelController(PanelController* pc) { m_panelController = pc; }
     void setSpatialGrid(SpatialGrid* sg) { m_spatialGrid = sg; }
+    void setTutorialController(TutorialController* tc) { m_tutorialController = tc; }
 
     void handleMouseMove(QMouseEvent* event);
     void handleMousePress(QMouseEvent* event);
@@ -36,6 +38,7 @@ private:
     TowerManager* m_towerManager = nullptr;
     PanelController* m_panelController = nullptr;
     SpatialGrid* m_spatialGrid = nullptr;
+    TutorialController* m_tutorialController = nullptr;
 };
 
 #endif

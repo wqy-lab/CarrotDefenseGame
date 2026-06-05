@@ -4,6 +4,7 @@
 #include "panelcontroller.h"
 #include "gameoverlay.h"
 #include "gamehud.h"
+#include "tutorialcontroller.h"
 #include "../game/gamecontroller.h"
 #include "../game/spatialgrid.h"
 #include "../game/towermanager.h"
@@ -112,6 +113,21 @@ GameScene::GameScene(QWidget* parent)
 void GameScene::startGame()
 {
     m_gameController->startGame();
+
+    // Initialize tutorial if this is the tutorial level (level 0)
+    if (m_gameController->levelId() == 0 && !m_tutorialController) {
+        m_tutorialController = new TutorialController(
+            this, m_gameHUD, m_spatialGrid, m_towerManager,
+            m_overlay, this, this);
+        m_inputHandler->setTutorialController(m_tutorialController);
+        m_gameController->setOnEnemyKilled([this]() {
+            if (m_tutorialController)
+                m_tutorialController->onEnemyKilled();
+        });
+        m_tutorialController->start();
+        return;  // Tutorial manages its own timing
+    }
+
     m_gameHUD->setPausedState(false);
     m_clock.start();
     m_gameTimer->start(16);

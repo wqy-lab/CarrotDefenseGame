@@ -4,6 +4,7 @@
 #include <QObject>
 #include <vector>
 #include <memory>
+#include <functional>
 #include "wave.h"
 #include "cellentities.h"
 #include "enemies/enemy.h"
@@ -18,6 +19,8 @@ class GameController : public QObject {
 public:
     explicit GameController(SpatialGrid* spatialGrid, QObject* parent = nullptr);
     ~GameController() = default;
+
+    void setOnEnemyKilled(std::function<void()> callback) { m_onEnemyKilled = std::move(callback); }
 
     void startGame();
     void pauseGame();
@@ -78,6 +81,7 @@ private:
     Obstacle* m_priorityObstacle = nullptr;
 
     SpatialGrid* m_spatialGrid = nullptr;
+    std::function<void()> m_onEnemyKilled;
 };
 
 #endif

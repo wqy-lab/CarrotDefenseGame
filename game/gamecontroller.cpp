@@ -194,6 +194,16 @@ void GameController::updateGame(double dt, const std::vector<std::unique_ptr<Tow
         }
     }
 
+    // Notify tutorial if any enemy was killed this frame
+    if (m_onEnemyKilled) {
+        for (auto& e : m_enemies) {
+            if (e->isDead()) {
+                m_onEnemyKilled();
+                break;
+            }
+        }
+    }
+
     m_enemies.erase(
         std::remove_if(m_enemies.begin(), m_enemies.end(),
             [](auto& e) { return e->isDead() || e->reachedEnd(); }),

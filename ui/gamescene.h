@@ -16,6 +16,7 @@ class TowerPanel;
 class TowerSelectionPopup;
 class GameOverlay;
 class GameHUD;
+class TutorialController;
 
 class GameScene : public QWidget {
     Q_OBJECT
@@ -75,6 +76,7 @@ private:
     TowerSelectionPopup* m_selectionPopup = nullptr;
     GameOverlay* m_overlay = nullptr;
     GameHUD* m_gameHUD = nullptr;
+    TutorialController* m_tutorialController = nullptr;
 
     QTimer* m_gameTimer = nullptr;
     QElapsedTimer m_clock;

@@ -12,6 +12,7 @@ void PoisonBullet::onHit(Enemy* enemy, std::vector<std::unique_ptr<Enemy>>& enem
 {
     Q_UNUSED(enemies);
     Q_UNUSED(cell);
+    enemy->takeDamage(m_damage);
     for (auto& m : m_markerTemplates) {
         enemy->addMarker(m->clone());
     }

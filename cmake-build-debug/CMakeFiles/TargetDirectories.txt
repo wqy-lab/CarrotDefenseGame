@@ -1,5 +1,0 @@
-D:/assign/CarrotDefenseGame/cmake-build-debug/CMakeFiles/CarrotDefense.dir
-D:/assign/CarrotDefenseGame/cmake-build-debug/CMakeFiles/edit_cache.dir
-D:/assign/CarrotDefenseGame/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-D:/assign/CarrotDefenseGame/cmake-build-debug/CMakeFiles/CarrotDefense_autogen_timestamp_deps.dir
-D:/assign/CarrotDefenseGame/cmake-build-debug/CMakeFiles/CarrotDefense_autogen.dir

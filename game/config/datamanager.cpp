@@ -263,10 +263,8 @@ const QPixmap& DataManager::getTexture(const QString& path) const
 
     QString absPath = QFileInfo(path).absoluteFilePath();
     bool exists = QFile::exists(path);
-    qDebug() << "[DataManager] cwd:" << QDir::currentPath()
-             << "| requested:" << path
-             << "| absolute:" << absPath
-             << "| exists:" << exists;
+    Q_UNUSED(absPath);
+    Q_UNUSED(exists);
 
     QPixmap pm(path);
     if (pm.isNull()) {

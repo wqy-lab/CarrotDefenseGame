@@ -1,6 +1,0 @@
-{
-    "levels": [
-        { "id": 1, "name": "蛇形关", "file": "config/levels/level1.json" },
-        { "id": 2, "name": "双格障碍关", "file": "config/levels/level2.json" }
-    ]
-}

@@ -146,24 +146,7 @@ void GameRenderer::drawTowers(QPainter& p)
     if (!m_towerManager) return;
 
     for (auto& t : m_towerManager->towers()) {
-        QPointF center = m_spatialGrid->gridToPixel(t->gridX(), t->gridY());
-        double r = m_spatialGrid->cellSize() * 0.4;
-        auto stats = t->stats();
-
-        p.setPen(QPen(Qt::black, 2));
-        p.setBrush(stats.color);
-        p.drawRect(QRectF(center.x()-r, center.y()-r, r*2, r*2));
-
-        p.setPen(Qt::white);
-        QFont f("Arial", qMax(8, static_cast<int>(m_spatialGrid->cellSize()*0.3)), QFont::Bold);
-        p.setFont(f);
-        QString label;
-        switch (t->type()) {
-            case TowerType::Arrow: label = "A"; break;
-            case TowerType::Cannon: label = "C"; break;
-            case TowerType::Ice: label = "I"; break;
-        }
-        p.drawText(QRectF(center.x()-r, center.y()-r, r*2, r*2), Qt::AlignCenter, label);
+        t->draw(p, m_spatialGrid->cellSize(), m_spatialGrid->offsetX(), m_spatialGrid->offsetY());
     }
 }
 

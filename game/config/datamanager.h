@@ -4,6 +4,7 @@
 #include <QHash>
 #include <QString>
 #include <QPoint>
+#include <QPixmap>
 #include <vector>
 #include "../towers/tower.h"
 #include "../enemies/enemy.h"
@@ -65,6 +66,8 @@ public:
     ObstacleStats getObstacleStats(ObstacleType type) const;
     const std::vector<ObstacleEntry>& obstacles() const { return m_obstacles; }
 
+    const QPixmap& getTexture(const QString& path) const;
+
     const std::vector<std::vector<WaveEntry>>& waves() const
     {
         return m_waves;
@@ -87,6 +90,8 @@ private:
     std::vector<std::vector<WaveEntry>> m_waves;
     std::vector<LevelEntry> m_levels;
     MapData m_mapData;
+
+    mutable QHash<QString, QPixmap> m_textureCache;
 
     int m_initialGold = 200;
     int m_initialLives = 10;

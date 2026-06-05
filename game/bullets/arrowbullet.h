@@ -15,6 +15,8 @@ public:
                 double slowFactor, double slowDuration,
                 double poisonDps, double poisonDuration, const QColor& color);
 
+    void draw(QPainter& p, double cellSize, double offsetX, double offsetY) const override;
+
 private:
     std::vector<std::unique_ptr<Marker>> m_markers;
 };

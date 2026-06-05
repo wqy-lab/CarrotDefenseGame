@@ -4,6 +4,9 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QColor>
+#include <QDir>
+#include <QFileInfo>
+#include <QDebug>
 
 // --- string → enum helpers (file-local) ---
 
@@ -238,4 +241,27 @@ EnemyStats DataManager::getEnemyStats(EnemyType type) const
 ObstacleStats DataManager::getObstacleStats(ObstacleType type) const
 {
     return m_obstacleStats.value(type);
+}
+
+const QPixmap& DataManager::getTexture(const QString& path) const
+{
+    auto it = m_textureCache.find(path);
+    if (it != m_textureCache.end())
+        return it.value();
+
+    QString absPath = QFileInfo(path).absoluteFilePath();
+    bool exists = QFile::exists(path);
+    qDebug() << "[DataManager] cwd:" << QDir::currentPath()
+             << "| requested:" << path
+             << "| absolute:" << absPath
+             << "| exists:" << exists;
+
+    QPixmap pm(path);
+    if (pm.isNull()) {
+        m_textureCache.insert(path, QPixmap());
+        static QPixmap empty;
+        return empty;
+    }
+    auto result = m_textureCache.insert(path, pm);
+    return result.value();
 }

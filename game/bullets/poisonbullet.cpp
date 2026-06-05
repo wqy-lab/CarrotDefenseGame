@@ -33,9 +33,8 @@ void PoisonBullet::draw(QPainter& p, double cellSize, double offsetX, double off
         p.translate(pixelPos);
         double angle = qAtan2(m_direction.y(), m_direction.x());
         p.rotate(qRadiansToDegrees(angle));
-        int hw = tex.width() / 2;
-        int hh = tex.height() / 2;
-        p.drawPixmap(-hw, -hh, tex);
+        double sz = cellSize * 0.6;
+        p.drawPixmap(QRectF(-sz / 2.0, -sz / 2.0, sz, sz).toRect(), tex);
         p.restore();
         return;
     }

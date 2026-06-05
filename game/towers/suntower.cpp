@@ -11,11 +11,17 @@ void SunTower::drawBody(QPainter& p, const QPointF& center, double r) const
 {
     p.setRenderHint(QPainter::Antialiasing, true);
 
-    p.setPen(Qt::NoPen);
-    p.setBrush(QColor(255, 200, 50, 30));
-    p.drawEllipse(center, r * 1.6, r * 1.6);
-    p.setBrush(QColor(255, 200, 50, 60));
-    p.drawEllipse(center, r * 1.3, r * 1.3);
+    if (m_cooldown > 0) {
+        double progress = 1.0 - m_cooldown / attackSpeed();
+        double maxRadius = range() * m_cellSize;
+        double currentRadius = maxRadius * progress;
+        int alpha = static_cast<int>(150 * (1.0 - progress) + 20);
+        if (alpha > 0 && currentRadius > 0) {
+            p.setPen(Qt::NoPen);
+            p.setBrush(QColor(255, 200, 50, alpha));
+            p.drawEllipse(center, currentRadius, currentRadius);
+        }
+    }
 
     QString path = QString("assets/towers/sun_lv%1.png").arg(level());
     const QPixmap& tex = DataManager::instance().getTexture(path);

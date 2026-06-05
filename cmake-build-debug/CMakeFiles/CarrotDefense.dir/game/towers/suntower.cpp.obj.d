@@ -357,4 +357,17 @@ CMakeFiles/CarrotDefense.dir/game/towers/suntower.cpp.obj: \
  D:/app/Qt/6.9.3/mingw_64/include/QtGui/qfontmetrics.h \
  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QString \
  D:/app/Qt/6.9.3/mingw_64/include/QtCore/qstring.h \
- D:/assign/CarrotDefenseGame/game/markers/marker.h
+ D:/assign/CarrotDefenseGame/game/markers/marker.h \
+ D:/assign/CarrotDefenseGame/game/config/datamanager.h \
+ D:/app/Qt/6.9.3/mingw_64/include/QtCore/QHash \
+ D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhash.h \
+ D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPoint \
+ D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPixmap \
+ D:/app/Qt/6.9.3/mingw_64/include/QtGui/qpixmap.h \
+ D:/assign/CarrotDefenseGame/game/towers/tower.h \
+ D:/assign/CarrotDefenseGame/game/enemies/enemy.h \
+ D:/assign/CarrotDefenseGame/game/markers/marker.h \
+ D:/assign/CarrotDefenseGame/game/enemies/enemyfactory.h \
+ D:/assign/CarrotDefenseGame/game/wave.h \
+ D:/assign/CarrotDefenseGame/game/enemies/enemyfactory.h \
+ D:/assign/CarrotDefenseGame/game/obstacles/obstaclefactory.h

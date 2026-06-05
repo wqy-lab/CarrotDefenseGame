@@ -14,6 +14,8 @@ public:
     IceBullet(const QPointF& start, const QPointF& target, double damage,
               double slowFactor, double slowDuration, const QColor& color);
 
+    void draw(QPainter& p, double cellSize, double offsetX, double offsetY) const override;
+
 private:
     std::unique_ptr<Marker> m_marker;
 };

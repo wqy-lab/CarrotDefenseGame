@@ -1563,8 +1563,11 @@ CMakeFiles/CarrotDefense.dir/game/bullets/bulletfactory.cpp.obj: D:/assign/Carro
   D:/assign/CarrotDefenseGame/game/bullets/poisonbullet.h
 
 CMakeFiles/CarrotDefense.dir/game/bullets/cannonbullet.cpp.obj: D:/assign/CarrotDefenseGame/game/bullets/cannonbullet.cpp \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QHash \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPoint \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPointF \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QString \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QtMath \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q17memory.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q20functional.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q20iterator.h \
@@ -1607,6 +1610,7 @@ CMakeFiles/CarrotDefense.dir/game/bullets/cannonbullet.cpp.obj: D:/assign/Carrot
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qgenericatomic.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobal.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobalstatic.h \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhash.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhashfunctions.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiodevicebase.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiterable.h \
@@ -1677,6 +1681,7 @@ CMakeFiles/CarrotDefense.dir/game/bullets/cannonbullet.cpp.obj: D:/assign/Carrot
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qxptype_traits.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qyieldcpu.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPainter \
+  D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPixmap \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qbrush.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qcolor.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qfont.h \
@@ -1701,8 +1706,13 @@ CMakeFiles/CarrotDefense.dir/game/bullets/cannonbullet.cpp.obj: D:/assign/Carrot
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs_win.h \
   D:/assign/CarrotDefenseGame/game/cellentities.h \
+  D:/assign/CarrotDefenseGame/game/config/datamanager.h \
   D:/assign/CarrotDefenseGame/game/enemies/enemy.h \
+  D:/assign/CarrotDefenseGame/game/enemies/enemyfactory.h \
   D:/assign/CarrotDefenseGame/game/markers/marker.h \
+  D:/assign/CarrotDefenseGame/game/obstacles/obstaclefactory.h \
+  D:/assign/CarrotDefenseGame/game/towers/tower.h \
+  D:/assign/CarrotDefenseGame/game/wave.h \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/algorithm \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/array \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/atomic \
@@ -1922,8 +1932,11 @@ CMakeFiles/CarrotDefense.dir/game/bullets/cannonbullet.cpp.obj: D:/assign/Carrot
   D:/assign/CarrotDefenseGame/game/bullets/cannonbullet.h
 
 CMakeFiles/CarrotDefense.dir/game/bullets/icebullet.cpp.obj: D:/assign/CarrotDefenseGame/game/bullets/icebullet.cpp \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QHash \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPoint \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPointF \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QString \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QtMath \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q17memory.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q20functional.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q20iterator.h \
@@ -1966,6 +1979,7 @@ CMakeFiles/CarrotDefense.dir/game/bullets/icebullet.cpp.obj: D:/assign/CarrotDef
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qgenericatomic.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobal.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobalstatic.h \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhash.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhashfunctions.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiodevicebase.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiterable.h \
@@ -2036,6 +2050,7 @@ CMakeFiles/CarrotDefense.dir/game/bullets/icebullet.cpp.obj: D:/assign/CarrotDef
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qxptype_traits.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qyieldcpu.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPainter \
+  D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPixmap \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qbrush.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qcolor.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qfont.h \
@@ -2060,9 +2075,14 @@ CMakeFiles/CarrotDefense.dir/game/bullets/icebullet.cpp.obj: D:/assign/CarrotDef
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs_win.h \
   D:/assign/CarrotDefenseGame/game/cellentities.h \
+  D:/assign/CarrotDefenseGame/game/config/datamanager.h \
   D:/assign/CarrotDefenseGame/game/enemies/enemy.h \
+  D:/assign/CarrotDefenseGame/game/enemies/enemyfactory.h \
   D:/assign/CarrotDefenseGame/game/markers/marker.h \
   D:/assign/CarrotDefenseGame/game/markers/slowmarker.h \
+  D:/assign/CarrotDefenseGame/game/obstacles/obstaclefactory.h \
+  D:/assign/CarrotDefenseGame/game/towers/tower.h \
+  D:/assign/CarrotDefenseGame/game/wave.h \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/algorithm \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/array \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/atomic \
@@ -2284,6 +2304,7 @@ CMakeFiles/CarrotDefense.dir/game/bullets/icebullet.cpp.obj: D:/assign/CarrotDef
 CMakeFiles/CarrotDefense.dir/game/bullets/lightningbullet.cpp.obj: D:/assign/CarrotDefenseGame/game/bullets/lightningbullet.cpp \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPointF \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QString \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QtMath \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q17memory.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q20functional.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q20iterator.h \
@@ -2644,8 +2665,11 @@ CMakeFiles/CarrotDefense.dir/game/bullets/lightningbullet.cpp.obj: D:/assign/Car
   D:/assign/CarrotDefenseGame/game/bullets/lightningbullet.h
 
 CMakeFiles/CarrotDefense.dir/game/bullets/poisonbullet.cpp.obj: D:/assign/CarrotDefenseGame/game/bullets/poisonbullet.cpp \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QHash \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPoint \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPointF \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QString \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QtMath \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q17memory.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q20functional.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q20iterator.h \
@@ -2688,6 +2712,7 @@ CMakeFiles/CarrotDefense.dir/game/bullets/poisonbullet.cpp.obj: D:/assign/Carrot
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qgenericatomic.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobal.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobalstatic.h \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhash.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhashfunctions.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiodevicebase.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiterable.h \
@@ -2758,6 +2783,7 @@ CMakeFiles/CarrotDefense.dir/game/bullets/poisonbullet.cpp.obj: D:/assign/Carrot
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qxptype_traits.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qyieldcpu.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPainter \
+  D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPixmap \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qbrush.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qcolor.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qfont.h \
@@ -2782,9 +2808,14 @@ CMakeFiles/CarrotDefense.dir/game/bullets/poisonbullet.cpp.obj: D:/assign/Carrot
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs_win.h \
   D:/assign/CarrotDefenseGame/game/cellentities.h \
+  D:/assign/CarrotDefenseGame/game/config/datamanager.h \
   D:/assign/CarrotDefenseGame/game/enemies/enemy.h \
+  D:/assign/CarrotDefenseGame/game/enemies/enemyfactory.h \
   D:/assign/CarrotDefenseGame/game/markers/marker.h \
   D:/assign/CarrotDefenseGame/game/markers/poisonmarker.h \
+  D:/assign/CarrotDefenseGame/game/obstacles/obstaclefactory.h \
+  D:/assign/CarrotDefenseGame/game/towers/tower.h \
+  D:/assign/CarrotDefenseGame/game/wave.h \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/algorithm \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/array \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/atomic \
@@ -9788,6 +9819,8 @@ CMakeFiles/CarrotDefense.dir/game/towers/arrowtower.cpp.obj: D:/assign/CarrotDef
   D:/assign/CarrotDefenseGame/game/towers/tower.h
 
 CMakeFiles/CarrotDefense.dir/game/towers/canntower.cpp.obj: D:/assign/CarrotDefenseGame/game/towers/canntower.cpp \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QHash \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPoint \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPointF \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QString \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q17memory.h \
@@ -9832,6 +9865,7 @@ CMakeFiles/CarrotDefense.dir/game/towers/canntower.cpp.obj: D:/assign/CarrotDefe
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qgenericatomic.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobal.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobalstatic.h \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhash.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhashfunctions.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiodevicebase.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiterable.h \
@@ -9902,6 +9936,7 @@ CMakeFiles/CarrotDefense.dir/game/towers/canntower.cpp.obj: D:/assign/CarrotDefe
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qxptype_traits.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qyieldcpu.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPainter \
+  D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPixmap \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qbrush.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qcolor.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qfont.h \
@@ -9925,7 +9960,13 @@ CMakeFiles/CarrotDefense.dir/game/towers/canntower.cpp.obj: D:/assign/CarrotDefe
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qtransform.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs_win.h \
+  D:/assign/CarrotDefenseGame/game/config/datamanager.h \
+  D:/assign/CarrotDefenseGame/game/enemies/enemy.h \
+  D:/assign/CarrotDefenseGame/game/enemies/enemyfactory.h \
   D:/assign/CarrotDefenseGame/game/markers/marker.h \
+  D:/assign/CarrotDefenseGame/game/obstacles/obstaclefactory.h \
+  D:/assign/CarrotDefenseGame/game/towers/tower.h \
+  D:/assign/CarrotDefenseGame/game/wave.h \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/algorithm \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/array \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/atomic \
@@ -10146,6 +10187,8 @@ CMakeFiles/CarrotDefense.dir/game/towers/canntower.cpp.obj: D:/assign/CarrotDefe
   D:/assign/CarrotDefenseGame/game/towers/tower.h
 
 CMakeFiles/CarrotDefense.dir/game/towers/icetower.cpp.obj: D:/assign/CarrotDefenseGame/game/towers/icetower.cpp \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QHash \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPoint \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPointF \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QString \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q17memory.h \
@@ -10190,6 +10233,7 @@ CMakeFiles/CarrotDefense.dir/game/towers/icetower.cpp.obj: D:/assign/CarrotDefen
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qgenericatomic.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobal.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobalstatic.h \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhash.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhashfunctions.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiodevicebase.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiterable.h \
@@ -10260,6 +10304,7 @@ CMakeFiles/CarrotDefense.dir/game/towers/icetower.cpp.obj: D:/assign/CarrotDefen
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qxptype_traits.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qyieldcpu.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPainter \
+  D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPixmap \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qbrush.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qcolor.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qfont.h \
@@ -10283,7 +10328,13 @@ CMakeFiles/CarrotDefense.dir/game/towers/icetower.cpp.obj: D:/assign/CarrotDefen
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qtransform.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs_win.h \
+  D:/assign/CarrotDefenseGame/game/config/datamanager.h \
+  D:/assign/CarrotDefenseGame/game/enemies/enemy.h \
+  D:/assign/CarrotDefenseGame/game/enemies/enemyfactory.h \
   D:/assign/CarrotDefenseGame/game/markers/marker.h \
+  D:/assign/CarrotDefenseGame/game/obstacles/obstaclefactory.h \
+  D:/assign/CarrotDefenseGame/game/towers/tower.h \
+  D:/assign/CarrotDefenseGame/game/wave.h \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/algorithm \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/array \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/atomic \
@@ -10504,6 +10555,8 @@ CMakeFiles/CarrotDefense.dir/game/towers/icetower.cpp.obj: D:/assign/CarrotDefen
   D:/assign/CarrotDefenseGame/game/towers/tower.h
 
 CMakeFiles/CarrotDefense.dir/game/towers/lighttower.cpp.obj: D:/assign/CarrotDefenseGame/game/towers/lighttower.cpp \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QHash \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPoint \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPointF \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QString \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q17memory.h \
@@ -10548,6 +10601,7 @@ CMakeFiles/CarrotDefense.dir/game/towers/lighttower.cpp.obj: D:/assign/CarrotDef
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qgenericatomic.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobal.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobalstatic.h \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhash.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhashfunctions.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiodevicebase.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiterable.h \
@@ -10618,6 +10672,7 @@ CMakeFiles/CarrotDefense.dir/game/towers/lighttower.cpp.obj: D:/assign/CarrotDef
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qxptype_traits.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qyieldcpu.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPainter \
+  D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPixmap \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qbrush.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qcolor.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qfont.h \
@@ -10641,7 +10696,13 @@ CMakeFiles/CarrotDefense.dir/game/towers/lighttower.cpp.obj: D:/assign/CarrotDef
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qtransform.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs_win.h \
+  D:/assign/CarrotDefenseGame/game/config/datamanager.h \
+  D:/assign/CarrotDefenseGame/game/enemies/enemy.h \
+  D:/assign/CarrotDefenseGame/game/enemies/enemyfactory.h \
   D:/assign/CarrotDefenseGame/game/markers/marker.h \
+  D:/assign/CarrotDefenseGame/game/obstacles/obstaclefactory.h \
+  D:/assign/CarrotDefenseGame/game/towers/tower.h \
+  D:/assign/CarrotDefenseGame/game/wave.h \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/algorithm \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/array \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/atomic \
@@ -11220,6 +11281,8 @@ CMakeFiles/CarrotDefense.dir/game/towers/meleetower.cpp.obj: D:/assign/CarrotDef
   D:/assign/CarrotDefenseGame/game/towers/tower.h
 
 CMakeFiles/CarrotDefense.dir/game/towers/poisontower.cpp.obj: D:/assign/CarrotDefenseGame/game/towers/poisontower.cpp \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QHash \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPoint \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPointF \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QString \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q17memory.h \
@@ -11264,6 +11327,7 @@ CMakeFiles/CarrotDefense.dir/game/towers/poisontower.cpp.obj: D:/assign/CarrotDe
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qgenericatomic.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobal.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobalstatic.h \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhash.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhashfunctions.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiodevicebase.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiterable.h \
@@ -11334,6 +11398,7 @@ CMakeFiles/CarrotDefense.dir/game/towers/poisontower.cpp.obj: D:/assign/CarrotDe
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qxptype_traits.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qyieldcpu.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPainter \
+  D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPixmap \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qbrush.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qcolor.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qfont.h \
@@ -11357,7 +11422,13 @@ CMakeFiles/CarrotDefense.dir/game/towers/poisontower.cpp.obj: D:/assign/CarrotDe
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qtransform.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs_win.h \
+  D:/assign/CarrotDefenseGame/game/config/datamanager.h \
+  D:/assign/CarrotDefenseGame/game/enemies/enemy.h \
+  D:/assign/CarrotDefenseGame/game/enemies/enemyfactory.h \
   D:/assign/CarrotDefenseGame/game/markers/marker.h \
+  D:/assign/CarrotDefenseGame/game/obstacles/obstaclefactory.h \
+  D:/assign/CarrotDefenseGame/game/towers/tower.h \
+  D:/assign/CarrotDefenseGame/game/wave.h \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/algorithm \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/array \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/atomic \
@@ -11938,6 +12009,8 @@ CMakeFiles/CarrotDefense.dir/game/towers/remotetower.cpp.obj: D:/assign/CarrotDe
   D:/assign/CarrotDefenseGame/game/towers/tower.h
 
 CMakeFiles/CarrotDefense.dir/game/towers/suntower.cpp.obj: D:/assign/CarrotDefenseGame/game/towers/suntower.cpp \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QHash \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPoint \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QPointF \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/QString \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/q17memory.h \
@@ -11982,6 +12055,7 @@ CMakeFiles/CarrotDefense.dir/game/towers/suntower.cpp.obj: D:/assign/CarrotDefen
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qgenericatomic.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobal.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qglobalstatic.h \
+  D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhash.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qhashfunctions.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiodevicebase.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qiterable.h \
@@ -12052,6 +12126,7 @@ CMakeFiles/CarrotDefense.dir/game/towers/suntower.cpp.obj: D:/assign/CarrotDefen
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qxptype_traits.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtCore/qyieldcpu.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPainter \
+  D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPixmap \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qbrush.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qcolor.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qfont.h \
@@ -12075,7 +12150,13 @@ CMakeFiles/CarrotDefense.dir/game/towers/suntower.cpp.obj: D:/assign/CarrotDefen
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qtransform.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs.h \
   D:/app/Qt/6.9.3/mingw_64/include/QtGui/qwindowdefs_win.h \
+  D:/assign/CarrotDefenseGame/game/config/datamanager.h \
+  D:/assign/CarrotDefenseGame/game/enemies/enemy.h \
+  D:/assign/CarrotDefenseGame/game/enemies/enemyfactory.h \
   D:/assign/CarrotDefenseGame/game/markers/marker.h \
+  D:/assign/CarrotDefenseGame/game/obstacles/obstaclefactory.h \
+  D:/assign/CarrotDefenseGame/game/towers/tower.h \
+  D:/assign/CarrotDefenseGame/game/wave.h \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/algorithm \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/array \
   D:/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/c++/atomic \

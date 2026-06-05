@@ -361,4 +361,8 @@ CMakeFiles/CarrotDefense.dir/game/bullets/lightningbullet.cpp.obj: \
  D:/assign/CarrotDefenseGame/game/enemies/enemy.h \
  D:/assign/CarrotDefenseGame/game/markers/marker.h \
  D:/app/Qt/6.9.3/mingw_64/include/QtCore/QString \
- D:/app/Qt/6.9.3/mingw_64/include/QtCore/qstring.h
+ D:/app/Qt/6.9.3/mingw_64/include/QtCore/qstring.h \
+ D:/app/Qt/6.9.3/mingw_64/include/QtCore/QtMath \
+ D:/app/Qt/6.9.3/mingw_64/include/QtCore/qmath.h \
+ D:/app/Qt/6.9.3/mingw_64/include/QtGui/QPainterPath \
+ D:/app/Qt/6.9.3/mingw_64/include/QtGui/qpainterpath.h

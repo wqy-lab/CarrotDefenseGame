@@ -61,14 +61,14 @@ void GameRenderer::drawGrid(QPainter& p)
     double totalW = cols * cs;
     double totalH = rows * cs;
 
-    const QPixmap& grassTex = DataManager::instance().getTexture("assets/map/grass_tile.png");
-    const QPixmap& pathTex = DataManager::instance().getTexture("assets/map/path_tile.png");
+    const QPixmap& grassTex = DataManager::instance().getTexture("assets/tiles/grass.png");
+    const QPixmap& pathTex = DataManager::instance().getTexture("assets/tiles/path.png");
 
     p.fillRect(QRectF(ox, oy, totalW, totalH), QColor(60, 80, 45));
 
     for (int y = 0; y < rows; ++y) {
         for (int x = 0; x < cols; ++x) {
-            QRectF target(ox + x * cs + 1, oy + y * cs + 1, cs - 2, cs - 2);
+            QRectF target(ox + x * cs, oy + y * cs, cs, cs);
             if (m_spatialGrid->isPathCell(x, y)) {
                 if (!pathTex.isNull()) {
                     p.drawPixmap(target.toRect(), pathTex);
@@ -86,13 +86,13 @@ void GameRenderer::drawGrid(QPainter& p)
     for (int y = 0; y < rows; ++y) {
         for (int x = 0; x < cols; ++x) {
             if (m_spatialGrid->isObstacleCell(x, y)) {
-                p.fillRect(QRectF(ox + x * cs + 1, oy + y * cs + 1, cs - 2, cs - 2),
+                p.fillRect(QRectF(ox + x * cs, oy + y * cs, cs, cs),
                            QColor(90, 70, 50));
             }
         }
     }
 
-    p.setPen(QPen(QColor(90, 100, 80), 1));
+    p.setPen(QPen(QColor(90, 100, 80, 30), 1));
     for (int x = 0; x <= cols; ++x) {
         p.drawLine(QPointF(ox + x * cs, oy), QPointF(ox + x * cs, oy + rows * cs));
     }
@@ -100,8 +100,8 @@ void GameRenderer::drawGrid(QPainter& p)
         p.drawLine(QPointF(ox, oy + y * cs), QPointF(ox + cols * cs, oy + y * cs));
     }
 
-    const QPixmap& startTex = DataManager::instance().getTexture("assets/map/start_marker.png");
-    const QPixmap& endTex = DataManager::instance().getTexture("assets/map/end_marker.png");
+    const QPixmap& startTex = DataManager::instance().getTexture("assets/tiles/start.png");
+    const QPixmap& endTex = DataManager::instance().getTexture("assets/base/carrot.png");
 
     {
         QPointF c = m_spatialGrid->gridToPixel(m_spatialGrid->startX(), m_spatialGrid->startY());

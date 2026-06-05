@@ -398,7 +398,8 @@ main() 启动时:
      → 从关卡索引取第一个关卡的路径
 
 运行时读取:
-  - TowerStats    → Tower 构造（TowerFactory） + TowerSelectionPopup 价格显示
+  - getTowerStats(type, level)  → Tower 构造 + TowerSelectionPopup 价格显示
+  - getTowerMarkers(type, level) → Tower 构造时创建 Marker 模板
   - EnemyStats    → Enemy 构造（EnemyFactory）
   - MapData       → SpatialGrid::initMap()
   - WaveEntry     → WaveManager 波次
@@ -528,35 +529,86 @@ std::map<QString, MarkerSlot> m_markers;  // key: type()，如 "slow"、"poison"
 
 ### 13.5 Tower 持有 markers
 
-Tower 可持有 `std::vector<std::unique_ptr<Marker>> m_markers`，创建子弹时 clone 自己的 markers 给子弹。
+Tower 持有 `std::array<std::vector<std::unique_ptr<Marker>>, 4> m_markerTemplates`（index 1-3 对应等级），存储各级别的 Marker 模板。攻击时通过 `cloneMarkers()` 克隆当前等级的 markers。
 
-### 13.6 子弹携带 markers
+```cpp
+// Tower 基类方法
+std::vector<std::unique_ptr<Marker>> cloneMarkers() const {
+    std::vector<std::unique_ptr<Marker>> result;
+    for (const auto& m : markers()) {
+        result.push_back(m->clone());
+    }
+    return result;
+}
+const std::vector<std::unique_ptr<Marker>>& markers() const {
+    return m_markerTemplates[m_level];
+}
+```
 
-| 子弹类 | 携带的 Marker |
-|--------|--------------|
-| `ArrowBullet` | `SlowMarker` + `PoisonMarker` |
-| `IceBullet` | `SlowMarker` |
-| `PoisonBullet` | `PoisonMarker` |
-| `CannonBullet` | 无 marker（溅射逻辑在 onHit） |
-| `LightningBullet` | 无 marker（链弹逻辑在 onHit） |
+### 13.6 Bullet 携带 markers
+
+Bullet 基类持有 `std::vector<std::unique_ptr<Marker>> m_markerTemplates`，通过 `setMarkers()` 设置。`onHit` 时 clone 并添加到敌人。
+
+| 子弹类 | 携带的 Marker | 来源 |
+|--------|--------------|------|
+| `ArrowBullet` | `SlowMarker` + `PoisonMarker` | Tower 的 markers() |
+| `IceBullet` | `SlowMarker` | Tower 的 markers() |
+| `PoisonBullet` | `PoisonMarker` | Tower 的 markers() |
+| `CannonBullet` | 无 marker | 溅射逻辑在 onHit 自己处理 |
+| `LightningBullet` | 无 marker | 链弹逻辑在 onHit 自己处理 |
 
 ```cpp
 // Bullet::onHit
-for (auto& marker : m_markers) {
+for (auto& marker : m_markerTemplates) {
     enemy->addMarker(marker->clone());
 }
 ```
 
+**BulletFactory 传递 markers**:
+```cpp
+auto b = createBullet(btype, start, target, damage, splashRadius, color, std::move(markers));
+b->setMarkers(std::move(markers));
+```
+
 ### 13.7 JSON 编码方案
 
-保持现有 JSON 格式不变，Marker 参数来源为 `TowerStats` 中的字段：
+shared.json 中每种塔包含 `levels[]` 和 `markers[]` 两个数组，每个数组 3 个元素分别对应 level 1/2/3。
 
-| Marker 类型 | 来源字段 |
-|------------|---------|
-| `SlowMarker` | `slowFactor` + `slowDuration` |
-| `PoisonMarker` | `poisonDps` + `poisonDuration` |
+```json
+{
+    "type": "Ice",
+    "levels": [
+        { "cost": 60, "damage": 12.0, "range": 2.5, "attackSpeed": 1.0, "color": "#64B4FF" },
+        { "cost": 80, "damage": 16.0, "range": 2.6, "attackSpeed": 1.1, "color": "#64B4FF" },
+        { "cost": 100, "damage": 21.0, "range": 2.8, "attackSpeed": 1.2, "color": "#64B4FF" }
+    ],
+    "markers": [
+        { "type": "slow", "factor": 0.5, "duration": 2.0 },
+        { "type": "slow", "factor": 0.4, "duration": 2.5 },
+        { "type": "slow", "factor": 0.3, "duration": 3.0 }
+    ]
+}
+```
 
-TowerFactory 加载 JSON 时按需构造 Marker 对象。暂不修改 JSON 结构。
+**levels[] 字段**（纯攻击属性）：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `cost` | int | 建造成本 |
+| `damage` | double | 基础伤害 |
+| `range` | double | 射程（grids） |
+| `attackSpeed` | double | 攻击间隔（秒） |
+| `color` | string | 渲染颜色 |
+
+**markers[] 字段**（效果属性，通过 Marker 执行）：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `type` | string | `"slow"` 或 `"poison"` |
+| `factor` | double | slowFactor 或 poisonDps |
+| `duration` | double | 持续时间（秒） |
+
+**设计原则**：TowerStats 只保留纯攻击属性，效果属性由 Marker 管理，实现关注点分离。
 
 ### 13.8 网格坐标系统
 
@@ -624,7 +676,9 @@ int gy = static_cast<int>(std::floor((pos.y() - offsetY) / cellSize));
 #### Tower
 - `m_gridX/Y` — 整数网格坐标
 - `centerPos(cellSize, offsetX, offsetY)` — 返回 `(gridX + 0.5, gridY + 0.5) * cellSize`
-- `rangePx()` — 返回 `m_stats.range * m_cellSize`（像素，用于渲染预览圈）
+- `rangePx()` — 返回 `range() * m_cellSize`（像素，用于渲染预览圈）
+- `range()` — 返回 `m_baseStats[m_level].range`（grids）
+- `damage()`, `attackSpeed()`, `color()` 等 — 通过 level 直接索引 `m_baseStats`
 
 #### Bullet
 - `m_pos` — 网格坐标（中心点），初始化为塔的中心 `(gridX + 0.5, gridY + 0.5)`
@@ -653,8 +707,8 @@ double RemoteTower::distTo(const Enemy& e) const {
     return dx*dx + dy*dy;  // 平方距离，避免开方
 }
 
-// 射程检测：直接用 m_stats.range（grids）的平方比较
-double r2 = m_stats.range * m_stats.range;
+// 射程检测：直接用 range()（grids）的平方比较
+double r2 = range() * range();
 ```
 
 ### 14.8 MeleeTower 效果范围（GameController 中结算）

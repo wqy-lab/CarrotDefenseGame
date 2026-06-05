@@ -1,4 +1,5 @@
 #include "icetower.h"
+#include "../config/datamanager.h"
 #include <cmath>
 
 IceTower::IceTower(int gridX, int gridY, double cellSize, double offsetX, double offsetY)
@@ -6,8 +7,18 @@ IceTower::IceTower(int gridX, int gridY, double cellSize, double offsetX, double
 {
 }
 
-void IceTower::drawBody(QPainter& p, const QPointF& center, double r) const {
-    p.setBrush(m_stats.color);
+void IceTower::drawBody(QPainter& p, const QPointF& center, double r) const
+{
+    QString path = QString("assets/towers/ice_lv%1.png").arg(level());
+    const QPixmap& tex = DataManager::instance().getTexture(path);
+
+    if (!tex.isNull()) {
+        QRectF target(center.x() - r, center.y() - r, r * 2, r * 2);
+        p.drawPixmap(target.toRect(), tex);
+        return;
+    }
+
+    p.setBrush(color());
     p.setPen(QPen(QColor(60, 140, 220), 2));
     QPolygonF poly;
     for (int i = 0; i < 4; ++i) {

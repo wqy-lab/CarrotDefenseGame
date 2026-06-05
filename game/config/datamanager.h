@@ -4,12 +4,20 @@
 #include <QHash>
 #include <QString>
 #include <QPoint>
+#include <QPixmap>
 #include <vector>
+#include <array>
 #include "../towers/tower.h"
 #include "../enemies/enemy.h"
 #include "../enemies/enemyfactory.h"
 #include "../wave.h"
 #include "../obstacles/obstaclefactory.h"
+
+struct MarkerConfig {
+    QString type;
+    double factor;
+    double duration;
+};
 
 struct ObstacleEntry {
     ObstacleType type;
@@ -52,7 +60,8 @@ public:
     bool loadLevel(const QString& path);
     bool loadLevelsIndex(const QString& path);
 
-    TowerStats getTowerStats(TowerType type) const;
+    TowerStats getTowerStats(TowerType type, int level) const;
+    std::vector<MarkerConfig> getTowerMarkers(TowerType type, int level) const;
     EnemyStats getEnemyStats(EnemyType type) const;
 
     const MapData& mapData() const { return m_mapData; }
@@ -64,6 +73,8 @@ public:
 
     ObstacleStats getObstacleStats(ObstacleType type) const;
     const std::vector<ObstacleEntry>& obstacles() const { return m_obstacles; }
+
+    const QPixmap& getTexture(const QString& path) const;
 
     const std::vector<std::vector<WaveEntry>>& waves() const
     {
@@ -80,13 +91,16 @@ private:
     DataManager(const DataManager&) = delete;
     DataManager& operator=(const DataManager&) = delete;
 
-    QHash<TowerType, TowerStats> m_towerStats;
+    QHash<TowerType, std::array<TowerStats, 4>> m_towerStats;
+    QHash<TowerType, std::array<std::vector<MarkerConfig>, 4>> m_towerMarkers;
     QHash<EnemyType, EnemyStats> m_enemyStats;
     QHash<ObstacleType, ObstacleStats> m_obstacleStats;
     std::vector<ObstacleEntry> m_obstacles;
     std::vector<std::vector<WaveEntry>> m_waves;
     std::vector<LevelEntry> m_levels;
     MapData m_mapData;
+
+    mutable QHash<QString, QPixmap> m_textureCache;
 
     int m_initialGold = 200;
     int m_initialLives = 10;

@@ -4,9 +4,13 @@
 #include <QPointF>
 #include <QPainter>
 #include <QString>
+#include <QColor>
 #include <vector>
 #include <memory>
+#include <array>
 #include "../markers/marker.h"
+#include "../markers/slowmarker.h"
+#include "../markers/poisonmarker.h"
 
 class Enemy;
 
@@ -24,12 +28,6 @@ struct TowerStats {
     double damage;
     double range;
     double attackSpeed;
-    double splashRadius;
-    double slowFactor;
-    double slowDuration;
-    double poisonDps;
-    double poisonDuration;
-    int chainCount;
     QColor color;
 };
 
@@ -43,17 +41,22 @@ public:
     int gridX() const { return m_gridX; }
     int gridY() const { return m_gridY; }
     QPointF centerPos(double cellSize, double offsetX, double offsetY) const;
-    double rangePx() const { return m_stats.range * m_cellSize; }
+    double rangePx() const { return range() * m_cellSize; }
     double cellSize() const { return m_cellSize; }
-    int cost() const { return m_baseCost; }
-    TowerStats stats() const { return m_stats; }
     TowerType type() const { return m_type; }
     int level() const { return m_level; }
     static const int MAX_LEVEL = 3;
-    int upgradeCost() const { return m_baseCost * (1 << (m_level - 1)); }
+    int upgradeCost() const { return m_baseStats[m_level].cost * (1 << (m_level - 1)); }
     int sellValue() const { return static_cast<int>(m_totalInvested / 2.0); }
     bool upgrade();
     QString name() const;
+
+    int cost() const { return m_baseStats[m_level].cost; }
+    double damage() const { return m_baseStats[m_level].damage; }
+    double range() const { return m_baseStats[m_level].range; }
+    double attackSpeed() const { return m_baseStats[m_level].attackSpeed; }
+    QColor color() const { return m_baseStats[m_level].color; }
+    const std::vector<std::unique_ptr<Marker>>& markers() const { return m_markerTemplates[m_level]; }
 
 protected:
     Tower(TowerType type, int gridX, int gridY, double cellSize, double offsetX, double offsetY);
@@ -61,13 +64,13 @@ protected:
     virtual void drawBody(QPainter& p, const QPointF& center, double radius) const = 0;
 
     TowerType m_type;
-    TowerStats m_stats;
+    std::array<TowerStats, 4> m_baseStats;
+    std::array<std::vector<std::unique_ptr<Marker>>, 4> m_markerTemplates;
+
     int m_gridX, m_gridY;
     double m_cellSize;
     int m_level = 1;
-    int m_baseCost = 0;
-    double m_totalInvested = 0;
-    TowerStats m_baseStats;
+    int m_totalInvested = 0;
 
 public:
     void setPriorityEnemy(class Enemy* e) { m_priorityEnemy = e; m_priorityObstacle = nullptr; }
@@ -78,7 +81,6 @@ public:
 protected:
     class Enemy* m_priorityEnemy = nullptr;
     class Obstacle* m_priorityObstacle = nullptr;
-    std::vector<std::unique_ptr<Marker>> m_markers;
 };
 
 #endif

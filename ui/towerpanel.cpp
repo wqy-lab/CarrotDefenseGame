@@ -100,8 +100,7 @@ void TowerPanel::updateInfo() {
     m_lblLevel->setText(QString("Lvl %1").arg(m_tower->level()));
     m_lblName->setText(m_tower->name());
 
-    TowerStats s = m_tower->stats();
-    m_lblStats->setText(QString("DMG: %1  RNG: %2").arg(s.damage, 0, 'f', 1).arg(s.range, 0, 'f', 1));
+    m_lblStats->setText(QString("DMG: %1  RNG: %2").arg(m_tower->damage(), 0, 'f', 1).arg(m_tower->range(), 0, 'f', 1));
 
     if (m_tower->level() >= Tower::MAX_LEVEL) {
         m_btnUpgrade->setText("MAX");

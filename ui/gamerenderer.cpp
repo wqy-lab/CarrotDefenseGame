@@ -67,17 +67,6 @@ void GameRenderer::drawGrid(QPainter& p)
         }
     }
 
-    if (m_towerManager) {
-        for (auto& t : m_towerManager->towers()) {
-            int x = t->gridX(), y = t->gridY();
-            p.fillRect(QRectF(
-                m_spatialGrid->offsetX() + x * m_spatialGrid->cellSize() + 1,
-                m_spatialGrid->offsetY() + y * m_spatialGrid->cellSize() + 1,
-                m_spatialGrid->cellSize() - 2, m_spatialGrid->cellSize() - 2),
-                QColor(45, 50, 40));
-        }
-    }
-
     for (int y = 0; y < m_spatialGrid->gridRows(); ++y) {
         for (int x = 0; x < m_spatialGrid->gridCols(); ++x) {
             if (m_spatialGrid->isObstacleCell(x, y)) {
@@ -146,24 +135,7 @@ void GameRenderer::drawTowers(QPainter& p)
     if (!m_towerManager) return;
 
     for (auto& t : m_towerManager->towers()) {
-        QPointF center = m_spatialGrid->gridToPixel(t->gridX(), t->gridY());
-        double r = m_spatialGrid->cellSize() * 0.4;
-        auto stats = t->stats();
-
-        p.setPen(QPen(Qt::black, 2));
-        p.setBrush(stats.color);
-        p.drawRect(QRectF(center.x()-r, center.y()-r, r*2, r*2));
-
-        p.setPen(Qt::white);
-        QFont f("Arial", qMax(8, static_cast<int>(m_spatialGrid->cellSize()*0.3)), QFont::Bold);
-        p.setFont(f);
-        QString label;
-        switch (t->type()) {
-            case TowerType::Arrow: label = "A"; break;
-            case TowerType::Cannon: label = "C"; break;
-            case TowerType::Ice: label = "I"; break;
-        }
-        p.drawText(QRectF(center.x()-r, center.y()-r, r*2, r*2), Qt::AlignCenter, label);
+        t->draw(p, m_spatialGrid->cellSize(), m_spatialGrid->offsetX(), m_spatialGrid->offsetY());
     }
 }
 
@@ -207,9 +179,8 @@ void GameRenderer::drawHoverPreview(QPainter& p)
                                    m_spatialGrid->cellSize(),
                                    m_spatialGrid->offsetX(),
                                    m_spatialGrid->offsetY());
-    auto stats = previewTower->stats();
     QPointF center = m_spatialGrid->gridToPixel(hx, hy);
-    double rangePx = stats.range * m_spatialGrid->cellSize();
+    double rangePx = previewTower->range() * m_spatialGrid->cellSize();
 
     p.setPen(QPen(QColor(255, 255, 255, 80), 1, Qt::DashLine));
     p.setBrush(QColor(100, 200, 100, 30));

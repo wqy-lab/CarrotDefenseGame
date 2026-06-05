@@ -9,30 +9,38 @@
 
 std::unique_ptr<Bullet> createBullet(BulletType type, const QPointF& start,
                                       const QPointF& target, double damage,
-                                      double slowFactor, double slowDuration,
-                                      double poisonDps, double poisonDuration,
-                                      double splashRadius, int chainCount,
-                                      const QColor& color)
+                                      double splashRadius,
+                                      const QColor& color,
+                                      std::vector<std::unique_ptr<Marker>> markers)
 {
     switch (type) {
-    case BulletType::Arrow:
-        return std::make_unique<ArrowBullet>(start, target, damage,
-                                             slowFactor, slowDuration,
-                                             poisonDps, poisonDuration, color);
-    case BulletType::Cannon:
-        return std::make_unique<CannonBullet>(start, target, damage,
-                                              splashRadius, color);
-    case BulletType::Ice:
-        return std::make_unique<IceBullet>(start, target, damage,
-                                           slowFactor, slowDuration, color);
-    case BulletType::Poison:
-        return std::make_unique<PoisonBullet>(start, target, damage,
-                                               poisonDps, poisonDuration, color);
-    case BulletType::Lightning:
-        return std::make_unique<LightningBullet>(start, target, damage,
-                                                  chainCount, color);
+    case BulletType::Arrow: {
+        auto b = std::make_unique<ArrowBullet>(start, target, damage, color);
+        b->setMarkers(std::move(markers));
+        return b;
     }
-    return std::make_unique<ArrowBullet>(start, target, damage,
-                                          slowFactor, slowDuration,
-                                          poisonDps, poisonDuration, color);
+    case BulletType::Cannon: {
+        auto b = std::make_unique<CannonBullet>(start, target, damage, splashRadius, color);
+        b->setMarkers(std::move(markers));
+        return b;
+    }
+    case BulletType::Ice: {
+        auto b = std::make_unique<IceBullet>(start, target, damage, color);
+        b->setMarkers(std::move(markers));
+        return b;
+    }
+    case BulletType::Poison: {
+        auto b = std::make_unique<PoisonBullet>(start, target, damage, color);
+        b->setMarkers(std::move(markers));
+        return b;
+    }
+    case BulletType::Lightning: {
+        auto b = std::make_unique<LightningBullet>(start, target, damage, 3, color);
+        b->setMarkers(std::move(markers));
+        return b;
+    }
+    }
+    auto b = std::make_unique<ArrowBullet>(start, target, damage, color);
+    b->setMarkers(std::move(markers));
+    return b;
 }

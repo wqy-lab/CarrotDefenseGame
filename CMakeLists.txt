@@ -152,6 +152,14 @@ add_custom_command(TARGET CarrotDefense POST_BUILD
     COMMENT "Copying config/ to build output..."
 )
 
+# Copy assets directory to build output so the EXE can find textures
+add_custom_command(TARGET CarrotDefense POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/assets"
+    "$<TARGET_FILE_DIR:CarrotDefense>/assets"
+    COMMENT "Copying assets/ to build output..."
+)
+
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(CarrotDefense)
 endif()

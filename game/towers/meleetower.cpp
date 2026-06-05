@@ -16,11 +16,16 @@ void MeleeTower::update(double dt, const std::vector<std::unique_ptr<Enemy>>& en
     m_pendingEffect.fired = true;
     m_pendingEffect.center = QPointF(m_gridX + 0.5, m_gridY + 0.5);
     m_pendingEffect.radius = m_attackRadius;
-    m_pendingEffect.damage = stats().damage;
-    m_pendingEffect.slowFactor = stats().slowFactor;
-    m_pendingEffect.slowDuration = stats().slowDuration;
-    m_pendingEffect.poisonDps = stats().poisonDps;
-    m_pendingEffect.poisonDuration = stats().poisonDuration;
-    m_pendingEffect.color = stats().color;
-    m_cooldown = stats().attackSpeed;
+    m_pendingEffect.damage = damage();
+    m_pendingEffect.color = color();
+    m_pendingEffect.markers = cloneMarkers();
+    m_cooldown = attackSpeed();
+}
+
+std::vector<std::unique_ptr<Marker>> MeleeTower::cloneMarkers() const {
+    std::vector<std::unique_ptr<Marker>> result;
+    for (const auto& m : markers()) {
+        result.push_back(m->clone());
+    }
+    return result;
 }

@@ -4,6 +4,9 @@
 #include <memory>
 #include <QPointF>
 #include <QColor>
+#include <vector>
+#include <memory>
+#include "../markers/marker.h"
 
 class Bullet;
 
@@ -17,9 +20,8 @@ enum class BulletType {
 
 std::unique_ptr<Bullet> createBullet(BulletType type, const QPointF& start,
                                       const QPointF& target, double damage,
-                                      double slowFactor = 1.0, double slowDuration = 0,
-                                      double poisonDps = 0, double poisonDuration = 0,
-                                      double splashRadius = 0, int chainCount = 0,
-                                      const QColor& color = Qt::red);
+                                      double splashRadius,
+                                      const QColor& color,
+                                      std::vector<std::unique_ptr<Marker>> markers);
 
 #endif

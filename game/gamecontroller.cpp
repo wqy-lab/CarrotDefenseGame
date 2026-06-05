@@ -52,6 +52,7 @@ void GameController::resetGame()
     m_enemies.clear();
     m_projectiles.clear();
     m_obstacles.clear();
+    clearPriorityTarget();
     m_waveManager.reset();
 
     if (m_spatialGrid) {
@@ -138,10 +139,9 @@ void GameController::updateGame(double dt, const std::vector<std::unique_ptr<Tow
                     if (dist <= effectRadiusPx) {
                         double falloff = 1.0 - (dist / effectRadiusPx) * 0.5;
                         e->takeDamage(effect.damage * falloff);
-                        if (effect.slowFactor < 1.0)
-                            e->applySlow(effect.slowFactor, effect.slowDuration);
-                        if (effect.poisonDps > 0)
-                            e->applyPoison(effect.poisonDps, effect.poisonDuration);
+                        for (auto& m : effect.markers) {
+                            e->addMarker(m->clone());
+                        }
                     }
                 }
             }
@@ -161,9 +161,8 @@ void GameController::updateGame(double dt, const std::vector<std::unique_ptr<Tow
                     btype = BulletType::Lightning;
                 }
                 auto b = createBullet(btype, QPointF(t->gridX() + 0.5, t->gridY() + 0.5), attack.targetPos,
-                                      attack.damage, attack.slowFactor,
-                                      attack.slowDuration, attack.poisonDps, attack.poisonDuration,
-                                      attack.splashRadius, attack.chainCount, attack.color);
+                                      attack.damage, attack.splashRadius, attack.color,
+                                      std::move(attack.markers));
                 b->setMaxDistance(attack.maxDistance);
                 b->setGridBounds(m_spatialGrid->gridCols(), m_spatialGrid->gridRows());
                 m_projectiles.push_back(std::move(b));

@@ -482,7 +482,7 @@ GameHUD 和 GameOverlay 作为独立 Widget 覆盖在 GameRenderer 上方，由 
 
 ### 13.1 设计目标
 
-将效果（减速、中毒）从子弹/塔的属性迁移到独立的 Marker 类，实现效果的可堆叠、可扩展。
+将效果（减速、中毒、冰冻）从子弹/塔的属性迁移到独立的 Marker 类，实现效果的可堆叠、可扩展。Marker 采用 **Pull Model**：Enemy 每帧主动查询 Marker 获取效果，而不是 Marker 修改 Enemy。
 
 ### 13.2 Marker 基类
 
@@ -492,11 +492,21 @@ GameHUD 和 GameOverlay 作为独立 Widget 覆盖在 GameRenderer 上方，由 
 class Marker {
 public:
     virtual ~Marker() = default;
-    virtual void update(double dt, Enemy* enemy) = 0;
+    virtual void update(double dt) = 0;
     virtual bool isActive() const = 0;
     virtual std::unique_ptr<Marker> clone() const = 0;
     virtual QString type() const = 0;
     virtual double priority() const = 0;  // 强度比较，越大越优先
+
+    // 拉取效果查询（由 Enemy 每帧调用）
+    virtual double speedFactor() const = 0;   // 0~1，0=完全停止
+    virtual double poisonDps() const = 0;      // 毒伤，每秒伤害
+
+    // 堆叠机制
+    virtual int stackCount() const = 0;        // 当前层数
+    virtual int stackThreshold() const = 0;    // 触发阈值（0=不堆叠）
+    virtual void apply(int stacks) = 0;         // 被调用以应用层数
+    virtual std::unique_ptr<Marker> createTriggered(int stacks) const = 0;  // 触发后创建新 Marker
 
 protected:
     Marker() = default;
@@ -506,100 +516,161 @@ protected:
 
 ### 13.3 具体 Marker 类
 
-| 类 | 文件 | update 行为 | priority 公式 |
-|---|---|---|---|
-| `SlowMarker` | `game/markers/slowmarker.h/cpp` | 每帧 `applySlow(factor, duration)` | `1.0 / m_factor`（factor 越小越强，priority 越大） |
-| `PoisonMarker` | `game/markers/poisonmarker.h/cpp` | 每帧 `applyPoison(dps, duration)` | `m_dps`（dps 越大越强） |
+| 类 | 文件 | update 行为 | speedFactor | poisonDps | stackCount | stackThreshold |
+|---|---|---|---|---|---|---|
+| `SlowMarker` | `game/markers/slowmarker.h/cpp` | duration 递减 | `isActive() ? m_factor : 1.0` | 0 | 0 | 0 |
+| `PoisonMarker` | `game/markers/poisonmarker.h/cpp` | duration 递减 | 1.0 | `isActive() ? m_dps : 0` | 0 | 0 |
+| `FreezeMarker` | `game/markers/freezemarker.h/cpp` | duration 递减 | `stackThreshold==0 && isActive() ? 0.0 : 1.0` | 0 | m_stackCount | m_stackThreshold |
+
+**FreezeMarker 行为**:
+- 构造参数: `stackThreshold`(触发所需命中次数), `freezeDuration`(冰冻持续时间), `duration`(存续时间)
+- `apply(stacks)`: m_stackCount += stacks
+- 当 `stackCount >= stackThreshold` 时触发：清空该类型 vector，插入触发后 Marker（stackThreshold=0, speedFactor=0）
+- `createTriggered()`: 返回 `FreezeMarker(0, m_freezeDuration, m_freezeDuration)`
 
 ### 13.4 Enemy 的 marker 管理
 
 ```cpp
-struct MarkerSlot {
-    std::unique_ptr<Marker> active;                      // 当前激活的 marker
-    std::vector<std::unique_ptr<Marker>> pending;        // 等待队列，按 priority 降序
-};
-std::map<QString, MarkerSlot> m_markers;  // key: type()，如 "slow"、"poison"
+std::map<QString, std::vector<std::unique_ptr<Marker>>> m_markers;
+// key: type()，如 "slow"、"poison"、"freeze"
+// value: 该类型所有 Marker 的 vector，可遍历
 ```
 
-**堆叠逻辑**:
-- `active` 有值时比较 priority
-- new marker 更强（priority 更大）→ active 入 pending，new 成为 active
-- new marker 更弱 → new 入 pending（保持 priority 降序）
-- active 过期时从 pending 队列 promote 下一个
+**效果聚合（Pull Model）**:
+```cpp
+double Enemy::speed() const {
+    double factor = 1.0;
+    for (const auto& [type, markers] : m_markers) {
+        for (const auto& m : markers) {
+            if (m->isActive()) {
+                factor = std::min(factor, m->speedFactor());
+            }
+        }
+    }
+    return m_stats.speed * factor;
+}
 
-### 13.5 Tower 持有 markers
+void Enemy::updateMarkers(double dt) {
+    double poisonDps = 0.0;
+    for (auto& [type, markers] : m_markers) {
+        for (auto& m : markers) {
+            m->update(dt);
+            if (m->isActive()) {
+                poisonDps = std::max(poisonDps, m->poisonDps());
+            }
+        }
+        // 移除 inactive markers
+        markers.erase(
+            std::remove_if(markers.begin(), markers.end(),
+                [](const std::unique_ptr<Marker>& m) { return !m->isActive(); }),
+            markers.end()
+        );
+    }
+    if (poisonDps > 0) {
+        m_hp -= poisonDps * dt;
+    }
+}
+```
 
-Tower 持有 `std::array<std::vector<std::unique_ptr<Marker>>, 4> m_markerTemplates`（index 1-3 对应等级），存储各级别的 Marker 模板。攻击时通过 `cloneMarkers()` 克隆当前等级的 markers。
+**堆叠触发逻辑（addMarker）**:
+```cpp
+void Enemy::addMarker(std::unique_ptr<Marker> marker) {
+    QString type = marker->type();
+    auto& markers = m_markers[type];
+
+    marker->apply(1);  // 累加层数
+    markers.push_back(std::move(marker));
+
+    if (!markers.empty()) {
+        auto& first = markers.front();
+        if (first->stackThreshold() > 0) {
+            int total = 0;
+            for (const auto& m : markers) {
+                total += m->stackCount();
+            }
+            if (total >= first->stackThreshold()) {
+                auto triggered = first->createTriggered(total);
+                markers.clear();
+                markers.push_back(std::move(triggered));
+            }
+        }
+    }
+}
+```
+
+### 13.5 MarkerFactory
+
+**文件**: `game/markers/markerfactory.h/cpp`
+
+使用静态注册模式，替代 Tower 构造函数中的 if-else 链：
 
 ```cpp
-// Tower 基类方法
-std::vector<std::unique_ptr<Marker>> cloneMarkers() const {
-    std::vector<std::unique_ptr<Marker>> result;
-    for (const auto& m : markers()) {
-        result.push_back(m->clone());
+class MarkerFactory {
+public:
+    using Creator = std::function<std::unique_ptr<Marker>(const MarkerConfig& cfg)>;
+    static MarkerFactory& instance();
+    void registerMarker(const QString& type, Creator creator);
+    std::unique_ptr<Marker> create(const MarkerConfig& cfg) const;
+
+private:
+    std::unordered_map<QString, Creator> m_creators;
+};
+```
+
+**注册**（在 instance() 中静态初始化）:
+```cpp
+inst.registerMarker("slow", [](const MarkerConfig& cfg) {
+    return std::make_unique<SlowMarker>(cfg.factor, cfg.duration);
+});
+inst.registerMarker("poison", [](const MarkerConfig& cfg) {
+    return std::make_unique<PoisonMarker>(cfg.factor, cfg.duration);
+});
+inst.registerMarker("freeze", [](const MarkerConfig& cfg) {
+    return std::make_unique<FreezeMarker>(cfg.stackThreshold, cfg.freezeDuration, cfg.duration);
+});
+```
+
+### 13.6 Tower 持有 markers
+
+Tower 持有 `std::array<std::vector<std::unique_ptr<Marker>>, 4> m_markerTemplates`（index 1-3 对应等级），通过 MarkerFactory 创建：
+
+```cpp
+for (int lvl = 1; lvl <= 3; ++lvl) {
+    auto markerCfgs = DataManager::instance().getTowerMarkers(type, lvl);
+    for (const auto& cfg : markerCfgs) {
+        auto marker = MarkerFactory::instance().create(cfg);
+        if (marker) {
+            m_markerTemplates[lvl].push_back(std::move(marker));
+        }
     }
-    return result;
-}
-const std::vector<std::unique_ptr<Marker>>& markers() const {
-    return m_markerTemplates[m_level];
 }
 ```
 
-### 13.6 Bullet 携带 markers
+### 13.7 Bullet 携带 markers
 
 Bullet 基类持有 `std::vector<std::unique_ptr<Marker>> m_markerTemplates`，通过 `setMarkers()` 设置。`onHit` 时 clone 并添加到敌人。
 
 | 子弹类 | 携带的 Marker | 来源 |
 |--------|--------------|------|
-| `ArrowBullet` | `SlowMarker` + `PoisonMarker` | Tower 的 markers() |
-| `IceBullet` | `SlowMarker` | Tower 的 markers() |
+| `ArrowBullet` | `SlowMarker` | Tower 的 markers() |
+| `IceBullet` | `SlowMarker` + `FreezeMarker`（Lv2/Lv3） | Tower 的 markers() |
 | `PoisonBullet` | `PoisonMarker` | Tower 的 markers() |
 | `CannonBullet` | 无 marker | 溅射逻辑在 onHit 自己处理 |
 | `LightningBullet` | 无 marker | 链弹逻辑在 onHit 自己处理 |
 
-```cpp
-// Bullet::onHit
-for (auto& marker : m_markerTemplates) {
-    enemy->addMarker(marker->clone());
-}
-```
+### 13.8 JSON 编码方案（方案 B）
 
-**BulletFactory 传递 markers**:
-```cpp
-auto b = createBullet(btype, start, direction, damage, splashRadius, color, std::move(markers));
-b->setMarkers(std::move(markers));
-```
-
-**穿透机制**：Bullet 基类通过 `m_penetrationLeft` 计数和 `m_hitEnemies` / `m_hitObstacles` 列表实现穿透。命中敌人或障碍物时，如果 `m_penetrationLeft > 0` 则只扣减计数并继续飞行，否则 deactivate。`m_hitEnemies` / `m_hitObstacles` 追踪已击中的目标，避免同一帧内重复击中同一目标。
-
-**多发机制**：Bullet 构造函数接收 `direction` 归一化方向向量而非目标点。GameController 使用旋转矩阵计算分散方向：
-```cpp
-QPointF bulletDir = centerDir * cos(angle) + perpDir * sin(angle);
-```
-
-### 13.7 JSON 编码方案
-
-shared.json 中每种塔包含 `levels[]` 和 `markers[]` 两个数组，每个数组 3 个元素分别对应 level 1/2/3。
+shared.json 中每种塔的 `levels[]` 数组内每个元素独立包含 `markers[]`。
 
 ```json
 {
     "type": "Ice",
     "levels": [
-        { "cost": 60, "damage": 12.0, "range": 2.5, "attackSpeed": 1.0, "color": "#64B4FF", "penetration": 0, "shotCount": 1, "spreadAngle": 0, "waveCount": 1, "waveDelay": 0 },
-        { "cost": 80, "damage": 16.0, "range": 2.6, "attackSpeed": 1.1, "color": "#64B4FF", "penetration": 0, "shotCount": 1, "spreadAngle": 0, "waveCount": 1, "waveDelay": 0 },
-        { "cost": 100, "damage": 21.0, "range": 2.8, "attackSpeed": 1.2, "color": "#64B4FF", "penetration": 0, "shotCount": 1, "spreadAngle": 0, "waveCount": 1, "waveDelay": 0 }
-    ],
-    "markers": [
-        { "type": "slow", "factor": 0.5, "duration": 2.0 },
-        { "type": "slow", "factor": 0.4, "duration": 2.5 },
-        { "type": "slow", "factor": 0.3, "duration": 3.0 }
+        { "cost": 60, "damage": 12.0, "range": 2.5, "attackSpeed": 1.0, "color": "#64B4FF", "markers": [{ "type": "slow", "factor": 0.5, "duration": 2.0 }] },
+        { "cost": 80, "damage": 16.0, "range": 2.6, "attackSpeed": 1.1, "color": "#64B4FF", "markers": [{ "type": "slow", "factor": 0.4, "duration": 2.5 }, { "type": "freeze", "stackThreshold": 3, "freezeDuration": 1.5, "duration": 10.0 }] },
+        { "cost": 100, "damage": 21.0, "range": 2.8, "attackSpeed": 1.2, "color": "#64B4FF", "markers": [{ "type": "slow", "factor": 0.3, "duration": 3.0 }, { "type": "freeze", "stackThreshold": 3, "freezeDuration": 2.0, "duration": 10.0 }] }
     ]
 }
-```
-
-**示例：Arrow 满级多发配置**：
-```json
-{ "cost": 75, "damage": 34.0, "range": 16.5, "attackSpeed": 0.73, "color": "#8BC34A", "penetration": 3, "shotCount": 3, "spreadAngle": 30, "waveCount": 2, "waveDelay": 0.3 }
 ```
 
 **levels[] 字段**（纯攻击属性）：
@@ -616,16 +687,19 @@ shared.json 中每种塔包含 `levels[]` 和 `markers[]` 两个数组，每个�
 | `spreadAngle` | int | 分散角度总范围（度） |
 | `waveCount` | int | 连续发几波 |
 | `waveDelay` | double | 每波之间延迟（秒） |
+| `markers` | array | 该级别的效果标记 |
 
-**markers[] 字段**（效果属性，通过 Marker 执行）：
+**markers[] 字段**：
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `type` | string | `"slow"` 或 `"poison"` |
-| `factor` | double | slowFactor 或 poisonDps |
+| `type` | string | `"slow"`、`"poison"` 或 `"freeze"` |
+| `factor` | double | slowFactor（慢速百分比）或 poisonDps（毒伤） |
 | `duration` | double | 持续时间（秒） |
+| `stackThreshold` | int | freeze 触发所需命中次数（仅 freeze） |
+| `freezeDuration` | double | freeze 触发后冰冻时长（仅 freeze） |
 
-**设计原则**：TowerStats 只保留纯攻击属性，效果属性由 Marker 管理，实现关注点分离。
+**设计原则**：TowerStats 只保留纯攻击属性，效果属性由 Marker 管理，实现关注点分离。Marker 采用 Pull Model，Enemy 每帧查询。
 
 ### 13.8 网格坐标系统
 

@@ -73,6 +73,8 @@ void TowerSelectionPopup::createTowerButton(TowerType type, const QString& name,
 
     m_buttons[type] = btn;
 
+    btn->installEventFilter(this);
+
     int col = m_buttons.keys().indexOf(type) % 3;
     int row = m_buttons.keys().indexOf(type) / 3;
 
@@ -109,12 +111,31 @@ void TowerSelectionPopup::showEvent(QShowEvent* event)
     QWidget::showEvent(event);
 }
 
+void TowerSelectionPopup::hideEvent(QHideEvent* event)
+{
+    emit cancelled();
+    QWidget::hideEvent(event);
+}
+
 bool TowerSelectionPopup::event(QEvent* event)
 {
     if (event->type() == QEvent::FocusOut || event->type() == QEvent::MouseButtonPress) {
-        emit cancelled();
         hide();
         return true;
     }
     return QWidget::event(event);
+}
+
+bool TowerSelectionPopup::eventFilter(QObject* obj, QEvent* event)
+{
+    for (auto it = m_buttons.begin(); it != m_buttons.end(); ++it) {
+        if (obj == it.value()) {
+            if (event->type() == QEvent::Enter) {
+                emit towerButtonHovered(it.key(), true);
+            } else if (event->type() == QEvent::Leave) {
+                emit towerButtonHovered(it.key(), false);
+            }
+        }
+    }
+    return QWidget::eventFilter(obj, event);
 }

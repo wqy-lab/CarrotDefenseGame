@@ -46,6 +46,10 @@ void InputHandler::handleMousePress(QMouseEvent* event)
     if (event->button() != Qt::LeftButton) return;
     if (!m_spatialGrid) return;
 
+    if (m_panelController && m_panelController->shouldSuppressClick()) {
+        return;
+    }
+
     QPointF g = m_spatialGrid->pixelToGrid(event->pos());
     int gx = static_cast<int>(std::floor(g.x()));
     int gy = static_cast<int>(std::floor(g.y()));

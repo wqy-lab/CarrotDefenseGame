@@ -28,6 +28,12 @@ public:
 
     void render();
 
+public slots:
+    void setSelectedCell(int gx, int gy);
+    void clearSelectedCell();
+    void showTowerPreview(TowerType type, int gx, int gy);
+    void hideTowerPreview();
+
 protected:
     void paintEvent(QPaintEvent* event) override;
 
@@ -40,11 +46,19 @@ private:
     void drawObstacles(QPainter& p);
     void drawHoverPreview(QPainter& p);
     void drawPriorityTarget(QPainter& p);
+    void drawSelectedCell(QPainter& p);
 
     GameController* m_gameController = nullptr;
     SpatialGrid* m_spatialGrid = nullptr;
     TowerManager* m_towerManager = nullptr;
     TowerPanel* m_towerPanel = nullptr;
+
+    int m_selectedGridX = -1;
+    int m_selectedGridY = -1;
+
+    TowerType m_previewType = TowerType::Arrow;
+    int m_previewGridX = -1;
+    int m_previewGridY = -1;
 };
 
 #endif

@@ -79,9 +79,27 @@ GameScene::GameScene(QWidget* parent)
     connect(m_panelController, &PanelController::hideTowerPanelRequested, this, &GameScene::onPanelControllerHideTowerPanel);
     connect(m_gameController, &GameController::statsChanged, m_panelController, &PanelController::onStatsChanged);
 
+    connect(m_panelController, &PanelController::towerSelectionShown,
+            m_gameRenderer, &GameRenderer::setSelectedCell);
+    connect(m_panelController, &PanelController::towerSelectionHidden,
+            m_gameRenderer, &GameRenderer::clearSelectedCell);
+
     // Selection popup connections
     connect(m_selectionPopup, &TowerSelectionPopup::towerSelected, m_panelController, &PanelController::onTowerSelectedFromPopup);
     connect(m_selectionPopup, &TowerSelectionPopup::cancelled, m_panelController, &PanelController::hideTowerSelectionPopup);
+
+    connect(m_towerPanel, &TowerPanel::panelHidden,
+            m_panelController, &PanelController::onTowerPanelHidden);
+
+    connect(m_selectionPopup, &TowerSelectionPopup::towerButtonHovered,
+            this, [this](TowerType type, bool hovered) {
+        if (hovered && m_selectionPopup->isVisible()) {
+            m_gameRenderer->showTowerPreview(type,
+                m_selectionPopup->gridX(), m_selectionPopup->gridY());
+        } else {
+            m_gameRenderer->hideTowerPreview();
+        }
+    });
 
     m_towerPanel->hide();
     m_selectionPopup->hide();

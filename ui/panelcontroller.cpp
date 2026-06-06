@@ -44,7 +44,13 @@ void PanelController::hideTowerPanel()
     if (m_towerManager) {
         m_towerManager->setSelectedTowerPtr(nullptr);
     }
+    m_suppressNextClick = true;
     emit hideTowerPanelRequested();
+}
+
+void PanelController::onTowerPanelHidden()
+{
+    m_suppressNextClick = true;
 }
 
 void PanelController::onUpgradeClicked()
@@ -94,12 +100,26 @@ void PanelController::showTowerSelectionPopup(int gridX, int gridY, const QPoint
     // Position popup near click but offset so it doesn't cover the cell
     QPointF cellCenter = m_spatialGrid->gridToPixel(gridX, gridY);
     QPoint adjustedPos = globalPos;
-    // Shift slightly to the right and down from click point
     adjustedPos += QPoint(10, 10);
+
+    QWidget* topWin = m_gameWidget->window();
+    QRect bounds = topWin->geometry();
+    int popupW = m_selectionPopup->width();
+    int popupH = m_selectionPopup->height();
+
+    if (adjustedPos.x() + popupW > bounds.right())
+        adjustedPos.setX(globalPos.x() - popupW - 10);
+    if (adjustedPos.y() + popupH > bounds.bottom())
+        adjustedPos.setY(globalPos.y() - popupH - 10);
+
+    adjustedPos.setX(qBound(bounds.left(), adjustedPos.x(), bounds.right() - popupW));
+    adjustedPos.setY(qBound(bounds.top(), adjustedPos.y(), bounds.bottom() - popupH));
 
     m_selectionPopup->move(adjustedPos);
     m_selectionPopup->show();
     m_selectionPopup->raise();
+
+    emit towerSelectionShown(gridX, gridY);
 }
 
 void PanelController::hideTowerSelectionPopup()
@@ -109,6 +129,17 @@ void PanelController::hideTowerSelectionPopup()
     }
     m_pendingGridX = -1;
     m_pendingGridY = -1;
+    m_suppressNextClick = true;
+    emit towerSelectionHidden();
+}
+
+bool PanelController::shouldSuppressClick()
+{
+    if (m_suppressNextClick) {
+        m_suppressNextClick = false;
+        return true;
+    }
+    return false;
 }
 
 void PanelController::onTowerSelectedFromPopup(TowerType type)

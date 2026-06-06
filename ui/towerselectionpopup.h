@@ -23,10 +23,13 @@ public:
 signals:
     void towerSelected(TowerType type);
     void cancelled();
+    void towerButtonHovered(TowerType type, bool hovered);
 
 protected:
     void showEvent(QShowEvent* event) override;
+    void hideEvent(QHideEvent* event) override;
     bool event(QEvent* event) override;
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
 private slots:
     void onTowerClicked(TowerType type);

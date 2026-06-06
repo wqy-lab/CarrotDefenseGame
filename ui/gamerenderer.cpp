@@ -37,10 +37,7 @@ void GameRenderer::paintEvent(QPaintEvent* event)
     drawEnemies(p);
     drawProjectiles(p);
 
-    if (m_towerManager && m_towerManager->isPlacingTower() && m_towerManager->showRange()) {
-        drawHoverPreview(p);
-    }
-
+    drawSelectedCell(p);
     drawPriorityTarget(p);
 
     if (m_gameController && m_gameController->isGameOver()) {
@@ -208,12 +205,24 @@ void GameRenderer::drawHoverPreview(QPainter& p)
     p.setBrush(QColor(100, 200, 100, 30));
     p.drawEllipse(center, rangePx, rangePx);
 
-    p.setPen(QPen(QColor(100, 200, 100), 2));
-    p.setBrush(QColor(100, 200, 100, 40));
-    p.drawRect(QRectF(
-        m_spatialGrid->offsetX() + hx * m_spatialGrid->cellSize() + 1,
-        m_spatialGrid->offsetY() + hy * m_spatialGrid->cellSize() + 1,
-        m_spatialGrid->cellSize() - 2, m_spatialGrid->cellSize() - 2));
+    double cs = m_spatialGrid->cellSize();
+    double ox = m_spatialGrid->offsetX();
+    double oy = m_spatialGrid->offsetY();
+    QRectF cellRect(ox + hx * cs, oy + hy * cs, cs, cs);
+
+    for (int i = 0; i < 3; ++i) {
+        double inset = i * 1.5;
+        int alpha = 60 - i * 18;
+        QRectF shadow(cellRect.x() + inset, cellRect.y() + inset,
+                      cellRect.width() - inset * 2, cellRect.height() - inset * 2);
+        p.setPen(QPen(QColor(0, 0, 0, alpha), 2));
+        p.setBrush(Qt::NoBrush);
+        p.drawRoundedRect(shadow, 6, 6);
+    }
+
+    p.setPen(QPen(QColor(255, 215, 0), 2));
+    p.setBrush(QColor(255, 215, 0, 15));
+    p.drawRoundedRect(cellRect, 6, 6);
 }
 
 void GameRenderer::drawPriorityTarget(QPainter& p)
@@ -258,4 +267,82 @@ void GameRenderer::drawPriorityTarget(QPainter& p)
                QPointF(center.x() + len, center.y()));
     p.drawLine(QPointF(center.x(), center.y() - len),
                QPointF(center.x(), center.y() + len));
+}
+
+void GameRenderer::drawSelectedCell(QPainter& p)
+{
+    if (!m_spatialGrid || m_selectedGridX < 0 || m_selectedGridY < 0) return;
+
+    double cs = m_spatialGrid->cellSize();
+    double ox = m_spatialGrid->offsetX();
+    double oy = m_spatialGrid->offsetY();
+    QRectF cellRect(ox + m_selectedGridX * cs, oy + m_selectedGridY * cs, cs, cs);
+
+    for (int i = 0; i < 3; ++i) {
+        double inset = i * 1.5;
+        int alpha = 60 - i * 18;
+        QRectF shadow(cellRect.x() + inset, cellRect.y() + inset,
+                      cellRect.width() - inset * 2, cellRect.height() - inset * 2);
+        p.setPen(QPen(QColor(0, 0, 0, alpha), 2));
+        p.setBrush(Qt::NoBrush);
+        p.drawRoundedRect(shadow, 6, 6);
+    }
+
+    p.setPen(QPen(QColor(255, 215, 0), 2));
+    p.setBrush(QColor(255, 215, 0, 15));
+    p.drawRoundedRect(cellRect, 6, 6);
+
+    if (m_previewGridX >= 0) {
+        const char* name = nullptr;
+        switch (m_previewType) {
+            case TowerType::Arrow:     name = "arrow"; break;
+            case TowerType::Cannon:    name = "cannon"; break;
+            case TowerType::Ice:       name = "ice"; break;
+            case TowerType::Poison:    name = "poison"; break;
+            case TowerType::Lightning: name = "lightning"; break;
+            case TowerType::Sun:       name = "sun"; break;
+        }
+        if (name) {
+            QString path = QString("assets/towers/%1_lv1.png").arg(name);
+            const QPixmap& tex = DataManager::instance().getTexture(path);
+            if (!tex.isNull()) {
+                p.save();
+                p.setOpacity(0.45);
+                p.drawPixmap(cellRect.toRect(), tex);
+                p.setOpacity(1.0);
+                p.restore();
+            }
+        }
+    }
+}
+
+void GameRenderer::setSelectedCell(int gx, int gy)
+{
+    m_selectedGridX = gx;
+    m_selectedGridY = gy;
+    update();
+}
+
+void GameRenderer::clearSelectedCell()
+{
+    m_selectedGridX = -1;
+    m_selectedGridY = -1;
+    m_previewGridX = -1;
+    m_previewGridY = -1;
+    update();
+}
+
+void GameRenderer::showTowerPreview(TowerType type, int gx, int gy)
+{
+    m_previewType = type;
+    m_previewGridX = gx;
+    m_previewGridY = gy;
+    update();
+}
+
+void GameRenderer::hideTowerPreview()
+{
+    m_previewGridX = -1;
+    m_previewGridY = -1;
+    update();
 }

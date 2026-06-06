@@ -34,11 +34,16 @@ public slots:
     void hideTowerSelectionPopup();
     void onTowerSelectedFromPopup(TowerType type);
     void onStatsChanged();
+    void onTowerPanelHidden();
+
+    bool shouldSuppressClick();
 
 private slots:
 
 signals:
     void hideTowerPanelRequested();
+    void towerSelectionShown(int gridX, int gridY);
+    void towerSelectionHidden();
 
 private:
     QWidget* m_gameWidget = nullptr;
@@ -50,6 +55,7 @@ private:
     Tower* m_currentTower = nullptr;
     int m_pendingGridX = -1;
     int m_pendingGridY = -1;
+    bool m_suppressNextClick = false;
 };
 
 #endif

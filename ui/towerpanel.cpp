@@ -74,11 +74,19 @@ TowerPanel::TowerPanel(QWidget* parent)
 
     connect(m_btnUpgrade, &QPushButton::clicked, this, &TowerPanel::onUpgradeClicked);
     connect(m_btnSell, &QPushButton::clicked, this, &TowerPanel::onSellClicked);
+
+    m_btnUpgrade->installEventFilter(this);
+    m_btnSell->installEventFilter(this);
 }
 
 void TowerPanel::showEvent(QShowEvent* event) {
     QWidget::showEvent(event);
     if (m_tower) updateInfo();
+}
+
+void TowerPanel::hideEvent(QHideEvent* event) {
+    emit panelHidden();
+    QWidget::hideEvent(event);
 }
 
 bool TowerPanel::event(QEvent* event) {
@@ -87,6 +95,17 @@ bool TowerPanel::event(QEvent* event) {
         return true;
     }
     return QWidget::event(event);
+}
+
+bool TowerPanel::eventFilter(QObject* obj, QEvent* event) {
+    if (event->type() == QEvent::Enter) {
+        if (obj == m_btnUpgrade) emit upgradeHovered(true);
+        else if (obj == m_btnSell) emit sellHovered(true);
+    } else if (event->type() == QEvent::Leave) {
+        if (obj == m_btnUpgrade) emit upgradeHovered(false);
+        else if (obj == m_btnSell) emit sellHovered(false);
+    }
+    return QWidget::eventFilter(obj, event);
 }
 
 void TowerPanel::setTower(Tower* tower) {

@@ -23,7 +23,7 @@ public:
 signals:
     void towerSelected(TowerType type);
     void cancelled();
-    void towerButtonHovered(TowerType type, bool hovered);
+    void towerButtonHovered(TowerType type, bool hovered, int gx, int gy);
 
 protected:
     void showEvent(QShowEvent* event) override;
@@ -44,6 +44,7 @@ private:
     QGridLayout* m_gridLayout = nullptr;
     QMap<TowerType, QPushButton*> m_buttons;
     QMap<TowerType, int> m_costs;
+    bool m_externalClose = false;
 };
 
 #endif

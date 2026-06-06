@@ -91,6 +91,7 @@ void TowerPanel::hideEvent(QHideEvent* event) {
 
 bool TowerPanel::event(QEvent* event) {
     if (event->type() == QEvent::FocusOut) {
+        m_externalClose = true;
         hide();
         return true;
     }
@@ -99,11 +100,24 @@ bool TowerPanel::event(QEvent* event) {
 
 bool TowerPanel::eventFilter(QObject* obj, QEvent* event) {
     if (event->type() == QEvent::Enter) {
-        if (obj == m_btnUpgrade) emit upgradeHovered(true);
-        else if (obj == m_btnSell) emit sellHovered(true);
+        if (obj == m_btnUpgrade && m_tower && m_btnUpgrade->isEnabled()) {
+            int curLvl = m_tower->level();
+            int nextLvl = qMin(curLvl + 1, Tower::MAX_LEVEL);
+            m_upgradeHovered = true;
+            emit upgradeHovered(true, m_tower->gridX(), m_tower->gridY(),
+                                m_tower->type(), curLvl, nextLvl);
+        } else if (obj == m_btnSell && m_tower) {
+            emit sellHovered(true, m_tower->gridX(), m_tower->gridY());
+        }
     } else if (event->type() == QEvent::Leave) {
-        if (obj == m_btnUpgrade) emit upgradeHovered(false);
-        else if (obj == m_btnSell) emit sellHovered(false);
+        if (obj == m_btnUpgrade && m_tower) {
+            int lvl = m_tower->level();
+            m_upgradeHovered = false;
+            emit upgradeHovered(false, m_tower->gridX(), m_tower->gridY(),
+                                m_tower->type(), lvl, lvl);
+        } else if (obj == m_btnSell) {
+            emit sellHovered(false, -1, -1);
+        }
     }
     return QWidget::eventFilter(obj, event);
 }
@@ -124,6 +138,12 @@ void TowerPanel::updateInfo() {
     if (m_tower->level() >= Tower::MAX_LEVEL) {
         m_btnUpgrade->setText("MAX");
         m_btnUpgrade->setEnabled(false);
+        if (m_upgradeHovered) {
+            int lvl = m_tower->level();
+            emit upgradeHovered(false, m_tower->gridX(), m_tower->gridY(),
+                                m_tower->type(), lvl, lvl);
+            m_upgradeHovered = false;
+        }
     } else {
         int upgradeCost = m_tower->upgradeCost();
         m_btnUpgrade->setText(QString("Upgrade: %1g").arg(upgradeCost));

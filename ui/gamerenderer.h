@@ -31,8 +31,10 @@ public:
 public slots:
     void setSelectedCell(int gx, int gy);
     void clearSelectedCell();
-    void showTowerPreview(TowerType type, int gx, int gy);
-    void hideTowerPreview();
+    void showTowerPreview(TowerType type, int level, int gx, int gy);
+    void showRangeCircle(int gx, int gy, double radiusPx);
+    void showSellHighlight(int gx, int gy);
+    void hideAllPreviews();
 
 protected:
     void paintEvent(QPaintEvent* event) override;
@@ -47,6 +49,9 @@ private:
     void drawHoverPreview(QPainter& p);
     void drawPriorityTarget(QPainter& p);
     void drawSelectedCell(QPainter& p);
+    void drawRangeCircle(QPainter& p);
+    void drawTowerPreview(QPainter& p);
+    void drawSellOverlay(QPainter& p);
 
     GameController* m_gameController = nullptr;
     SpatialGrid* m_spatialGrid = nullptr;
@@ -57,8 +62,18 @@ private:
     int m_selectedGridY = -1;
 
     TowerType m_previewType = TowerType::Arrow;
+    int m_previewLevel = 1;
     int m_previewGridX = -1;
     int m_previewGridY = -1;
+
+    bool m_showRange = false;
+    double m_rangeRadiusPx = 0;
+    int m_rangeGx = -1;
+    int m_rangeGy = -1;
+
+    bool m_showSellHighlight = false;
+    int m_sellHighlightGx = -1;
+    int m_sellHighlightGy = -1;
 };
 
 #endif

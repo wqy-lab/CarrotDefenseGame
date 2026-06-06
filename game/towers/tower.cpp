@@ -2,6 +2,8 @@
 #include "../enemies/enemy.h"
 #include "../config/datamanager.h"
 
+const int Tower::MAX_LEVEL;
+
 Tower::Tower(TowerType type, int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : m_type(type)
     , m_gridX(gridX), m_gridY(gridY), m_cellSize(cellSize)

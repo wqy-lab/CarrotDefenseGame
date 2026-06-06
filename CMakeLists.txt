@@ -125,6 +125,13 @@ set(PROJECT_SOURCES
     game/obstacles/obstaclefactory.h
 )
 
+if(WIN32)
+    list(APPEND PROJECT_SOURCES app.rc)
+endif()
+if(APPLE)
+    list(APPEND PROJECT_SOURCES assets/ui/icon.icns)
+endif()
+
 # Watch config JSON files for changes (trigger re-configure on edit)
 file(GLOB_RECURSE CONFIG_FILES CONFIGURE_DEPENDS "config/*.json")
 
@@ -147,6 +154,15 @@ else()
 endif()
 
 target_link_libraries(CarrotDefense PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+
+if(APPLE)
+    set_target_properties(CarrotDefense PROPERTIES
+        MACOSX_BUNDLE_ICON_FILE icon.icns
+    )
+    set_source_files_properties(assets/ui/icon.icns PROPERTIES
+        MACOSX_PACKAGE_LOCATION "Resources"
+    )
+endif()
 
 # Copy config directory to build output so the EXE can find game.json
 add_custom_command(TARGET CarrotDefense POST_BUILD

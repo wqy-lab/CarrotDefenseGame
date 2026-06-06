@@ -203,7 +203,6 @@ void GameScene::resetGame()
     m_gameController->resetGame();
     m_towerManager->towers().clear();
     m_panelController->hideTowerPanel();
-    m_panelController->clearSuppressFlag();
     update();
 }
 

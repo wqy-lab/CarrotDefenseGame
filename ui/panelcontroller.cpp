@@ -57,7 +57,6 @@ void PanelController::hideTowerPanel()
 
 void PanelController::onTowerPanelHidden()
 {
-    m_suppressNextClick = true;
     emit towerPanelHidden();
 }
 
@@ -145,21 +144,6 @@ void PanelController::hideTowerSelectionPopup()
 void PanelController::onSelectionPopupCancelled()
 {
     hideTowerSelectionPopup();
-    m_suppressNextClick = true;
-}
-
-bool PanelController::shouldSuppressClick()
-{
-    if (m_suppressNextClick) {
-        m_suppressNextClick = false;
-        return true;
-    }
-    return false;
-}
-
-void PanelController::clearSuppressFlag()
-{
-    m_suppressNextClick = false;
 }
 
 void PanelController::onTowerSelectedFromPopup(TowerType type)

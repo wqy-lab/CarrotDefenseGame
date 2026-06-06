@@ -90,22 +90,6 @@ void Enemy::draw(QPainter& p, double cellSize, double offsetX, double offsetY) c
     double hpR = m_hp / maxHp();
     QColor hpC = hpR > 0.5 ? QColor(76,175,80) : hpR > 0.25 ? QColor(255,193,7) : QColor(244,67,54);
     p.fillRect(QRectF(cx - barW / 2.0, cy - half - 6, barW * hpR, barH), hpC);
-
-    QRectF targetRect(cx - half, cy - half, scale, scale);
-    bool hasState = false;
-    double slowFactor = 1.0;
-    double poisonDps = 0.0;
-    for (const auto& [type, markers] : m_markers) {
-        for (const auto& m : markers) {
-            if (m->isActive()) {
-                if (m->speedFactor() < 1.0) hasState = true;
-                if (m->poisonDps() > 0) hasState = true;
-                slowFactor = std::min(slowFactor, m->speedFactor());
-                poisonDps = std::max(poisonDps, m->poisonDps());
-            }
-        }
-    }
-
     if (!m_textureTag.isEmpty()) {
         QString path = QString("assets/enemies/enemy_%1.png").arg(m_textureTag);
         const QPixmap& tex = DataManager::instance().getTexture(path);

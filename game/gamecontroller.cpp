@@ -90,6 +90,8 @@ void GameController::update(double dt, const std::vector<std::unique_ptr<Tower>>
     if (!m_gameRunning || m_paused || m_gameOver) return;
 
     if (dt > 0.1) dt = 0.1;
+    dt *= m_timeScale;
+    if (dt <= 0) return;
     updateGame(dt, towers);
 }
 
@@ -215,6 +217,16 @@ void GameController::updateGame(double dt, const std::vector<std::unique_ptr<Tow
     for (auto& p : m_projectiles) {
         if (p->hasHit()) {
             handleProjectileHit(*p);
+        }
+    }
+
+    // Notify tutorial if any enemy was killed this frame
+    if (m_onEnemyKilled) {
+        for (auto& e : m_enemies) {
+            if (e->isDead()) {
+                m_onEnemyKilled();
+                break;
+            }
         }
     }
 

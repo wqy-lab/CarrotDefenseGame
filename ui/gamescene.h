@@ -27,6 +27,7 @@ public:
     void startGame();
     void pauseGame();
     void resumeGame();
+    void resumeClock();
     void resetGame();
     bool isPaused() const;
     bool isRunning() const;

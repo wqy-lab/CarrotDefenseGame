@@ -772,3 +772,72 @@ void InputHandler::handleResize(int width, int height) {
 void setPriorityEnemy(Enemy* e) { m_priorityEnemy = e; m_priorityObstacle = nullptr; }
 void setPriorityObstacle(Obstacle* o) { m_priorityObstacle = o; m_priorityEnemy = nullptr; }
 ```
+
+---
+
+## 15. 新手教程系统
+
+### 15.1 概述
+
+教程以独立的 `level0` 关卡形式存在，玩家从主菜单点"开始游戏"直接进入。教程采用步骤状态机，通过事件过滤器和遮罩箭头引导玩家完成 7 个步骤。
+
+### 15.2 组件
+
+| 组件 | 类型 | 职责 |
+|------|------|------|
+| `TutorialController` | QObject | 步骤状态机，管理步骤切换、暂停/恢复、eventFilter |
+| `TutorialArrow` | QWidget | 半透明遮罩 + 挖洞高亮 + 箭头绘制 + 文字提示 |
+
+### 15.3 步骤推进机制
+
+| 步骤类型 | 完成条件 | 检测方式 |
+|----------|---------|---------|
+| `ClickContinue` | 玩家点击屏幕任意处 | Arrow 发射 `clicked()` 信号 → Controller 推进 |
+| `PlaceTower` | 指定格子成功放置塔 | 监听 `TowerManager::towersChanged` 信号检测 |
+| `ClickCell` | 玩家点击指定格子 | eventFilter 检测坐标 + QTimer 延迟推进 |
+| `TowerUpgraded` | 指定格子的塔升级到 ≥2 级 | 监听 `GameController::statsChanged` 信号检测 |
+| `EnemyKilled` | 任意敌人死亡 | GameController 回调通知 |
+
+### 15.4 遮罩系统
+
+TutorialArrow 通过 `setMask()` 实现交互步骤的点击过滤：
+
+```
+mask = 整屏区域 - 目标格子区域
+  → 目标格内：Qt 认为 Arrow 不存在于此点 → 点击穿透至底层 InputHandler
+  → 目标格外：Qt 认为 Arrow 存在于此点 → Arrow::mousePressEvent 吞掉事件
+```
+
+Arrow 同时覆写 `mousePressEvent`，对落入 mask 的点击调用 `event->accept()` 阻止事件冒泡到父控件。
+
+### 15.5 游戏暂停（timeScale）
+
+教程通过 `GameController::setTimeScale(0)` 冻结游戏时间，而非使用 `pauseGame()`。这使得 `isPaused()` 保持 false，InputHandler 不拦截输入，玩家在教程引导下仍可正常操作地图。
+
+### 15.6 与现有系统的集成点
+
+| 集成点 | 方式 |
+|--------|------|
+| `GameScene::startGame()` | 检测 `levelId == 0` 时创建 `TutorialController`，不启动 gameTimer |
+| `GameController::setOnEnemyKilled()` | 注册 lambda 回调，敌人死亡时通知教程 |
+| eventFilter | 安装于 GameScene，处理 ClickCell 点击检测和 resize |
+| Arrow::clicked 信号 | Controller 直接连接，处理 ClickContinue 步骤 |
+| `GameScene::resumeClock()` | 步骤 4 时启动 gameTimer 和 QElapsedTimer |
+| `TowerManager::towersChanged` | 检测塔放置 |
+| `GameController::statsChanged` | 检测塔升级 |
+
+### 15.7 教程结束
+
+`m_currentStep >= 7` 时调用清理：`removeEventFilter`、隐藏 Arrow、`setTimeScale(1.0)` 恢复游戏。Controller 自身随 GameScene 销毁（Qt parent 机制）。
+
+### 15.8 文件
+
+| 文件 | 说明 |
+|------|------|
+| `ui/tutorialcontroller.h/cpp` | 步骤状态机 |
+| `ui/tutorialarrow.h/cpp` | 遮罩 + 箭头 |
+| `config/levels/level0.json` | 教程关数据 |
+| `config/levels.json` | 含 `"id": 0, "name": "新手教程"` 条目 |
+| `game/gamecontroller.h/cpp` | 新增 `m_timeScale` 和 `setOnEnemyKilled` |
+| `ui/gamescene.cpp` | `startGame()` 中创建 TutorialController |
+```

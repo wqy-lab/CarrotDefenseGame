@@ -8,7 +8,19 @@ LightningBullet::LightningBullet(const QPointF& start, const QPointF& direction,
                                   int chainCount, const QColor& color)
     : Bullet(start, direction, damage, color)
     , m_chainCount(chainCount)
+    , m_lifetime(0.3)
+    , m_lifetimeLeft(0.3)
 {
+    m_chainPositions.push_back(start);  // 记录起始位置
+}
+
+void LightningBullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, CellEntities& cell)
+{
+    Bullet::update(dt, enemies, cell);
+    m_lifetimeLeft -= dt;
+    if (m_lifetimeLeft <= 0) {
+        m_active = false;
+    }
 }
 
 void LightningBullet::onHit(Enemy* enemy, std::vector<std::unique_ptr<Enemy>>& enemies, CellEntities& cell)
@@ -17,6 +29,7 @@ void LightningBullet::onHit(Enemy* enemy, std::vector<std::unique_ptr<Enemy>>& e
     enemy->takeDamage(m_damage);
 
     m_chainedEnemies.insert(enemy);
+    m_chainPositions.push_back(enemy->gridPos());  // 记录第一个命中敌人位置
     QPointF origin = enemy->gridPos();
 
     while (m_chainCount > 0) {
@@ -36,6 +49,7 @@ void LightningBullet::onHit(Enemy* enemy, std::vector<std::unique_ptr<Enemy>>& e
         }
         if (!nextTarget) break;
         m_chainedEnemies.insert(nextTarget);
+        m_chainPositions.push_back(nextTarget->gridPos());  // 记录连锁敌人位置
         nextTarget->takeDamage(m_damage);
         origin = nextTarget->gridPos();
         --m_chainCount;
@@ -46,35 +60,43 @@ void LightningBullet::draw(QPainter& p, double cellSize, double offsetX, double 
 {
     if (!m_active) return;
 
-    QPointF startPos(offsetX + m_startPos.x() * cellSize,
-                    offsetY + m_startPos.y() * cellSize);
-    QPointF endPos(offsetX + m_pos.x() * cellSize,
-                  offsetY + m_pos.y() * cellSize);
-
     p.setRenderHint(QPainter::Antialiasing, true);
     QPen pen(QColor(100, 180, 255), 2.5, Qt::SolidLine, Qt::RoundCap);
     p.setPen(pen);
 
-    QPointF mid((startPos.x() + endPos.x()) / 2.0, (startPos.y() + endPos.y()) / 2.0);
+    // 绘制每段闪电链
+    for (size_t i = 0; i + 1 < m_chainPositions.size(); ++i) {
+        const QPointF& start = m_chainPositions[i];
+        const QPointF& end = m_chainPositions[i + 1];
 
-    int j1 = rand() % 16 - 8;
-    int j2 = rand() % 16 - 8;
+        QPointF startPos(offsetX + start.x() * cellSize,
+                        offsetY + start.y() * cellSize);
+        QPointF endPos(offsetX + end.x() * cellSize,
+                      offsetY + end.y() * cellSize);
 
-    QPointF p1(startPos.x() + (mid.x() - startPos.x()) / 3.0 + j1,
-               startPos.y() + (mid.y() - startPos.y()) / 3.0 + j2);
-    QPointF p2(mid.x() + j2, mid.y() + j1);
-    QPointF p3(mid.x() + (endPos.x() - mid.x()) / 3.0 * 2.0 + j1,
-               mid.y() + (endPos.y() - mid.y()) / 3.0 * 2.0 - j2);
+        QPointF mid((startPos.x() + endPos.x()) / 2.0, (startPos.y() + endPos.y()) / 2.0);
 
-    QPainterPath path;
-    path.moveTo(startPos);
-    path.lineTo(p1);
-    path.lineTo(p2);
-    path.lineTo(p3);
-    path.lineTo(endPos);
-    p.drawPath(path);
+        int j1 = rand() % 16 - 8;
+        int j2 = rand() % 16 - 8;
 
-    QPen glow(QColor(255, 255, 255, 100), 1.0, Qt::SolidLine, Qt::RoundCap);
-    p.setPen(glow);
-    p.drawPath(path);
+        QPointF p1(startPos.x() + (mid.x() - startPos.x()) / 3.0 + j1,
+                   startPos.y() + (mid.y() - startPos.y()) / 3.0 + j2);
+        QPointF p2(mid.x() + j2, mid.y() + j1);
+        QPointF p3(mid.x() + (endPos.x() - mid.x()) / 3.0 * 2.0 + j1,
+                   mid.y() + (endPos.y() - mid.y()) / 3.0 * 2.0 - j2);
+
+        QPainterPath path;
+        path.moveTo(startPos);
+        path.lineTo(p1);
+        path.lineTo(p2);
+        path.lineTo(p3);
+        path.lineTo(endPos);
+        p.drawPath(path);
+
+        QPen glow(QColor(255, 255, 255, 100), 1.0, Qt::SolidLine, Qt::RoundCap);
+        p.setPen(glow);
+        p.drawPath(path);
+
+        p.setPen(pen);
+    }
 }

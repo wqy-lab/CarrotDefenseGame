@@ -38,6 +38,9 @@ void GameRenderer::paintEvent(QPaintEvent* event)
     drawProjectiles(p);
 
     drawSelectedCell(p);
+    drawTowerPreview(p);
+    drawRangeCircle(p);
+    drawSellOverlay(p);
     drawPriorityTarget(p);
 
     if (m_gameController && m_gameController->isGameOver()) {
@@ -291,29 +294,6 @@ void GameRenderer::drawSelectedCell(QPainter& p)
     p.setPen(QPen(QColor(255, 215, 0), 2));
     p.setBrush(QColor(255, 215, 0, 15));
     p.drawRoundedRect(cellRect, 6, 6);
-
-    if (m_previewGridX >= 0) {
-        const char* name = nullptr;
-        switch (m_previewType) {
-            case TowerType::Arrow:     name = "arrow"; break;
-            case TowerType::Cannon:    name = "cannon"; break;
-            case TowerType::Ice:       name = "ice"; break;
-            case TowerType::Poison:    name = "poison"; break;
-            case TowerType::Lightning: name = "lightning"; break;
-            case TowerType::Sun:       name = "sun"; break;
-        }
-        if (name) {
-            QString path = QString("assets/towers/%1_lv1.png").arg(name);
-            const QPixmap& tex = DataManager::instance().getTexture(path);
-            if (!tex.isNull()) {
-                p.save();
-                p.setOpacity(0.45);
-                p.drawPixmap(cellRect.toRect(), tex);
-                p.setOpacity(1.0);
-                p.restore();
-            }
-        }
-    }
 }
 
 void GameRenderer::setSelectedCell(int gx, int gy)
@@ -327,22 +307,109 @@ void GameRenderer::clearSelectedCell()
 {
     m_selectedGridX = -1;
     m_selectedGridY = -1;
-    m_previewGridX = -1;
-    m_previewGridY = -1;
-    update();
+    hideAllPreviews();
 }
 
-void GameRenderer::showTowerPreview(TowerType type, int gx, int gy)
+void GameRenderer::showTowerPreview(TowerType type, int level, int gx, int gy)
 {
+    if (level < 1) {
+        hideAllPreviews();
+        return;
+    }
     m_previewType = type;
+    m_previewLevel = level;
     m_previewGridX = gx;
     m_previewGridY = gy;
     update();
 }
 
-void GameRenderer::hideTowerPreview()
+void GameRenderer::showRangeCircle(int gx, int gy, double radiusPx)
+{
+    if (gx < 0 || gy < 0) {
+        m_showRange = false;
+        update();
+        return;
+    }
+    m_showRange = true;
+    m_rangeGx = gx;
+    m_rangeGy = gy;
+    m_rangeRadiusPx = radiusPx;
+    update();
+}
+
+void GameRenderer::showSellHighlight(int gx, int gy)
+{
+    if (gx < 0) {
+        m_showSellHighlight = false;
+    } else {
+        m_showSellHighlight = true;
+        m_sellHighlightGx = gx;
+        m_sellHighlightGy = gy;
+    }
+    update();
+}
+
+void GameRenderer::hideAllPreviews()
 {
     m_previewGridX = -1;
     m_previewGridY = -1;
+    m_showRange = false;
+    m_showSellHighlight = false;
     update();
+}
+
+void GameRenderer::drawRangeCircle(QPainter& p)
+{
+    if (!m_showRange || !m_spatialGrid) return;
+
+    QPointF center = m_spatialGrid->gridToPixel(m_rangeGx, m_rangeGy);
+    p.setPen(QPen(QColor(255, 255, 255, 100), 1.5, Qt::DashLine));
+    p.setBrush(QColor(255, 255, 255, 20));
+    p.drawEllipse(center, m_rangeRadiusPx, m_rangeRadiusPx);
+}
+
+void GameRenderer::drawTowerPreview(QPainter& p)
+{
+    if (m_previewGridX < 0 || !m_spatialGrid) return;
+
+    double cs = m_spatialGrid->cellSize();
+    double ox = m_spatialGrid->offsetX();
+    double oy = m_spatialGrid->offsetY();
+    double r = cs * 0.42;
+    QPointF center(ox + m_previewGridX * cs + cs / 2.0,
+                   oy + m_previewGridY * cs + cs / 2.0);
+    QRectF target(center.x() - r, center.y() - r, r * 2, r * 2);
+
+    const char* name = nullptr;
+    switch (m_previewType) {
+        case TowerType::Arrow:     name = "arrow"; break;
+        case TowerType::Cannon:    name = "cannon"; break;
+        case TowerType::Ice:       name = "ice"; break;
+        case TowerType::Poison:    name = "poison"; break;
+        case TowerType::Lightning: name = "lightning"; break;
+        case TowerType::Sun:       name = "sun"; break;
+    }
+    if (!name) return;
+
+    QString path = QString("assets/towers/%1_lv%2.png").arg(name).arg(m_previewLevel);
+    const QPixmap& tex = DataManager::instance().getTexture(path);
+    if (!tex.isNull()) {
+        p.save();
+        p.setOpacity(0.45);
+        p.drawPixmap(target.toRect(), tex);
+        p.setOpacity(1.0);
+        p.restore();
+    }
+}
+
+void GameRenderer::drawSellOverlay(QPainter& p)
+{
+    if (!m_showSellHighlight || !m_spatialGrid) return;
+
+    double cs = m_spatialGrid->cellSize();
+    double ox = m_spatialGrid->offsetX();
+    double oy = m_spatialGrid->offsetY();
+    QRectF cellRect(ox + m_sellHighlightGx * cs, oy + m_sellHighlightGy * cs, cs, cs);
+
+    p.fillRect(cellRect, QColor(200, 50, 50, 100));
 }

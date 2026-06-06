@@ -120,6 +120,7 @@ void TowerSelectionPopup::hideEvent(QHideEvent* event)
 bool TowerSelectionPopup::event(QEvent* event)
 {
     if (event->type() == QEvent::FocusOut || event->type() == QEvent::MouseButtonPress) {
+        m_externalClose = true;
         hide();
         return true;
     }
@@ -131,9 +132,9 @@ bool TowerSelectionPopup::eventFilter(QObject* obj, QEvent* event)
     for (auto it = m_buttons.begin(); it != m_buttons.end(); ++it) {
         if (obj == it.value()) {
             if (event->type() == QEvent::Enter) {
-                emit towerButtonHovered(it.key(), true);
+                emit towerButtonHovered(it.key(), true, m_gridX, m_gridY);
             } else if (event->type() == QEvent::Leave) {
-                emit towerButtonHovered(it.key(), false);
+                emit towerButtonHovered(it.key(), false, m_gridX, m_gridY);
             }
         }
     }

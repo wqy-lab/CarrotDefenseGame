@@ -46,6 +46,16 @@ void InputHandler::handleMousePress(QMouseEvent* event)
     if (event->button() != Qt::LeftButton) return;
     if (!m_spatialGrid) return;
 
+    if (m_panelController && m_panelController->isSelectionPopupVisible()) {
+        m_panelController->hideTowerSelectionPopup();
+        return;
+    }
+
+    if (m_panelController && m_panelController->isTowerPanelVisible()) {
+        m_panelController->hideTowerPanel();
+        return;
+    }
+
     if (m_panelController && m_panelController->shouldSuppressClick()) {
         return;
     }

@@ -16,6 +16,7 @@ void PanelController::showTowerPanel(Tower* tower)
 {
     if (!tower || !m_towerPanel || !m_spatialGrid) return;
 
+    m_towerPanelVisible = true;
     m_currentTower = tower;
     m_towerPanel->setTower(tower);
 
@@ -33,10 +34,15 @@ void PanelController::showTowerPanel(Tower* tower)
     m_towerPanel->move(globalPos);
     m_towerPanel->show();
     m_towerPanel->raise();
+
+    emit towerPanelShown(tower->gridX(), tower->gridY(),
+                         tower->range() * m_spatialGrid->cellSize());
 }
 
 void PanelController::hideTowerPanel()
 {
+    m_towerPanelVisible = false;
+    bool wasVisible = m_towerPanel && m_towerPanel->isVisible();
     if (m_towerPanel) {
         m_towerPanel->hide();
     }
@@ -44,13 +50,15 @@ void PanelController::hideTowerPanel()
     if (m_towerManager) {
         m_towerManager->setSelectedTowerPtr(nullptr);
     }
-    m_suppressNextClick = true;
     emit hideTowerPanelRequested();
+    if (wasVisible)
+        emit towerPanelHidden();
 }
 
 void PanelController::onTowerPanelHidden()
 {
     m_suppressNextClick = true;
+    emit towerPanelHidden();
 }
 
 void PanelController::onUpgradeClicked()
@@ -91,6 +99,7 @@ void PanelController::showTowerSelectionPopup(int gridX, int gridY, const QPoint
 {
     if (!m_selectionPopup || !m_gameController || !m_spatialGrid) return;
 
+    m_selectionPopupVisible = true;
     m_pendingGridX = gridX;
     m_pendingGridY = gridY;
 
@@ -124,13 +133,19 @@ void PanelController::showTowerSelectionPopup(int gridX, int gridY, const QPoint
 
 void PanelController::hideTowerSelectionPopup()
 {
+    m_selectionPopupVisible = false;
     if (m_selectionPopup) {
         m_selectionPopup->hide();
     }
     m_pendingGridX = -1;
     m_pendingGridY = -1;
-    m_suppressNextClick = true;
     emit towerSelectionHidden();
+}
+
+void PanelController::onSelectionPopupCancelled()
+{
+    hideTowerSelectionPopup();
+    m_suppressNextClick = true;
 }
 
 bool PanelController::shouldSuppressClick()
@@ -140,6 +155,11 @@ bool PanelController::shouldSuppressClick()
         return true;
     }
     return false;
+}
+
+void PanelController::clearSuppressFlag()
+{
+    m_suppressNextClick = false;
 }
 
 void PanelController::onTowerSelectedFromPopup(TowerType type)

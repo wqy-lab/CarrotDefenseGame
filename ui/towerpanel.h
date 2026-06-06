@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QLabel>
 #include <QPushButton>
+#include "../game/towers/tower.h"
 
 class Tower;
 
@@ -22,8 +23,8 @@ signals:
     void upgradeClicked();
     void sellClicked();
     void panelHidden();
-    void upgradeHovered(bool hovered);
-    void sellHovered(bool hovered);
+    void upgradeHovered(bool hovered, int gx, int gy, TowerType type, int currentLevel, int nextLevel);
+    void sellHovered(bool hovered, int gx, int gy);
 
 protected:
     void showEvent(QShowEvent* event) override;
@@ -42,6 +43,8 @@ private:
     QLabel* m_lblStats;
     QPushButton* m_btnUpgrade;
     QPushButton* m_btnSell;
+    bool m_upgradeHovered = false;
+    bool m_externalClose = false;
 };
 
 #endif

@@ -10,8 +10,6 @@
 #include "towerpanel.h"
 #include "towerselectionpopup.h"
 #include "../game/config/datamanager.h"
-#include <QVBoxLayout>
-#include <QElapsedTimer>
 
 GameScene::GameScene(QWidget* parent)
     : QWidget(parent)
@@ -83,21 +81,53 @@ GameScene::GameScene(QWidget* parent)
             m_gameRenderer, &GameRenderer::setSelectedCell);
     connect(m_panelController, &PanelController::towerSelectionHidden,
             m_gameRenderer, &GameRenderer::clearSelectedCell);
+    connect(m_panelController, &PanelController::towerPanelShown,
+            m_gameRenderer, &GameRenderer::showRangeCircle);
+    connect(m_panelController, &PanelController::towerPanelHidden,
+            m_gameRenderer, &GameRenderer::hideAllPreviews);
 
     // Selection popup connections
     connect(m_selectionPopup, &TowerSelectionPopup::towerSelected, m_panelController, &PanelController::onTowerSelectedFromPopup);
-    connect(m_selectionPopup, &TowerSelectionPopup::cancelled, m_panelController, &PanelController::hideTowerSelectionPopup);
+    connect(m_selectionPopup, &TowerSelectionPopup::cancelled,
+            m_panelController, &PanelController::onSelectionPopupCancelled);
 
     connect(m_towerPanel, &TowerPanel::panelHidden,
             m_panelController, &PanelController::onTowerPanelHidden);
+    connect(m_towerPanel, &TowerPanel::panelHidden,
+            m_gameRenderer, &GameRenderer::hideAllPreviews);
 
     connect(m_selectionPopup, &TowerSelectionPopup::towerButtonHovered,
-            this, [this](TowerType type, bool hovered) {
-        if (hovered && m_selectionPopup->isVisible()) {
-            m_gameRenderer->showTowerPreview(type,
-                m_selectionPopup->gridX(), m_selectionPopup->gridY());
+            this, [this](TowerType type, bool hovered, int gx, int gy) {
+        if (hovered) {
+            double cs = m_spatialGrid->cellSize();
+            m_gameRenderer->showTowerPreview(type, 1, gx, gy);
+            double range = DataManager::instance().getTowerStats(type, 1).range * cs;
+            m_gameRenderer->showRangeCircle(gx, gy, range);
         } else {
-            m_gameRenderer->hideTowerPreview();
+            m_gameRenderer->hideAllPreviews();
+        }
+    });
+
+    connect(m_towerPanel, &TowerPanel::upgradeHovered,
+            this, [this](bool hovered, int gx, int gy, TowerType type, int curLvl, int nextLvl) {
+        double cs = m_spatialGrid->cellSize();
+        if (hovered) {
+            m_gameRenderer->showTowerPreview(type, nextLvl, gx, gy);
+            double range = DataManager::instance().getTowerStats(type, nextLvl).range * cs;
+            m_gameRenderer->showRangeCircle(gx, gy, range);
+        } else {
+            m_gameRenderer->hideAllPreviews();
+            double range = DataManager::instance().getTowerStats(type, curLvl).range * cs;
+            m_gameRenderer->showRangeCircle(gx, gy, range);
+        }
+    });
+
+    connect(m_towerPanel, &TowerPanel::sellHovered,
+            this, [this](bool hovered, int gx, int gy) {
+        if (hovered) {
+            m_gameRenderer->showSellHighlight(gx, gy);
+        } else {
+            m_gameRenderer->showSellHighlight(-1, -1);
         }
     });
 
@@ -153,7 +183,8 @@ void GameScene::resetGame()
     m_overlay->hideOverlay();
     m_gameController->resetGame();
     m_towerManager->towers().clear();
-    m_towerPanel->hide();
+    m_panelController->hideTowerPanel();
+    m_panelController->clearSuppressFlag();
     update();
 }
 

@@ -7,18 +7,23 @@ class SlowMarker : public Marker {
 public:
     SlowMarker(double factor, double duration);
 
-    void update(double dt, Enemy* enemy) override;
+    void update(double dt) override;
     bool isActive() const override;
     std::unique_ptr<Marker> clone() const override;
     QString type() const override { return "slow"; }
-    double priority() const override { return 1.0 / m_factor; }  // 小factor=强=大priority
+    double priority() const override { return 1.0 / m_factor; }
 
-    double slowFactor() const { return m_factor; }
-    double duration() const { return m_duration; }
+    double speedFactor() const override;
+    double poisonDps() const override { return 0; }
+
+    int stackCount() const override { return 0; }
+    int stackThreshold() const override { return 0; }
+    void apply(int) override {}
+    std::unique_ptr<Marker> createTriggered(int) const override { return clone(); }
 
 private:
-    double m_factor;      // 减速系数，越小越慢
-    double m_duration;    // 剩余持续时间
+    double m_factor;
+    double m_duration;
 };
 
 #endif

@@ -36,8 +36,5 @@ void IceBullet::draw(QPainter& p, double cellSize, double offsetX, double offset
         double sz = cellSize * 0.8;
         p.drawPixmap(QRectF(-sz / 2.0, -sz / 2.0, sz, sz).toRect(), tex);
         p.restore();
-        return;
     }
-
-    Bullet::draw(p, cellSize, offsetX, offsetY);
 }

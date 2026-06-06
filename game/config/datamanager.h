@@ -17,6 +17,8 @@ struct MarkerConfig {
     QString type;
     double factor;
     double duration;
+    int stackThreshold = 0;
+    double freezeDuration = 0;
 };
 
 struct ObstacleEntry {

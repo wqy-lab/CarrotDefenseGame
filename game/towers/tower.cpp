@@ -2,6 +2,7 @@
 #include "../enemies/enemy.h"
 #include "../obstacles/obstacle.h"
 #include "../config/datamanager.h"
+#include "../markers/markerfactory.h"
 
 Tower::Tower(TowerType type, int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : m_type(type)
@@ -17,10 +18,9 @@ Tower::Tower(TowerType type, int gridX, int gridY, double cellSize, double offse
     for (int lvl = 1; lvl <= 3; ++lvl) {
         auto markerCfgs = DataManager::instance().getTowerMarkers(type, lvl);
         for (const auto& cfg : markerCfgs) {
-            if (cfg.type == "slow") {
-                m_markerTemplates[lvl].push_back(std::make_unique<SlowMarker>(cfg.factor, cfg.duration));
-            } else if (cfg.type == "poison") {
-                m_markerTemplates[lvl].push_back(std::make_unique<PoisonMarker>(cfg.factor, cfg.duration));
+            auto marker = MarkerFactory::instance().create(cfg);
+            if (marker) {
+                m_markerTemplates[lvl].push_back(std::move(marker));
             }
         }
     }

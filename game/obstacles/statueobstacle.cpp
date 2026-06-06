@@ -13,12 +13,5 @@ void StatueObstacle::drawBody(QPainter* p, const QPointF& center, int radius) co
     if (!tex.isNull()) {
         QRectF target(center.x() - radius, center.y() - radius, radius * 2, radius * 2);
         p->drawPixmap(target.toRect(), tex);
-        return;
     }
-
-    p->setBrush(QColor(189, 189, 189));
-    p->drawRect(QRectF(center.x() - radius * 0.4f, center.y() - radius * 0.5f,
-                       radius * 0.8f, radius * 1.1f));
-    p->setBrush(QColor(150, 150, 150));
-    p->drawEllipse(center, radius * 0.35f, radius * 0.35f);
 }

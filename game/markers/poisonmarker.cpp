@@ -7,11 +7,11 @@ PoisonMarker::PoisonMarker(double dps, double duration)
 {
 }
 
-void PoisonMarker::update(double dt, Enemy* enemy) {
-    if (!enemy || !isActive()) return;
-    enemy->applyPoison(m_dps, m_duration);
-    m_duration -= dt;
-    if (m_duration <= 0) m_duration = 0;
+void PoisonMarker::update(double dt) {
+    if (isActive()) {
+        m_duration -= dt;
+        if (m_duration <= 0) m_duration = 0;
+    }
 }
 
 bool PoisonMarker::isActive() const {
@@ -20,4 +20,8 @@ bool PoisonMarker::isActive() const {
 
 std::unique_ptr<Marker> PoisonMarker::clone() const {
     return std::make_unique<PoisonMarker>(m_dps, m_duration);
+}
+
+double PoisonMarker::poisonDps() const {
+    return isActive() ? m_dps : 0.0;
 }

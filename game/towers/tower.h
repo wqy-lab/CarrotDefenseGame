@@ -9,8 +9,6 @@
 #include <memory>
 #include <array>
 #include "../markers/marker.h"
-#include "../markers/slowmarker.h"
-#include "../markers/poisonmarker.h"
 #include "../obstacles/obstacle.h"
 
 class Enemy;

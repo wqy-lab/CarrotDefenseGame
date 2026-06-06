@@ -84,11 +84,8 @@ void Bullet::onObstacleHit(Obstacle* obstacle) {
 
 void Bullet::draw(QPainter& p, double cellSize, double offsetX, double offsetY) const
 {
-    if (!m_active) return;
-    p.setRenderHint(QPainter::Antialiasing);
-    p.setBrush(m_color);
-    p.setPen(Qt::NoPen);
-    QPointF pixelPos = QPointF(offsetX + m_pos.x() * cellSize,
-                               offsetY + m_pos.y() * cellSize);
-    p.drawEllipse(pixelPos, 5, 5);
+    Q_UNUSED(p);
+    Q_UNUSED(cellSize);
+    Q_UNUSED(offsetX);
+    Q_UNUSED(offsetY);
 }

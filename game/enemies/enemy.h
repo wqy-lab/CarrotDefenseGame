@@ -23,8 +23,6 @@ public:
     virtual ~Enemy() = default;
 
     void update(double dt);
-    void applySlow(double factor, double duration);
-    void applyPoison(double dps, double duration);
     void takeDamage(double dmg);
 
     bool isDead() const { return m_hp <= 0; }
@@ -41,7 +39,7 @@ public:
     int damage() const { return m_stats.damage; }
     double radius() const { return m_stats.radius; }
     QColor color() const { return m_stats.color; }
-    double speed() const { return m_stats.speed * m_slowFactor; }
+    double speed() const;  // 查询所有Marker，返回最终速度
 
     EnemyStats getStats() const { return m_stats; }
 
@@ -60,29 +58,16 @@ protected:
 
     EnemyStats m_stats;
 
-    virtual void drawBody(QPainter& p, const QPointF& center, int radius) const = 0;
-    void drawFace(QPainter& p, const QPointF& center, int r) const;
-
     double m_hp;
     QPointF m_gridPos;
     std::vector<QPointF> m_path;
     int m_pathIndex;
     bool m_reachedEnd;
 
-    double m_slowFactor;
-    double m_slowTimer;
-    double m_poisonDps;
-    double m_poisonTimer;
     bool m_goldAwarded;
     QString m_textureTag;
 
-    struct MarkerSlot {
-        std::unique_ptr<Marker> active;
-        std::vector<std::unique_ptr<Marker>> pending;  // 按 priority 降序
-    };
-    std::map<QString, MarkerSlot> m_markers;
-
-    void promoteNextPending(const QString& type);
+    std::map<QString, std::vector<std::unique_ptr<Marker>>> m_markers;
 
 public:
     bool consumeReward();

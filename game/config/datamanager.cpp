@@ -86,16 +86,19 @@ bool DataManager::loadShared(const QString& path)
             s.waveCount = lv["waveCount"].toInt(1);
             s.waveDelay = lv["waveDelay"].toDouble();
             m_towerStats[type][i+1] = s;
-        }
 
-        QJsonArray markers = obj["markers"].toArray();
-        for (int i = 0; i < markers.size() && i < 3; ++i) {
-            QJsonObject mk = markers[i].toObject();
-            MarkerConfig mc;
-            mc.type = mk["type"].toString();
-            mc.factor = mk["factor"].toDouble();
-            mc.duration = mk["duration"].toDouble();
-            m_towerMarkers[type][i+1].push_back(mc);
+            // 解析该级别的 markers（方案 B：每个 level 有独立的 markers 数组）
+            QJsonArray markerArr = lv["markers"].toArray();
+            for (const QJsonValue& mv : markerArr) {
+                QJsonObject mk = mv.toObject();
+                MarkerConfig mc;
+                mc.type = mk["type"].toString();
+                mc.factor = mk["factor"].toDouble();
+                mc.duration = mk["duration"].toDouble();
+                mc.stackThreshold = mk["stackThreshold"].toInt(0);
+                mc.freezeDuration = mk["freezeDuration"].toDouble(1.5);
+                m_towerMarkers[type][i+1].push_back(mc);
+            }
         }
     }
 

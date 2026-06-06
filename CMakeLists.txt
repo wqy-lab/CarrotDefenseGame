@@ -108,6 +108,10 @@ set(PROJECT_SOURCES
     game/markers/slowmarker.h
     game/markers/poisonmarker.cpp
     game/markers/poisonmarker.h
+    game/markers/markerfactory.cpp
+    game/markers/markerfactory.h
+    game/markers/freezemarker.cpp
+    game/markers/freezemarker.h
     game/cellentities.h
     game/config/datamanager.cpp
     game/config/datamanager.h

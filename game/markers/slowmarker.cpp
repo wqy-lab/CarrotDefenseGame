@@ -7,10 +7,11 @@ SlowMarker::SlowMarker(double factor, double duration)
 {
 }
 
-void SlowMarker::update(double dt, Enemy* enemy) {
-    if (!enemy || !isActive()) return;
-    enemy->applySlow(m_factor, m_duration);
-    m_duration -= dt;
+void SlowMarker::update(double dt) {
+    if (isActive()) {
+        m_duration -= dt;
+        if (m_duration <= 0) m_duration = 0;
+    }
 }
 
 bool SlowMarker::isActive() const {
@@ -19,4 +20,8 @@ bool SlowMarker::isActive() const {
 
 std::unique_ptr<Marker> SlowMarker::clone() const {
     return std::make_unique<SlowMarker>(m_factor, m_duration);
+}
+
+double SlowMarker::speedFactor() const {
+    return isActive() ? m_factor : 1.0;
 }

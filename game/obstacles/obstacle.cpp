@@ -66,8 +66,6 @@ void Obstacle::draw(QPainter* p, double cellSize, double offsetX, double offsetY
         QColor hpCol = hpRatio > 0.5 ? QColor(76, 175, 80) : hpRatio > 0.25 ? QColor(255, 193, 7) : QColor(244, 67, 54);
         p->fillRect(QRectF(center.x() - barW / 2.0, center.y() - r - 10, barW * hpRatio, barH), hpCol);
 
-        p->setPen(Qt::NoPen);
-        p->setBrush(m_color);
         drawBody(p, center, r);
     }
 }

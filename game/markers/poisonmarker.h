@@ -7,18 +7,23 @@ class PoisonMarker : public Marker {
 public:
     PoisonMarker(double dps, double duration);
 
-    void update(double dt, Enemy* enemy) override;
+    void update(double dt) override;
     bool isActive() const override;
     std::unique_ptr<Marker> clone() const override;
     QString type() const override { return "poison"; }
     double priority() const override { return m_dps; }
 
-    double poisonDps() const { return m_dps; }
-    double duration() const { return m_duration; }
+    double speedFactor() const override { return 1.0; }
+    double poisonDps() const override;
+
+    int stackCount() const override { return 0; }
+    int stackThreshold() const override { return 0; }
+    void apply(int) override {}
+    std::unique_ptr<Marker> createTriggered(int) const override { return clone(); }
 
 private:
-    double m_dps;         // 每秒中毒伤害
-    double m_duration;    // 剩余持续时间
+    double m_dps;
+    double m_duration;
 };
 
 #endif

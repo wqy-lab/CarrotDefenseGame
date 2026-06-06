@@ -1,5 +1,8 @@
 #include "lightningbullet.h"
 #include "../enemies/enemy.h"
+#include <QtMath>
+#include <QPainterPath>
+#include <cstdlib>
 
 LightningBullet::LightningBullet(const QPointF& start, const QPointF& direction, double damage,
                                   int chainCount, const QColor& color)
@@ -41,8 +44,37 @@ void LightningBullet::onHit(Enemy* enemy, std::vector<std::unique_ptr<Enemy>>& e
 
 void LightningBullet::draw(QPainter& p, double cellSize, double offsetX, double offsetY) const
 {
-    Q_UNUSED(p);
-    Q_UNUSED(cellSize);
-    Q_UNUSED(offsetX);
-    Q_UNUSED(offsetY);
+    if (!m_active) return;
+
+    QPointF startPos(offsetX + m_startPos.x() * cellSize,
+                    offsetY + m_startPos.y() * cellSize);
+    QPointF endPos(offsetX + m_pos.x() * cellSize,
+                  offsetY + m_pos.y() * cellSize);
+
+    p.setRenderHint(QPainter::Antialiasing, true);
+    QPen pen(QColor(100, 180, 255), 2.5, Qt::SolidLine, Qt::RoundCap);
+    p.setPen(pen);
+
+    QPointF mid((startPos.x() + endPos.x()) / 2.0, (startPos.y() + endPos.y()) / 2.0);
+
+    int j1 = rand() % 16 - 8;
+    int j2 = rand() % 16 - 8;
+
+    QPointF p1(startPos.x() + (mid.x() - startPos.x()) / 3.0 + j1,
+               startPos.y() + (mid.y() - startPos.y()) / 3.0 + j2);
+    QPointF p2(mid.x() + j2, mid.y() + j1);
+    QPointF p3(mid.x() + (endPos.x() - mid.x()) / 3.0 * 2.0 + j1,
+               mid.y() + (endPos.y() - mid.y()) / 3.0 * 2.0 - j2);
+
+    QPainterPath path;
+    path.moveTo(startPos);
+    path.lineTo(p1);
+    path.lineTo(p2);
+    path.lineTo(p3);
+    path.lineTo(endPos);
+    p.drawPath(path);
+
+    QPen glow(QColor(255, 255, 255, 100), 1.0, Qt::SolidLine, Qt::RoundCap);
+    p.setPen(glow);
+    p.drawPath(path);
 }

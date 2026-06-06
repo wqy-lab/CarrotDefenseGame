@@ -566,8 +566,15 @@ for (auto& marker : m_markerTemplates) {
 
 **BulletFactory 传递 markers**:
 ```cpp
-auto b = createBullet(btype, start, target, damage, splashRadius, color, std::move(markers));
+auto b = createBullet(btype, start, direction, damage, splashRadius, color, std::move(markers));
 b->setMarkers(std::move(markers));
+```
+
+**穿透机制**：Bullet 基类通过 `m_penetrationLeft` 计数和 `m_hitEnemies` / `m_hitObstacles` 列表实现穿透。命中敌人或障碍物时，如果 `m_penetrationLeft > 0` 则只扣减计数并继续飞行，否则 deactivate。`m_hitEnemies` / `m_hitObstacles` 追踪已击中的目标，避免同一帧内重复击中同一目标。
+
+**多发机制**：Bullet 构造函数接收 `direction` 归一化方向向量而非目标点。GameController 使用旋转矩阵计算分散方向：
+```cpp
+QPointF bulletDir = centerDir * cos(angle) + perpDir * sin(angle);
 ```
 
 ### 13.7 JSON 编码方案
@@ -578,9 +585,9 @@ shared.json 中每种塔包含 `levels[]` 和 `markers[]` 两个数组，每个�
 {
     "type": "Ice",
     "levels": [
-        { "cost": 60, "damage": 12.0, "range": 2.5, "attackSpeed": 1.0, "color": "#64B4FF" },
-        { "cost": 80, "damage": 16.0, "range": 2.6, "attackSpeed": 1.1, "color": "#64B4FF" },
-        { "cost": 100, "damage": 21.0, "range": 2.8, "attackSpeed": 1.2, "color": "#64B4FF" }
+        { "cost": 60, "damage": 12.0, "range": 2.5, "attackSpeed": 1.0, "color": "#64B4FF", "penetration": 0, "shotCount": 1, "spreadAngle": 0, "waveCount": 1, "waveDelay": 0 },
+        { "cost": 80, "damage": 16.0, "range": 2.6, "attackSpeed": 1.1, "color": "#64B4FF", "penetration": 0, "shotCount": 1, "spreadAngle": 0, "waveCount": 1, "waveDelay": 0 },
+        { "cost": 100, "damage": 21.0, "range": 2.8, "attackSpeed": 1.2, "color": "#64B4FF", "penetration": 0, "shotCount": 1, "spreadAngle": 0, "waveCount": 1, "waveDelay": 0 }
     ],
     "markers": [
         { "type": "slow", "factor": 0.5, "duration": 2.0 },
@@ -588,6 +595,11 @@ shared.json 中每种塔包含 `levels[]` 和 `markers[]` 两个数组，每个�
         { "type": "slow", "factor": 0.3, "duration": 3.0 }
     ]
 }
+```
+
+**示例：Arrow 满级多发配置**：
+```json
+{ "cost": 75, "damage": 34.0, "range": 16.5, "attackSpeed": 0.73, "color": "#8BC34A", "penetration": 3, "shotCount": 3, "spreadAngle": 30, "waveCount": 2, "waveDelay": 0.3 }
 ```
 
 **levels[] 字段**（纯攻击属性）：
@@ -599,6 +611,11 @@ shared.json 中每种塔包含 `levels[]` 和 `markers[]` 两个数组，每个�
 | `range` | double | 射程（grids） |
 | `attackSpeed` | double | 攻击间隔（秒） |
 | `color` | string | 渲染颜色 |
+| `penetration` | int | 穿透敌人数（0表示不穿透） |
+| `shotCount` | int | 每波子弹数（奇数，如3,5,7） |
+| `spreadAngle` | int | 分散角度总范围（度） |
+| `waveCount` | int | 连续发几波 |
+| `waveDelay` | double | 每波之间延迟（秒） |
 
 **markers[] 字段**（效果属性，通过 Marker 执行）：
 

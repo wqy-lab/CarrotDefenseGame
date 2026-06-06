@@ -29,12 +29,14 @@ public:
     void setMarkers(std::vector<std::unique_ptr<Marker>> markers) {
         m_markerTemplates = std::move(markers);
     }
+    void setPenetration(int n) { m_penetrationLeft = n; }
 
 protected:
-    Bullet(const QPointF& start, const QPointF& target, double damage, const QColor& color);
+    Bullet(const QPointF& start, const QPointF& direction, double damage, const QColor& color);
 
     virtual void onHit(Enemy* enemy, std::vector<std::unique_ptr<Enemy>>& enemies, CellEntities& cell) = 0;
     virtual void onObstacleHit(class Obstacle* obstacle);
+    virtual bool shouldDeactivate() const { return true; }
 
 protected:
     bool m_hit;
@@ -49,6 +51,9 @@ protected:
     bool m_active;
     int m_gridCols = 15;
     int m_gridRows = 12;
+    int m_penetrationLeft = 0;
+    std::vector<Enemy*> m_hitEnemies;
+    std::vector<Obstacle*> m_hitObstacles;
     std::vector<std::unique_ptr<Marker>> m_markerTemplates;
 };
 

@@ -2,10 +2,11 @@
 #include "../obstacles/obstacle.h"
 #include "../enemies/enemy.h"
 #include <QtMath>
+#include <algorithm>
 
-Bullet::Bullet(const QPointF& start, const QPointF& target, double damage, const QColor& color)
+Bullet::Bullet(const QPointF& start, const QPointF& direction, double damage, const QColor& color)
     : m_pos(start)
-    , m_direction(0.0, 0.0)
+    , m_direction(direction)
     , m_startPos(start)
     , m_maxDistance(0.0)
     , m_traveledDistance(0.0)
@@ -15,9 +16,6 @@ Bullet::Bullet(const QPointF& start, const QPointF& target, double damage, const
     , m_active(true)
     , m_hit(false)
 {
-    QPointF dir = target - start;
-    double dist = std::sqrt(dir.x()*dir.x() + dir.y()*dir.y());
-    if (dist > 0) m_direction = dir / dist;
 }
 
 void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, CellEntities& cell)
@@ -41,11 +39,19 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
 
     for (Obstacle* obs : cell.obstacles) {
         if (!obs->isActive()) continue;
+        if (std::find(m_hitObstacles.begin(), m_hitObstacles.end(), obs) != m_hitObstacles.end()) {
+            continue;
+        }
         if (m_pos.x() >= obs->gridX() && m_pos.x() < obs->gridX() + obs->gridWidth() &&
             m_pos.y() >= obs->gridY() && m_pos.y() < obs->gridY() + obs->gridHeight()) {
+            m_hitObstacles.push_back(obs);
             m_hit = true;
             onObstacleHit(obs);
-            m_active = false;
+            if (m_penetrationLeft > 0) {
+                --m_penetrationLeft;
+            } else {
+                m_active = false;
+            }
             return;
         }
     }
@@ -56,9 +62,17 @@ void Bullet::update(double dt, std::vector<std::unique_ptr<Enemy>>& enemies, Cel
         double d2 = d.x()*d.x() + d.y()*d.y();
         double hitRadius = 0.5;
         if (d2 <= hitRadius * hitRadius) {
+            if (std::find(m_hitEnemies.begin(), m_hitEnemies.end(), e) != m_hitEnemies.end()) {
+                continue;
+            }
+            m_hitEnemies.push_back(e);
             m_hit = true;
             onHit(e, enemies, cell);
-            m_active = false;
+            if (m_penetrationLeft > 0) {
+                --m_penetrationLeft;
+            } else if (shouldDeactivate()) {
+                m_active = false;
+            }
             return;
         }
     }

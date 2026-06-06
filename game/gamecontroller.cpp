@@ -144,28 +144,52 @@ void GameController::updateGame(double dt, const std::vector<std::unique_ptr<Tow
                         }
                     }
                 }
+                for (auto& o : m_obstacles) {
+                    if (!o->isActive()) continue;
+                    double ox = o->gridX() + o->gridWidth() / 2.0;
+                    double oy = o->gridY() + o->gridHeight() / 2.0;
+                    double oPixelX = m_spatialGrid->offsetX() + ox * m_spatialGrid->cellSize() + m_spatialGrid->cellSize() / 2.0;
+                    double oPixelY = m_spatialGrid->offsetY() + oy * m_spatialGrid->cellSize() + m_spatialGrid->cellSize() / 2.0;
+                    QPointF oPixel(oPixelX, oPixelY);
+                    QPointF d = oPixel - effectCenterPixel;
+                    double dist = std::sqrt(d.x()*d.x() + d.y()*d.y());
+                    if (dist <= effectRadiusPx) {
+                        double falloff = 1.0 - (dist / effectRadiusPx) * 0.5;
+                        o->takeDamage(effect.damage * falloff);
+                    }
+                }
             }
         } else if (RemoteTower* rt = dynamic_cast<RemoteTower*>(t.get())) {
             if (rt->hasPendingAttack()) {
                 auto attack = rt->getAttack();
-                BulletType btype = BulletType::Arrow;
-                if (ArrowTower* at = dynamic_cast<ArrowTower*>(t.get())) {
-                    btype = BulletType::Arrow;
-                } else if (CannonTower* ct = dynamic_cast<CannonTower*>(t.get())) {
-                    btype = BulletType::Cannon;
-                } else if (IceTower* it = dynamic_cast<IceTower*>(t.get())) {
-                    btype = BulletType::Ice;
-                } else if (PoisonTower* pt = dynamic_cast<PoisonTower*>(t.get())) {
-                    btype = BulletType::Poison;
-                } else if (LightningTower* lt = dynamic_cast<LightningTower*>(t.get())) {
-                    btype = BulletType::Lightning;
+
+                QPointF start = QPointF(t->gridX() + 0.5, t->gridY() + 0.5);
+                QPointF diff = attack.targetPos - start;
+                double dist = std::sqrt(diff.x()*diff.x() + diff.y()*diff.y());
+                QPointF centerDir = dist > 0 ? diff / dist : QPointF(1, 0);
+
+                int shotCount = attack.shotCount;
+                double angleStep = attack.spreadAngle * M_PI / 180.0 / std::max(shotCount - 1, 1);
+
+                for (int i = 0; i < shotCount; ++i) {
+                    double angle = (shotCount > 1) ? (i - (shotCount - 1) / 2.0) * angleStep : 0;
+                    double cosA = std::cos(angle);
+                    double sinA = std::sin(angle);
+                    QPointF perpDir(-centerDir.y(), centerDir.x());
+                    QPointF bulletDir = centerDir * cosA + perpDir * sinA;
+
+                    std::vector<std::unique_ptr<Marker>> bulletMarkers;
+                    for (const auto& m : attack.markers) {
+                        bulletMarkers.push_back(m->clone());
+                    }
+
+                    auto b = createBullet(t->type(), start, bulletDir,
+                                          attack.damage, attack.splashRadius, attack.color,
+                                          std::move(bulletMarkers), attack.penetration);
+                    b->setMaxDistance(attack.maxDistance);
+                    b->setGridBounds(m_spatialGrid->gridCols(), m_spatialGrid->gridRows());
+                    m_projectiles.push_back(std::move(b));
                 }
-                auto b = createBullet(btype, QPointF(t->gridX() + 0.5, t->gridY() + 0.5), attack.targetPos,
-                                      attack.damage, attack.splashRadius, attack.color,
-                                      std::move(attack.markers));
-                b->setMaxDistance(attack.maxDistance);
-                b->setGridBounds(m_spatialGrid->gridCols(), m_spatialGrid->gridRows());
-                m_projectiles.push_back(std::move(b));
             }
         }
     }

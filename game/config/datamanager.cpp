@@ -80,6 +80,11 @@ bool DataManager::loadShared(const QString& path)
             s.range = lv["range"].toDouble();
             s.attackSpeed = lv["attackSpeed"].toDouble();
             s.color = QColor(lv["color"].toString());
+            s.penetration = lv["penetration"].toInt();
+            s.shotCount = lv["shotCount"].toInt(1);
+            s.spreadAngle = lv["spreadAngle"].toInt();
+            s.waveCount = lv["waveCount"].toInt(1);
+            s.waveDelay = lv["waveDelay"].toDouble();
             m_towerStats[type][i+1] = s;
         }
 

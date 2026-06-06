@@ -11,6 +11,7 @@
 #include "../markers/marker.h"
 #include "../markers/slowmarker.h"
 #include "../markers/poisonmarker.h"
+#include "../obstacles/obstacle.h"
 
 class Enemy;
 
@@ -29,6 +30,11 @@ struct TowerStats {
     double range;
     double attackSpeed;
     QColor color;
+    int penetration = 0;
+    int shotCount = 1;
+    int spreadAngle = 0;
+    int waveCount = 1;
+    double waveDelay = 0;
 };
 
 class Tower {
@@ -56,6 +62,11 @@ public:
     double range() const { return m_baseStats[m_level].range; }
     double attackSpeed() const { return m_baseStats[m_level].attackSpeed; }
     QColor color() const { return m_baseStats[m_level].color; }
+    int penetration() const { return m_baseStats[m_level].penetration; }
+    int shotCount() const { return m_baseStats[m_level].shotCount; }
+    int spreadAngle() const { return m_baseStats[m_level].spreadAngle; }
+    int waveCount() const { return m_baseStats[m_level].waveCount; }
+    double waveDelay() const { return m_baseStats[m_level].waveDelay; }
     const std::vector<std::unique_ptr<Marker>>& markers() const { return m_markerTemplates[m_level]; }
 
 protected:
@@ -79,6 +90,10 @@ public:
     class Obstacle* priorityObstacle() const { return m_priorityObstacle; }
 
 protected:
+    Obstacle* findObstacleTarget() const;
+    double distTo(const Obstacle& o) const;
+    std::vector<std::unique_ptr<Marker>> cloneMarkers() const;
+
     class Enemy* m_priorityEnemy = nullptr;
     class Obstacle* m_priorityObstacle = nullptr;
 };

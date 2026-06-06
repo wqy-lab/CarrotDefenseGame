@@ -1,5 +1,6 @@
 #include "tower.h"
 #include "../enemies/enemy.h"
+#include "../obstacles/obstacle.h"
 #include "../config/datamanager.h"
 
 Tower::Tower(TowerType type, int gridX, int gridY, double cellSize, double offsetX, double offsetY)
@@ -66,4 +67,30 @@ void Tower::draw(QPainter& p, double cellSize, double offsetX, double offsetY) c
     p.drawEllipse(QPointF(cx, cy + r*0.2), r*0.8, r*0.3);
 
     drawBody(p, center, r);
+}
+
+Obstacle* Tower::findObstacleTarget() const
+{
+    if (m_priorityObstacle && m_priorityObstacle->isActive()) {
+        double r2 = range() * range();
+        double d2 = distTo(*m_priorityObstacle);
+        if (d2 <= r2) {
+            return m_priorityObstacle;
+        }
+    }
+    return nullptr;
+}
+
+double Tower::distTo(const Obstacle& o) const {
+    double dx = (o.gridX() + o.gridWidth() / 2.0) - (m_gridX + 0.5);
+    double dy = (o.gridY() + o.gridHeight() / 2.0) - (m_gridY + 0.5);
+    return dx*dx + dy*dy;
+}
+
+std::vector<std::unique_ptr<Marker>> Tower::cloneMarkers() const {
+    std::vector<std::unique_ptr<Marker>> result;
+    for (const auto& m : markers()) {
+        result.push_back(m->clone());
+    }
+    return result;
 }

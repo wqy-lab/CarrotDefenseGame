@@ -19,15 +19,14 @@ public:
         double damage;
         QColor color;
         std::vector<std::unique_ptr<Marker>> markers;
+        bool priorityObstacle = false;
     };
 
-    AreaEffect getEffect() { AreaEffect e; e.fired = m_pendingEffect.fired; e.center = m_pendingEffect.center; e.radius = m_pendingEffect.radius; e.damage = m_pendingEffect.damage; e.color = m_pendingEffect.color; e.markers = std::move(m_pendingEffect.markers); m_pendingEffect = AreaEffect(); return e; }
+    AreaEffect getEffect() { AreaEffect e; e.fired = m_pendingEffect.fired; e.center = m_pendingEffect.center; e.radius = m_pendingEffect.radius; e.damage = m_pendingEffect.damage; e.color = m_pendingEffect.color; e.markers = std::move(m_pendingEffect.markers); e.priorityObstacle = m_pendingEffect.priorityObstacle; m_pendingEffect = AreaEffect(); return e; }
     bool hasPendingEffect() const { return m_pendingEffect.fired; }
 
 protected:
     MeleeTower(TowerType type, int gridX, int gridY, double cellSize, double offsetX, double offsetY);
-
-    std::vector<std::unique_ptr<Marker>> cloneMarkers() const;
 
     double m_cooldown;
     double m_attackRadius;

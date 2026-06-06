@@ -1,6 +1,5 @@
 #include "remotetower.h"
 #include "../enemies/enemy.h"
-#include "../obstacles/obstacle.h"
 
 RemoteTower::RemoteTower(TowerType type, int gridX, int gridY, double cellSize, double offsetX, double offsetY)
     : Tower(type, gridX, gridY, cellSize, offsetX, offsetY)
@@ -10,6 +9,17 @@ RemoteTower::RemoteTower(TowerType type, int gridX, int gridY, double cellSize, 
 
 void RemoteTower::update(double dt, const std::vector<std::unique_ptr<Enemy>>& enemies)
 {
+    if (m_wavesRemaining > 0) {
+        m_waveTimer -= dt;
+        if (m_waveTimer <= 0) {
+            m_waveAttack.fired = true;
+            m_wavesRemaining--;
+            m_waveTimer = m_waveAttack.waveDelay;
+        } else {
+            return;
+        }
+    }
+
     if (m_cooldown > 0) { m_cooldown -= dt; return; }
 
     Obstacle* obsTarget = findObstacleTarget();
@@ -21,7 +31,28 @@ void RemoteTower::update(double dt, const std::vector<std::unique_ptr<Enemy>>& e
         m_pendingAttack.maxDistance = range();
         m_pendingAttack.splashRadius = 0;
         m_pendingAttack.color = color();
+        m_pendingAttack.penetration = penetration();
+        m_pendingAttack.shotCount = shotCount();
+        m_pendingAttack.spreadAngle = spreadAngle();
+        m_pendingAttack.waveCount = waveCount();
+        m_pendingAttack.waveDelay = waveDelay();
         m_pendingAttack.markers = cloneMarkers();
+        if (waveCount() > 1) {
+            m_waveAttack.targetPos = m_pendingAttack.targetPos;
+            m_waveAttack.damage = m_pendingAttack.damage;
+            m_waveAttack.maxDistance = m_pendingAttack.maxDistance;
+            m_waveAttack.splashRadius = m_pendingAttack.splashRadius;
+            m_waveAttack.color = m_pendingAttack.color;
+            m_waveAttack.penetration = m_pendingAttack.penetration;
+            m_waveAttack.shotCount = m_pendingAttack.shotCount;
+            m_waveAttack.spreadAngle = m_pendingAttack.spreadAngle;
+            m_waveAttack.waveCount = m_pendingAttack.waveCount;
+            m_waveAttack.waveDelay = m_pendingAttack.waveDelay;
+            m_waveAttack.fired = false;
+            m_waveAttack.markers = cloneMarkers();
+            m_wavesRemaining = waveCount() - 1;
+            m_waveTimer = waveDelay();
+        }
         m_cooldown = attackSpeed();
         return;
     }
@@ -35,7 +66,28 @@ void RemoteTower::update(double dt, const std::vector<std::unique_ptr<Enemy>>& e
     m_pendingAttack.maxDistance = range();
     m_pendingAttack.splashRadius = 0;
     m_pendingAttack.color = color();
+    m_pendingAttack.penetration = penetration();
+    m_pendingAttack.shotCount = shotCount();
+    m_pendingAttack.spreadAngle = spreadAngle();
+    m_pendingAttack.waveCount = waveCount();
+    m_pendingAttack.waveDelay = waveDelay();
     m_pendingAttack.markers = cloneMarkers();
+    if (waveCount() > 1) {
+        m_waveAttack.targetPos = m_pendingAttack.targetPos;
+        m_waveAttack.damage = m_pendingAttack.damage;
+        m_waveAttack.maxDistance = m_pendingAttack.maxDistance;
+        m_waveAttack.splashRadius = m_pendingAttack.splashRadius;
+        m_waveAttack.color = m_pendingAttack.color;
+        m_waveAttack.penetration = m_pendingAttack.penetration;
+        m_waveAttack.shotCount = m_pendingAttack.shotCount;
+        m_waveAttack.spreadAngle = m_pendingAttack.spreadAngle;
+        m_waveAttack.waveCount = m_pendingAttack.waveCount;
+        m_waveAttack.waveDelay = m_pendingAttack.waveDelay;
+        m_waveAttack.fired = false;
+        m_waveAttack.markers = cloneMarkers();
+        m_wavesRemaining = waveCount() - 1;
+        m_waveTimer = waveDelay();
+    }
     m_cooldown = attackSpeed();
 }
 
@@ -71,30 +123,4 @@ double RemoteTower::distTo(const Enemy& e) const {
     double dx = gp.x() - (m_gridX + 0.5);
     double dy = gp.y() - (m_gridY + 0.5);
     return dx*dx + dy*dy;
-}
-
-double RemoteTower::distTo(const Obstacle& o) const {
-    double dx = (o.gridX() + o.gridWidth() / 2.0) - (m_gridX + 0.5);
-    double dy = (o.gridY() + o.gridHeight() / 2.0) - (m_gridY + 0.5);
-    return dx*dx + dy*dy;
-}
-
-Obstacle* RemoteTower::findObstacleTarget() const
-{
-    if (m_priorityObstacle && m_priorityObstacle->isActive()) {
-        double r2 = range() * range();
-        double d2 = distTo(*m_priorityObstacle);
-        if (d2 <= r2) {
-            return m_priorityObstacle;
-        }
-    }
-    return nullptr;
-}
-
-std::vector<std::unique_ptr<Marker>> RemoteTower::cloneMarkers() const {
-    std::vector<std::unique_ptr<Marker>> result;
-    for (const auto& m : markers()) {
-        result.push_back(m->clone());
-    }
-    return result;
 }

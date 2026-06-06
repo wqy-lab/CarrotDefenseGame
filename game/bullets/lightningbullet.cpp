@@ -4,9 +4,9 @@
 #include <QPainterPath>
 #include <cstdlib>
 
-LightningBullet::LightningBullet(const QPointF& start, const QPointF& target, double damage,
+LightningBullet::LightningBullet(const QPointF& start, const QPointF& direction, double damage,
                                   int chainCount, const QColor& color)
-    : Bullet(start, target, damage, color)
+    : Bullet(start, direction, damage, color)
     , m_chainCount(chainCount)
 {
 }

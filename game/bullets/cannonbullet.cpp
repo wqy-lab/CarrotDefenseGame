@@ -3,9 +3,9 @@
 #include "../config/datamanager.h"
 #include <QtMath>
 
-CannonBullet::CannonBullet(const QPointF& start, const QPointF& target, double damage,
+CannonBullet::CannonBullet(const QPointF& start, const QPointF& direction, double damage,
                             double splashRadius, const QColor& color)
-    : Bullet(start, target, damage, color)
+    : Bullet(start, direction, damage, color)
     , m_splashRadius(splashRadius)
 {
 }

@@ -3,8 +3,8 @@
 #include "../config/datamanager.h"
 #include <QtMath>
 
-PoisonBullet::PoisonBullet(const QPointF& start, const QPointF& target, double damage, const QColor& color)
-    : Bullet(start, target, damage, color)
+PoisonBullet::PoisonBullet(const QPointF& start, const QPointF& direction, double damage, const QColor& color)
+    : Bullet(start, direction, damage, color)
 {
 }
 

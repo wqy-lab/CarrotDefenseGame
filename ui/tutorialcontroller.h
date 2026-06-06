@@ -2,6 +2,7 @@
 #define TUTORIALCONTROLLER_H
 
 #include <QObject>
+#include <QEvent>
 #include <QMouseEvent>
 #include <QPoint>
 #include <QString>
@@ -9,15 +10,15 @@
 
 class QWidget;
 class GameScene;
-class GameHUD;
 class SpatialGrid;
 class TowerManager;
-class GameOverlay;
+class GameController;
 
 enum class CompletionType {
     ClickContinue,
     PlaceTower,
     ClickCell,
+    TowerUpgraded,
     EnemyKilled,
 };
 
@@ -37,41 +38,43 @@ class TutorialController : public QObject {
 
 public:
     explicit TutorialController(GameScene* scene,
-                                GameHUD* hud,
                                 SpatialGrid* grid,
                                 TowerManager* tm,
-                                GameOverlay* overlay,
+                                GameController* gc,
                                 QWidget* parentWidget,
                                 QObject* parent = nullptr);
     ~TutorialController() = default;
 
     void start();
     bool isActive() const { return m_active; }
-    bool checkCompletion(QMouseEvent* event);
     void onEnemyKilled();
+
+protected:
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
 private slots:
     void nextStep();
+    void onArrowClicked();
 
 private:
-    void updateOverlay();
     void updateArrow();
-    QPoint arrowTargetPoint() const;
+    void checkAfterInput();
     QPoint arrowFromPoint() const;
+    QPoint arrowTargetPoint() const;
 
     GameScene* m_scene = nullptr;
-    GameHUD* m_hud = nullptr;
     SpatialGrid* m_grid = nullptr;
     TowerManager* m_tm = nullptr;
-    GameOverlay* m_overlay = nullptr;
+    GameController* m_gc = nullptr;
     QWidget* m_parentWidget = nullptr;
     TutorialArrow* m_arrow = nullptr;
 
-    TutorialStep m_steps[8];
+    TutorialStep m_steps[7];
     int m_currentStep = -1;
     bool m_active = false;
     bool m_killDetected = false;
-    bool m_waitingForContinue = true;
+
+    QMetaObject::Connection m_stepConnection;
 };
 
 #endif // TUTORIALCONTROLLER_H

@@ -25,6 +25,8 @@ public:
     void startGame();
     void pauseGame();
     void resumeGame();
+    void setTimeScale(double scale) { m_timeScale = scale; }
+    double timeScale() const { return m_timeScale; }
     void resetGame();
 
     bool isRunning() const { return m_gameRunning; }
@@ -69,6 +71,7 @@ private:
     bool m_paused = false;
     bool m_gameOver = false;
     bool m_victory = false;
+    double m_timeScale = 1.0;
     int m_gold = 200;
     int m_lives = 10;
     int m_levelId = 0;

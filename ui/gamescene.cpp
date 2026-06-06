@@ -114,18 +114,15 @@ void GameScene::startGame()
 {
     m_gameController->startGame();
 
-    // Initialize tutorial if this is the tutorial level (level 0)
-    if (m_gameController->levelId() == 0 && !m_tutorialController) {
-        m_tutorialController = new TutorialController(
-            this, m_gameHUD, m_spatialGrid, m_towerManager,
-            m_overlay, this, this);
-        m_inputHandler->setTutorialController(m_tutorialController);
-        m_gameController->setOnEnemyKilled([this]() {
-            if (m_tutorialController)
-                m_tutorialController->onEnemyKilled();
+    // Tutorial level
+    if (m_gameController->levelId() == 0) {
+        auto* tutorial = new TutorialController(
+            this, m_spatialGrid, m_towerManager, m_gameController, this);
+        m_gameController->setOnEnemyKilled([tutorial]() {
+            tutorial->onEnemyKilled();
         });
-        m_tutorialController->start();
-        return;  // Tutorial manages its own timing
+        tutorial->start();
+        return;
     }
 
     m_gameHUD->setPausedState(false);
@@ -143,6 +140,12 @@ void GameScene::resumeGame()
 {
     m_gameController->resumeGame();
     m_gameHUD->setPausedState(false);
+}
+
+void GameScene::resumeClock()
+{
+    m_clock.start();
+    m_gameTimer->start(16);
 }
 
 void GameScene::resetGame()

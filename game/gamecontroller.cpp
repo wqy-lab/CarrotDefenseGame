@@ -90,6 +90,8 @@ void GameController::update(double dt, const std::vector<std::unique_ptr<Tower>>
     if (!m_gameRunning || m_paused || m_gameOver) return;
 
     if (dt > 0.1) dt = 0.1;
+    dt *= m_timeScale;
+    if (dt <= 0) return;
     updateGame(dt, towers);
 }
 

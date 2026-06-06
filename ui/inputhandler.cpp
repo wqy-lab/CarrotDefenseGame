@@ -6,7 +6,6 @@
 #include "gamerenderer.h"
 #include "panelcontroller.h"
 #include "towerselectionpopup.h"
-#include "tutorialcontroller.h"
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QDebug>
@@ -42,12 +41,6 @@ void InputHandler::handleMouseMove(QMouseEvent* event)
 
 void InputHandler::handleMousePress(QMouseEvent* event)
 {
-    // Tutorial interception — takes priority over everything
-    if (m_tutorialController && m_tutorialController->isActive()) {
-        m_tutorialController->checkCompletion(event);
-        return;
-    }
-
     if (!m_gameController || !m_gameController->isRunning() ||
         m_gameController->isPaused() || m_gameController->isGameOver()) return;
     if (event->button() != Qt::LeftButton) return;

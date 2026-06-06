@@ -37,8 +37,6 @@ public slots:
     void onStatsChanged();
     void onTowerPanelHidden();
 
-    bool shouldSuppressClick();
-    void clearSuppressFlag();
     bool isSelectionPopupVisible() const { return m_selectionPopupVisible; }
     bool isTowerPanelVisible() const { return m_towerPanelVisible; }
 
@@ -61,7 +59,6 @@ private:
     Tower* m_currentTower = nullptr;
     int m_pendingGridX = -1;
     int m_pendingGridY = -1;
-    bool m_suppressNextClick = false;
     bool m_towerPanelVisible = false;
     bool m_selectionPopupVisible = false;
 };

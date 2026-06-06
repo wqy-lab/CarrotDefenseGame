@@ -1,11 +1,13 @@
 #include <QApplication>
 #include <QDebug>
+#include <QIcon>
 #include "ui/mainwindow.h"
 #include "game/config/datamanager.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    app.setWindowIcon(QIcon("assets/ui/icon.png"));
     app.setApplicationName("CarrotDefense");
     app.setApplicationVersion("1.0");
 

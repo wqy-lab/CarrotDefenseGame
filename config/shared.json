@@ -3,9 +3,9 @@
         {
             "type": "Arrow",
             "levels": [
-                { "cost": 40, "damage": 20.0, "range": 15.0, "attackSpeed": 0.6, "color": "#8BC34A", "penetration": 0, "shotCount": 1, "spreadAngle": 0, "waveCount": 1, "waveDelay": 0, "markers": [] },
-                { "cost": 55, "damage": 26.0, "range": 15.8, "attackSpeed": 0.66, "color": "#8BC34A", "penetration": 0, "shotCount": 1, "spreadAngle": 0, "waveCount": 1, "waveDelay": 0, "markers": [] },
-                { "cost": 75, "damage": 34.0, "range": 16.5, "attackSpeed": 0.73, "color": "#8BC34A", "penetration": 3, "shotCount": 3, "spreadAngle": 30, "waveCount": 2, "waveDelay": 0.3, "markers": [] }
+                { "cost": 40, "damage": 20.0, "range": 3.0, "attackSpeed": 0.6, "color": "#8BC34A", "penetration": 0, "shotCount": 1, "spreadAngle": 0, "waveCount": 1, "waveDelay": 0, "markers": [] },
+                { "cost": 55, "damage": 26.0, "range": 3.1, "attackSpeed": 0.66, "color": "#8BC34A", "penetration": 0, "shotCount": 1, "spreadAngle": 0, "waveCount": 1, "waveDelay": 0, "markers": [] },
+                { "cost": 75, "damage": 34.0, "range": 3.5, "attackSpeed": 0.73, "color": "#8BC34A", "penetration": 3, "shotCount": 3, "spreadAngle": 30, "waveCount": 2, "waveDelay": 0.3, "markers": [] }
             ]
         },
         {

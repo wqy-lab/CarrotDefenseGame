@@ -61,10 +61,10 @@ TutorialController::TutorialController(GameScene* scene,
     m_steps[3].showArrow = true;
     m_steps[3].arrowDir = ArrowDirection::Down;
     m_steps[3].arrowTargetX = 7;
-    m_steps[3].arrowTargetY = 6;
+    m_steps[3].arrowTargetY = 5;
     m_steps[3].completion = CompletionType::PlaceTower;
     m_steps[3].paramX = 7;
-    m_steps[3].paramY = 6;
+    m_steps[3].paramY = 5;
 
     // ── Step 4 ──
     m_steps[4].text = QString::fromUtf8(
@@ -80,10 +80,10 @@ TutorialController::TutorialController(GameScene* scene,
     m_steps[5].showArrow = true;
     m_steps[5].arrowDir = ArrowDirection::Down;
     m_steps[5].arrowTargetX = 7;
-    m_steps[5].arrowTargetY = 6;
+    m_steps[5].arrowTargetY = 5;
     m_steps[5].completion = CompletionType::TowerUpgraded;
     m_steps[5].paramX = 7;
-    m_steps[5].paramY = 6;
+    m_steps[5].paramY = 5;
 
     // ── Step 6 ──
     m_steps[6].text = QString::fromUtf8(
@@ -91,10 +91,10 @@ TutorialController::TutorialController(GameScene* scene,
         "摧毁后获得金币并腾出空地放置新塔！");
     m_steps[6].showArrow = true;
     m_steps[6].arrowDir = ArrowDirection::Down;
-    m_steps[6].arrowTargetX = 3;
+    m_steps[6].arrowTargetX = 7;
     m_steps[6].arrowTargetY = 4;
     m_steps[6].completion = CompletionType::ClickCell;
-    m_steps[6].paramX = 3;
+    m_steps[6].paramX = 7;
     m_steps[6].paramY = 4;
 }
 
